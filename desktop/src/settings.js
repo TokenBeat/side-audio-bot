@@ -1092,6 +1092,8 @@ function renderSkinOptions(selected) {
 
 function render() {
   gatewayUrl.value = settings.gatewayUrl
+  desktopLanguage.value = settings.language || 'auto'
+  applyLanguage(desktopLanguage.value)
   renderSkinOptions(settings.orbSkin)
   const hideValue = String(settings.autoHideSeconds ?? 120)
   autoHideSeconds.querySelector('[data-custom]')?.remove()
@@ -1109,8 +1111,6 @@ function render() {
   wakeWordEnabled.checked = settings.wakeWordEnabled || false
   orbBloubAutoState.checked = settings.orbBloubAutoState || false
   orbBloubFixedShape.checked = settings.orbBloubFixedShape || false
-  desktopLanguage.value = settings.language || 'auto'
-  applyLanguage(desktopLanguage.value)
   recordingWakeShortcut = false
   renderWakeShortcut()
   dashscopeApiKey.value = settings.dashscopeApiKey || ''
