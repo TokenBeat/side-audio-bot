@@ -61,7 +61,7 @@ test('preserves ENOENT when a local ACP executable cannot be spawned', {
 }, async () => {
   const client = new AcpProcessClient({
     label: 'Missing Agent',
-    command: '__qwen_audio_agent_missing_acp__',
+    command: '__side_audio_bot_missing_acp__',
   })
 
   await assert.rejects(client.start(), error => {

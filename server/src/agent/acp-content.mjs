@@ -5,7 +5,7 @@ import {
 
 function resourceUri(part, index) {
   const filename = String(part.filename || `attachment-${index + 1}`)
-  return `qwen-audio-agent://input/${encodeURIComponent(filename)}`
+  return `side-audio-bot://input/${encodeURIComponent(filename)}`
 }
 
 function isTextMime(mime) {

@@ -1,7 +1,7 @@
 export const MAX_INPUT_PARTS = 16
 export const MAX_INPUT_FILE_BYTES = 8 * 1024 * 1024
 export const MAX_INPUT_TOTAL_FILE_BYTES = 12 * 1024 * 1024
-export const INPUT_REF_META_KEY = 'qwen-audio-agent/inputRef'
+export const INPUT_REF_META_KEY = 'side-audio-bot/inputRef'
 
 // Local paths are resolved and inlined by trusted clients (such as the TUI).
 // Never let a remote client turn the Gateway into an arbitrary local-file

@@ -51,17 +51,17 @@ test('serves the shared Session tools over authenticated stateless MCP', async (
     tool.name,
     Object.keys(tool.inputSchema.properties || {}).sort(),
   ]))
-  assert.deepEqual(schemas.qwen_audio_agent_sessions_list, ['limit', 'query'])
+  assert.deepEqual(schemas.side_audio_bot_sessions_list, ['limit', 'query'])
   assert.deepEqual(
-    schemas.qwen_audio_agent_session_start,
+    schemas.side_audio_bot_session_start,
     ['prompt', 'title'],
   )
   assert.deepEqual(
-    schemas.qwen_audio_agent_session_send,
+    schemas.side_audio_bot_session_send,
     ['prompt', 'session_id'],
   )
   const result = await client.callTool({
-    name: 'qwen_audio_agent_sessions_list',
+    name: 'side_audio_bot_sessions_list',
     arguments: { query: 'project' },
   })
   assert.deepEqual(calls, [['list', { query: 'project' }]])
@@ -70,7 +70,7 @@ test('serves the shared Session tools over authenticated stateless MCP', async (
     'one',
   )
   const started = await client.callTool({
-    name: 'qwen_audio_agent_session_start',
+    name: 'side_audio_bot_session_start',
     arguments: { prompt: 'build project' },
   })
   assert.deepEqual(calls.at(-1), ['start', { prompt: 'build project' }])
@@ -82,7 +82,7 @@ test('serves the shared Session tools over authenticated stateless MCP', async (
     },
   }), true)
   const updated = await client.callTool({
-    name: 'qwen_audio_agent_sessions_list',
+    name: 'side_audio_bot_sessions_list',
     arguments: { query: 'updated-project' },
   })
   assert.deepEqual(calls.at(-1), [

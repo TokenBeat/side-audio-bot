@@ -1,4 +1,4 @@
-// qwen-audio-agent 文本 CLI:连接网关 /api/realtime,打字对话 + 任务管理。
+// side-audio-bot 文本 CLI:连接网关 /api/realtime,打字对话 + 任务管理。
 // 与 Web/TUI 同一会话体系;不采音(connect 时 voiceEnabled=false,回复以文字流呈现)。
 import { createInterface } from 'node:readline'
 import { pathToFileURL } from 'node:url'
@@ -16,8 +16,8 @@ const RST = `${ESC}[0m`
 
 export function parseArguments(argv) {
   const options = {
-    url: process.env.QWEN_AUDIO_AGENT_URL || 'http://127.0.0.1:3101',
-    sessionId: process.env.QWEN_AUDIO_AGENT_SESSION_ID || 'cli-main',
+    url: process.env.SIDE_AUDIO_BOT_URL || 'http://127.0.0.1:3101',
+    sessionId: process.env.SIDE_AUDIO_BOT_SESSION_ID || 'cli-main',
   }
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--url' && argv[index + 1]) options.url = argv[++index]
@@ -70,7 +70,7 @@ function cookieFrom(response) {
 export async function runCli(options = parseArguments(process.argv.slice(2))) {
   if (options.help) {
     process.stdout.write(
-      `qwen-audio-agent 文本 CLI\n\n用法:npm run tui:text -- [--url URL] [--session ID]\n\n${helpText()}\n`,
+      `side-audio-bot 文本 CLI\n\n用法:npm run tui:text -- [--url URL] [--session ID]\n\n${helpText()}\n`,
     )
     return
   }
@@ -79,7 +79,7 @@ export async function runCli(options = parseArguments(process.argv.slice(2))) {
   const cookie = cookieFrom(healthResponse)
   const health = await healthResponse.json()
   if (!healthResponse.ok) {
-    throw new Error(health.backend?.error || 'qwen-audio-agent 或后台 Agent 尚未就绪')
+    throw new Error(health.backend?.error || 'side-audio-bot 或后台 Agent 尚未就绪')
   }
   const headers = cookie ? { Cookie: cookie } : {}
 

@@ -53,7 +53,7 @@ function latestVisibleActivity(activity = []) {
     && item.tool !== 'invalid'
     && !(
       item.kind === 'text'
-      && String(item.text || '').trim().startsWith('<qwen_audio_agent_request>')
+      && String(item.text || '').trim().startsWith('<side_audio_bot_request>')
     )
   ))
   return visible.findLast(item => (

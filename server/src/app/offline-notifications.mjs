@@ -17,7 +17,7 @@ export function installOfflineNotifications({
       if (event.type === 'task.progress.check') {
         if (current.workState !== 'active') return
         parentPort?.postMessage({
-          type: 'qwen-audio-agent:offline-notification',
+          type: 'side-audio-bot:offline-notification',
           task: {
             id: current.id,
             objective: current.objective,
@@ -29,7 +29,7 @@ export function installOfflineNotifications({
       }
       if (current.notificationStatus !== 'pending') return
       parentPort?.postMessage({
-        type: 'qwen-audio-agent:offline-notification',
+        type: 'side-audio-bot:offline-notification',
         task: {
           id: current.id,
           objective: current.objective,

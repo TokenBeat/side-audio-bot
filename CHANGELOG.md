@@ -14,7 +14,7 @@
 - TUI 新增持久化全屏输入区与多模态附件输入，并完善文字、语音和后台任务结果的
   交付一致性。
 - 新增统一的 Agent Skill 安装与管理能力，并在桌面版与 CLI 间共享 Skill 工作区。
-- 新增 Qwen Audio Agent Car 示例，展示实时语音 Agent 在车载场景中的完整应用。
+- 新增 Side Audio Bot Car 示例，展示实时语音 Agent 在车载场景中的完整应用。
 
 ## 1.10.1
 
@@ -55,7 +55,7 @@
 - 重构前台个性化与记忆：明确核心规则、助手画像、用户偏好和长期记忆的边界，
   改用可读的 Markdown 文档与原子记忆操作，并保留旧数据迁移。
 - Web UI 支持英文界面：浏览器语言为非中文时自动显示英文文案，中文环境
-  保持原有文案不变；可通过 localStorage 键 `qwen-audio-lang` 手动指定语言。
+  保持原有文案不变；可通过 localStorage 键 `side-audio-lang` 手动指定语言。
 - 修复后台任务受理、取消与持久化提醒恢复中的可靠性问题。
 
 ## 1.8.0
@@ -83,7 +83,7 @@
 - 修复快捷键唤醒后前台语音连接无法恢复的问题；修复静音期间唤醒词监听失效。
 - 内置 computer-use：每个后台 Agent Session 自动注入 open-computer-use 内置 MCP
   （点击/输入/截屏类工具），后台 Agent 未配置 computer-use 能力时开箱可用；
-  CLI 与桌面版均支持，可用 QWEN_AUDIO_AGENT_COMPUTER_USE=off 关闭。
+  CLI 与桌面版均支持，可用 SIDE_AUDIO_BOT_COMPUTER_USE=off 关闭。
 - 文档双语化：README 英文优先展示（中文版移至 README_ZH），主题文档中英文
   平行并存；新增 Qwen3-TTS 中文稳定配置指南；修复 CI 依赖漏洞。
 
@@ -100,7 +100,7 @@
 
 - 新增定时提醒与进度查询：语音创建一次性或周期性提醒，任务完成、需要授权或到期时
   自动唤醒桌面悬浮球并播报结果。
-- 新增语音唤醒词“你好千问”：空闲超时后桌面端进入休眠，麦克风保持本地监听，说出
+- 新增语音唤醒词“你好煤球”：空闲超时后桌面端进入休眠，麦克风保持本地监听，说出
   唤醒词即可恢复对话；休眠超时与自动隐藏合并为统一的“自动休眠”设置。
 - 桌面版支持 Linux 打包（AppImage + deb）；桌面版数据目录与 CLI 完全隔离，两者
   可同时运行互不干扰。
@@ -118,7 +118,7 @@
 
 ## 1.4.1
 
-- 新增后台 Agent 一键安装：CLI 提供 `qwenaudio install <名称>`，桌面设置页可直接
+- 新增后台 Agent 一键安装：CLI 提供 `sideaudio install <名称>`，桌面设置页可直接
   安装未就绪的后台；安装过程复用官方 npm 包或安装脚本，并按需补齐 ACP 适配器。
 - 桌面悬浮球改为隐藏与唤回体验：支持菜单栏、全局快捷键和语音工具控制，隐藏期间
   保留 Gateway 与后台任务，重新显示后恢复前台语音连接。
@@ -212,14 +212,14 @@
 
 - 统一后台 Setup：OpenCode 和 OpenClaw 优先使用用户安装，并提供固定 npm 包
   自动下载兜底；配置百炼 API Key 和后台模型后可自动完成模型接入。其他 Agent
-  暂时要求用户自行安装配置。新增只读 `qwenaudio setup` 检查及可复用的 JSON 输出。
+  暂时要求用户自行安装配置。新增只读 `sideaudio setup` 检查及可复用的 JSON 输出。
 - 统一 ACP Session 模型覆盖：默认不发送模型设置；显式配置时按标准
   `category: model` 强制设置并验证全部受管 Session，失败时明确报错；新建和
   恢复 Session 的默认模型选择完全交由后台 Agent。后台模型只保留统一配置入口
-  `QWEN_AUDIO_AGENT_BACKEND_MODEL`，不再提供各 Agent 专属的模型变量；模型 ID
+  `SIDE_AUDIO_BOT_BACKEND_MODEL`，不再提供各 Agent 专属的模型变量；模型 ID
   和显示名称匹配不区分大小写，并使用后台返回的规范 ID 完成设置，兼容 Qoder
   等使用不透明模型 ID 的 ACP 后端。
-- 统一后台进程归属：所有后台实例均由 qwen-audio-agent 启动和回收；OpenClaw
+- 统一后台进程归属：所有后台实例均由 side-audio-bot 启动和回收；OpenClaw
   始终使用独立 Gateway、运行状态和 Session 存储，同时复用用户已有能力配置，
   不再连接或影响用户常驻 Gateway。
 - 加强协调 Session 与结果交付：恢复失效时自动建立新的协调 Session，任务完成后
@@ -301,7 +301,7 @@
   安全政策、贡献说明和第三方组件声明。
 - macOS 正式构建启用 hardened runtime、Developer ID 签名与公证；保留独立的
   本地未签名构建命令。
-- 公开仓库迁移至 QwenAudio 组织；固定 GitHub Actions 提交并收紧工作流权限，
+- 公开仓库迁移至 TokenBeat 组织；固定 GitHub Actions 提交并收紧工作流权限，
   补充隐私说明、Dependabot 和结构化 Issue/PR 模板。
 
 ## 0.2.0

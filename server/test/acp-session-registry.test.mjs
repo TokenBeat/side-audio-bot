@@ -12,7 +12,7 @@ import test from 'node:test'
 import { AcpSessionRegistry } from '../src/agent/acp-session-registry.mjs'
 
 test('preserves legacy coordinator records while persisting project directories', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-acp-registry-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-acp-registry-'))
   const filePath = join(directory, 'acp-sessions.json')
   try {
     writeFileSync(filePath, JSON.stringify({
@@ -53,7 +53,7 @@ test('preserves legacy coordinator records while persisting project directories'
 })
 
 test('quarantines a corrupt Session index before accepting new state', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-acp-corrupt-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-acp-corrupt-'))
   const filePath = join(directory, 'acp-sessions.json')
   const warnings = []
   try {
@@ -84,7 +84,7 @@ test('quarantines a corrupt Session index before accepting new state', () => {
 })
 
 test('quarantines an unsupported Session index version', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-acp-version-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-acp-version-'))
   const filePath = join(directory, 'acp-sessions.json')
   try {
     writeFileSync(filePath, JSON.stringify({

@@ -19,7 +19,7 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url))
 
-// The renderer bridge the orb page expects (window.qwenAudioAgentDesktop).
+// The renderer bridge the orb page expects (window.sideAudioBotDesktop).
 export const ORB_PRELOAD_PATH = resolve(here, 'preload.cjs')
 
 export const ORB_WINDOW_SIZE = Object.freeze({
@@ -61,7 +61,7 @@ export function orbWindowOptions({
     alwaysOnTop: true,
     hasShadow: false,
     backgroundColor: '#00000000',
-    title: 'qwen-audio-agent',
+    title: 'side-audio-bot',
     autoHideMenuBar: true,
     skipTaskbar: true,
     show: false,

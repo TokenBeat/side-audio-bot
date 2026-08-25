@@ -939,17 +939,17 @@ export class AcpBackendAdapter {
 
   coordinatorInstructions(message) {
     const sessionInstructions = this.profile.sessionInstructions || [
-      'The qwen_audio_agent MCP tools are the only interface for opening,',
+      'The side_audio_bot MCP tools are the only interface for opening,',
       'continuing, querying, and cancelling third-layer project Sessions.',
       'session_start and session_send are asynchronous. After either returns',
       'status=started, return the delegated response required by the request',
       'envelope and stop this turn. Never poll it in the same turn.',
     ].join(' ')
     return transformPromptText(message, content => [
-      '<qwen_audio_agent_backend_instructions>',
+      '<side_audio_bot_backend_instructions>',
       BACKEND_AGENT_INSTRUCTIONS,
       sessionInstructions,
-      '</qwen_audio_agent_backend_instructions>',
+      '</side_audio_bot_backend_instructions>',
       '',
       content,
     ].join('\n'))
@@ -1007,9 +1007,9 @@ export class AcpBackendAdapter {
     const pendingFacts = this.pendingCoordinatorFacts.get(ownerKey) || []
     const prompt = pendingFacts.length
       ? transformPromptText(message, content => [
-          '<qwen_audio_agent_reconciliation>',
+          '<side_audio_bot_reconciliation>',
           ...pendingFacts.map(fact => JSON.stringify(fact)),
-          '</qwen_audio_agent_reconciliation>',
+          '</side_audio_bot_reconciliation>',
           '以上是 Gateway 已执行并验证的控制结果。请更新你的上下文，不要重复执行。',
           '',
           content,
@@ -1138,7 +1138,7 @@ export class AcpBackendAdapter {
 
   delegationResultPrompt(result, coordinationRunId) {
     return [
-      '<qwen_audio_agent_delegation_result>',
+      '<side_audio_bot_delegation_result>',
       JSON.stringify({
         request_id: clean(coordinationRunId),
         delegation_id: result.id,
@@ -1146,7 +1146,7 @@ export class AcpBackendAdapter {
         directory: result.directory,
         result: clean(result.content).slice(0, MAX_DELEGATION_RESULT_CHARS),
       }, null, 2),
-      '</qwen_audio_agent_delegation_result>',
+      '</side_audio_bot_delegation_result>',
       '这是由 Gateway 验证并关联到当前请求的第三层 Session 最终结果。',
       '请只整理该可信结果并生成 presentation。',
       '返回当前 request_id 的 completed 最终 presentation；',
@@ -1386,12 +1386,12 @@ export class AcpBackendAdapter {
     if (!busy) {
       try {
         const instruction = this.profile.cancelInstruction?.(record)
-          || `请调用 qwen_audio_agent_session_cancel 取消 delegation_id=${record.id}。`
+          || `请调用 side_audio_bot_session_cancel 取消 delegation_id=${record.id}。`
         await this.coordinatorControl(workId, [
-          '<qwen_audio_agent_control kind="cancel">',
+          '<side_audio_bot_control kind="cancel">',
           instruction,
           '工具返回后只简短确认，不要做其他工作。',
-          '</qwen_audio_agent_control>',
+          '</side_audio_bot_control>',
         ].join('\n'), { ownerId, signal })
         return {
           route: 'coordinator',
@@ -1431,15 +1431,15 @@ export class AcpBackendAdapter {
       })
     }
     const instruction = this.profile.statusInstruction?.(record)
-      || `请调用 qwen_audio_agent_session_status 查询 delegation_id=${record.id}。`
+      || `请调用 side_audio_bot_session_status 查询 delegation_id=${record.id}。`
     const result = await this.coordinatorControl(workId, [
-      '<qwen_audio_agent_control kind="status">',
+      '<side_audio_bot_control kind="status">',
       instruction,
       clean(question)
         ? `用户的具体问题：${clean(question)}`
         : '请自然地说明当前状态。',
       '只根据工具结果返回 completed/respond JSON，不要扫描项目或执行任务。',
-      '</qwen_audio_agent_control>',
+      '</side_audio_bot_control>',
     ].join('\n'), { ownerId, signal })
     return this.resultEnvelope(result, record)
   }

@@ -108,11 +108,13 @@ if (isMain) {
   if (packages.length !== 1) throw new Error('npm pack 返回了意外的包数量')
   const files = new Set(packages[0].files.map(file => file.path))
   const required = [
-    'cli/bin/qwenaudio.mjs',
+    'cli/bin/sideaudio.mjs',
     'config/codebuddy/workspace/.codebuddy/models.json',
     'CONTRIBUTING.md',
     'docs/architecture.md',
     'docs/architecture-overview.png',
+    'docs/architecture-overview.html',
+    'docs/architecture-overview-en.html',
     'NOTICE',
     'PRIVACY.md',
     'SECURITY.md',

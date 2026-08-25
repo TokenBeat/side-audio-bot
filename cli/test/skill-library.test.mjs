@@ -38,7 +38,7 @@ test('runs the pinned skills.sh package through npx argv', () => {
 
   // 版本可用环境变量覆盖（对齐 *_PACKAGE 惯例）。
   assert.equal(
-    skillsCliPackage({ QWEN_AUDIO_AGENT_SKILLS_CLI_PACKAGE: 'skills@9.9.9' }),
+    skillsCliPackage({ SIDE_AUDIO_BOT_SKILLS_CLI_PACKAGE: 'skills@9.9.9' }),
     'skills@9.9.9',
   )
   assert.match(skillsCliPackage({}), /^skills@\d/)
@@ -162,7 +162,7 @@ test('every backend definition declares its skills contract', () => {
 })
 
 function lockFixture(skills) {
-  const homeDirectory = mkdtempSync(join(tmpdir(), 'qwaudio-skill-home-'))
+  const homeDirectory = mkdtempSync(join(tmpdir(), 'sideaudio-skill-home-'))
   if (skills) {
     mkdirSync(resolve(homeDirectory, '.agents'), { recursive: true })
     writeFileSync(

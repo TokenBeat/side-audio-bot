@@ -7,7 +7,7 @@ import { TaskManager } from '../src/task/task-manager.mjs'
 import { TaskStore } from '../src/task/task-store.mjs'
 
 test('persists final work and notification delivery state', async () => {
-  const filePath = join(mkdtempSync(join(tmpdir(), 'qwen-audio-agent-')), 'tasks.json')
+  const filePath = join(mkdtempSync(join(tmpdir(), 'side-audio-bot-')), 'tasks.json')
   const first = new TaskManager({ store: new TaskStore({ filePath }) })
   const work = first.create({
     objective: '保存结果',
@@ -96,7 +96,7 @@ test('reattaches a persisted delegated run when its adapter supports recovery', 
 
 test('coalesces high-frequency task activity into a deferred atomic write', async () => {
   const filePath = join(mkdtempSync(
-    join(tmpdir(), 'qwen-audio-agent-'),
+    join(tmpdir(), 'side-audio-bot-'),
   ), 'tasks.json')
   const store = new TaskStore({ filePath, deferredDelayMs: 60_000 })
 
@@ -112,7 +112,7 @@ test('coalesces high-frequency task activity into a deferred atomic write', asyn
 
 test('a synchronous terminal save supersedes an older deferred activity write', async () => {
   const filePath = join(mkdtempSync(
-    join(tmpdir(), 'qwen-audio-agent-'),
+    join(tmpdir(), 'side-audio-bot-'),
   ), 'tasks.json')
   const store = new TaskStore({ filePath, deferredDelayMs: 60_000 })
 

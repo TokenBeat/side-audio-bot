@@ -1,6 +1,6 @@
 # 使用 Hugging Face speech-to-speech 前台
 
-qwen-audio-agent 也可以连接用户自行运行的
+side-audio-bot 也可以连接用户自行运行的
 [Hugging Face speech-to-speech](https://github.com/huggingface/speech-to-speech)。
 它将 VAD、STT、LLM 和 TTS 组合成 OpenAI Realtime 兼容服务，整条语音链路既可以
 完全运行在本地，也可以按需替换其中的模型或服务。Gateway 只连接 Realtime 接口，
@@ -36,7 +36,7 @@ speech-to-speech \
 选择适合 CPU 的更小本地模型；LLM 还可以指向本机运行的 vLLM / llama.cpp，或通过
 OpenAI 兼容端点指向百炼等云端模型。具体参数见 speech-to-speech 官方文档。
 
-## 接入 qwen-audio-agent
+## 接入 side-audio-bot
 
 在 `config.env` 中设置：
 

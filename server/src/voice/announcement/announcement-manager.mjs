@@ -384,10 +384,10 @@ export function formatWorkResults(announcements) {
   ].filter(Boolean).join('\n'))
   return [
     '[COMPLETE]',
-    '<qwen_audio_agent_work_results>',
+    '<side_audio_bot_work_results>',
     '以下是先前提交工作的最终结果，不是用户的新请求。',
     ...blocks,
-    '</qwen_audio_agent_work_results>',
+    '</side_audio_bot_work_results>',
   ].join('\n')
 }
 

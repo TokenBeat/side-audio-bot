@@ -69,7 +69,7 @@ function eventId() {
 export function normalizeRealtimeProviderId(providerId) {
   // The car example exposes one DashScope realtime provider. The selected
   // concrete model is configured through QWEN_AUDIO_REALTIME_MODEL, matching
-  // the main qwen-audio-agent runtime.
+  // the main side-audio-bot runtime.
   void providerId
   return QWEN_AUDIO_REALTIME_PROVIDER_ID
 }
@@ -115,7 +115,7 @@ function buildInstructions(config = {}) {
 ${voiceContextPrompt}
 ` : ''
 
-  return `你是 Qwen Audio Agent Car 的端到端语音入口，当前角色是${soul}。
+  return `你是 Side Audio Bot Car 的端到端语音入口，当前角色是${soul}。
 ${currentTimePrompt}
 ${contextBlock}
 

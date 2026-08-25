@@ -6,7 +6,7 @@ import test from 'node:test'
 import { MemoryAudit } from '../src/conversation/memory-audit.mjs'
 
 test('appends one JSON line per event with private permissions', t => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwen-audio-agent-audit-'))
+  const directory = mkdtempSync(join(tmpdir(), 'side-audio-bot-audit-'))
   t.after(() => rmSync(directory, { recursive: true }))
   const filePath = join(directory, 'state/memory-audit.jsonl')
   const audit = new MemoryAudit({ filePath, now: () => 1000 })
@@ -41,7 +41,7 @@ test('disables itself after a write failure instead of throwing', t => {
   const warnings = []
   // A regular file used as a directory segment fails mkdirSync on every
   // platform (unlike /dev/null, which only exists on POSIX systems).
-  const directory = mkdtempSync(join(tmpdir(), 'qwen-audio-agent-audit-fail-'))
+  const directory = mkdtempSync(join(tmpdir(), 'side-audio-bot-audit-fail-'))
   t.after(() => rmSync(directory, { recursive: true }))
   const blocker = join(directory, 'blocker')
   writeFileSync(blocker, 'not a directory')

@@ -1,11 +1,11 @@
-# Qwen Audio Agent
+# Side Audio Bot
 
 [中文](README_ZH.md) | [English](README.md)
 
-[![CI](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/qwen-audio-agent)](https://www.npmjs.com/package/qwen-audio-agent)
+[![CI](https://github.com/TokenBeat/side-audio-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/TokenBeat/side-audio-bot/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/side-audio-bot)](https://www.npmjs.com/package/side-audio-bot)
 [![node](https://img.shields.io/badge/node-%E2%89%A522.22.2-brightgreen)](https://nodejs.org/)
-[![license](https://img.shields.io/github/license/QwenAudio/qwen-audio-agent)](LICENSE)
+[![license](https://img.shields.io/github/license/TokenBeat/side-audio-bot)](LICENSE)
 [![WeChat](https://img.shields.io/badge/WeChat-%E5%8A%A0%E5%85%A5%E8%AE%A8%E8%AE%BA-07C160?logo=wechat&logoColor=white)](#交流与分享)
 
 ## Agent，始终在场
@@ -14,37 +14,37 @@
 
 交流应该是连续的，Agent 也应该始终在场。
 
-所以，我们做了 **qwen-audio-agent**——让 Agent 持续交流、持续工作、持续在场的实时语音运行时。无论是聊天、思考，还是处理任务，Agent 都始终在这场对话里。它会倾听，会回应，也会在任务完成时自然地告诉你：
+所以，我们做了 **side-audio-bot**——让 Agent 持续交流、持续工作、持续在场的实时语音运行时。无论是聊天、思考，还是处理任务，Agent 都始终在这场对话里。它会倾听，会回应，也会在任务完成时自然地告诉你：
 
 “已经好了。”
 
 ## News
 
-- **2026-08-20 · [v1.11.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.11.0)**
+- **2026-08-20 · [v1.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.11.0)**
   🧩 开放可嵌入 Gateway 与 Realtime Provider 扩展；🛠️ 支持安装与管理 Agent Skill；📎 TUI 支持多模态输入；🎨 皮肤动画联动运行状态。
-- **2026-08-13 · [v1.10.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.10.0)**
+- **2026-08-13 · [v1.10.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.10.0)**
   🐋 新增实验性 DeepSeek Harness 后台接入，支持一键安装。
-- **2026-08-13 · [v1.9.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.9.0)**
+- **2026-08-13 · [v1.9.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.9.0)**
   🧩 桌面任务卡实时展示 Agent 进度；🔎 后台 Agent 选择更清晰、支持搜索；🎙️ 支持 Qwen3.5-Omni Realtime 前台模型接入。
-- **2026-08-09 · [v1.8.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.8.0)**
+- **2026-08-09 · [v1.8.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.8.0)**
   🆕 新增 Qwen Code 后台；🔧 修复已知问题。
-- **2026-08-07 · [v1.7.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.7.0)**
+- **2026-08-07 · [v1.7.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.7.0)**
   🎨 悬浮球开放自定义外观，兼容 [Awesome Codex Pet](https://codexpet.top/) 社区画廊的宠物包；🪟 优化 Windows 后台 Agent 启动。
-- **2026-08-06 · [v1.6.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.6.0)**
+- **2026-08-06 · [v1.6.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.6.0)**
   🪟 桌面版正式支持 Windows；🧠 新增无感记忆，会话结束后自动提取。
-- **2026-08-05 · [v1.5.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.5.0)**
-  ⏰ 新增定时提醒与进度查询；🗣️ 新增语音唤醒词“你好千问”；🐧 桌面版支持 Linux 打包；桌面版数据目录与 CLI 隔离。
-- **2026-08-04 · [v1.4.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.4.0)**
+- **2026-08-05 · [v1.5.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.5.0)**
+  ⏰ 新增定时提醒与进度查询；🗣️ 新增语音唤醒词“你好煤球”；🐧 桌面版支持 Linux 打包；桌面版数据目录与 CLI 隔离。
+- **2026-08-04 · [v1.4.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.4.0)**
   🧠 新增个性化规则与清单管理；桌面版支持自动休眠与快捷键唤醒。
-- **2026-08-03 · [v1.3.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.3.0)**
+- **2026-08-03 · [v1.3.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.3.0)**
   🎙️ 新增 [🤗 speech-to-speech](https://github.com/huggingface/speech-to-speech) 前台接入，支持本地部署 VAD、STT、LLM 与 TTS 全链路。
-- **2026-08-01 · [v1.2.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.2.0)**
+- **2026-08-01 · [v1.2.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.2.0)**
   ⚡ 桌面版新增自动更新，优化启动速度与后台 Agent 检测。
-- **2026-07-31 · [v1.1.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.1.0)**
+- **2026-07-31 · [v1.1.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.1.0)**
   🤝 新增 Kimi Code CLI 后台，原生 ACP 接入。
-- **2026-07-30 · [v1.0.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.0.0)**
+- **2026-07-30 · [v1.0.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.0.0)**
   🚀 正式版发布，推出内置 Gateway 的 macOS 桌面版。
-- **2026-07-28 · [v0.9.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v0.9.0)**
+- **2026-07-28 · [v0.9.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.9.0)**
   🌍 项目正式开源，后台 Agent 统一接入 ACP 架构。
 
 ## 对话继续，任务也在继续
@@ -67,7 +67,9 @@ https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
 
 ## 参考架构
 
-![qwen-audio-agent 原理图](docs/architecture-overview.png)
+![side-audio-bot 原理图](docs/architecture-overview.html)
+
+> 交互式架构概览：打开 [`docs/architecture-overview.html`](docs/architecture-overview.html) 查看可切换主题、可导出图片的架构图。
 
 能直接回答的问题会立即回答；需要工具或持续处理时，任务会交给后台 Agent。
 整个过程中，用户面对的始终是同一个助理。
@@ -75,7 +77,7 @@ https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
 <details open>
 <summary>查看详细架构</summary>
 
-![qwen-audio-agent 接入参考架构](docs/qwen-audio-agent-three-layer-architecture.png)
+![side-audio-bot 接入参考架构](docs/side-audio-bot-architecture-en.png)
 
 更完整的产品边界见[架构文档](docs/architecture.zh.md)，也可查看
 [语音 Agent 架构演示文档](docs/voice-agent-architecture-presentation.zh.md)。
@@ -108,7 +110,7 @@ https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
 需要 Node.js 22.22.2+ 或 24.15.0+、npm 10+。一键安装（推荐）：
 
 ```bash
-npm install -g qwen-audio-agent
+npm install -g side-audio-bot
 ```
 
 从源码安装、从 GitHub 安装最新代码以及获取 DashScope API Key 的详细步骤见
@@ -119,7 +121,7 @@ npm install -g qwen-audio-agent
 1. 创建配置并填入 API Key：
 
 ```bash
-qwenaudio config
+sideaudio config
 ```
 
 ```dotenv
@@ -129,7 +131,7 @@ QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-plus
 # 后台Agent：可选，不设置或设置为 none 时，启动仅前台模式
 AGENT_PROTOCOL=openclaw
 # 后台模型：可为空，留空则沿用 Agent 自身的用户配置
-QWEN_AUDIO_AGENT_BACKEND_MODEL=qwen3.7-max
+SIDE_AUDIO_BOT_BACKEND_MODEL=qwen3.7-max
 ```
 
 > 默认使用 DashScope 实时语音前台；也可切换为本地 [speech-to-speech 前台](docs/voice-frontends/speech-to-speech.zh.md)，无需云端 API Key。
@@ -137,14 +139,14 @@ QWEN_AUDIO_AGENT_BACKEND_MODEL=qwen3.7-max
 > 在模型层支持文本、音频和图片输入。本版本客户端传输层仅启用文本和音频；
 > 图片/画面帧与原生视频传输仍保持关闭，待对应客户端和 Gateway 链路实现。
 
-桌面版或 `qwenaudio config set --realtime-model <id>` 配置 Gateway 统一使用的模型；
+桌面版或 `sideaudio config set --realtime-model <id>` 配置 Gateway 统一使用的模型；
 CLI 修改后需要重启 Gateway。WebUI 与 TUI 只显示当前生效模型，不单独覆盖模型。
 
-2. 启动 Gateway，另开终端启动 TUI（也可用 `qwenaudio webui` 启动浏览器界面）：
+2. 启动 Gateway，另开终端启动 TUI（也可用 `sideaudio webui` 启动浏览器界面）：
 
 ```bash
-qwenaudio        # 终端 1：Gateway
-qwenaudio tui    # 终端 2：TUI
+sideaudio        # 终端 1：Gateway
+sideaudio tui    # 终端 2：TUI
 ```
 
 完整配置项、speech-to-speech 前台接入和 TUI 平台注意事项见
@@ -164,7 +166,7 @@ npm run example:car:server   # 终端 1：座舱 Agent 服务
 npm run example:car:web      # 终端 2：座舱 UI
 ```
 
-详细说明见 [examples/car](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/car)。
+详细说明见 [examples/car](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/car)。
 
 ## 桌面版
 
@@ -190,7 +192,7 @@ npm run desktop:build:linux      # Linux（AppImage + deb，无需签名）
 凭据。
 
 ```bash
-qwenaudio setup   # 查看当前可用的后台 Agent
+sideaudio setup   # 查看当前可用的后台 Agent
 ```
 
 Agent 选择、后台常驻服务、通用 ACP 入口和权限模式见
@@ -198,7 +200,7 @@ Agent 选择、后台常驻服务、通用 ACP 入口和权限模式见
 
 ## 个性化与记忆
 
-用户数据保存在 `~/.config/qwaudio/`（`ASSISTANT.md`、`USER.md`、`MEMORY.md`、
+用户数据保存在 `~/.config/sideaudio/`（`ASSISTANT.md`、`USER.md`、`MEMORY.md`、
 `tasks.json`、`logs/`），只存本机、不进仓库。详见
 [助手画像、用户偏好与记忆](docs/reference/memory.zh.md)。
 
@@ -232,7 +234,7 @@ npm run desktop   # 桌面悬浮球（macOS / Windows）
 
 ## 交流与分享
 
-你可以直接在 [GitHub Issues](https://github.com/QwenAudio/qwen-audio-agent/issues) 发起讨论。
+你可以直接在 [GitHub Issues](https://github.com/TokenBeat/side-audio-bot/issues) 发起讨论。
 
 对中国用户，也可以扫描左侧二维码加入微信交流群；如果群二维码已满或过期，
 扫描右侧任一维护者的个人二维码，维护者会邀请你进群。

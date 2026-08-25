@@ -1,13 +1,13 @@
 {
-  "name": "@qwen-audio-agent/cli",
+  "name": "@side-audio-bot/cli",
   "private": true,
   "version": "1.11.0",
   "type": "module",
   "bin": {
-    "qwenaudio": "./bin/qwenaudio.mjs"
+    "sideaudio": "./bin/sideaudio.mjs"
   },
   "scripts": {
-    "start": "node bin/qwenaudio.mjs",
+    "start": "node bin/sideaudio.mjs",
     "test": "node --test"
   }
 }

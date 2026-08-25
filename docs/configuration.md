@@ -1,29 +1,29 @@
 # Configuration
 
-After formal installation, qwen-audio-agent reads settings from a user configuration file:
+After formal installation, side-audio-bot reads settings from a user configuration file:
 
 ```text
-~/.config/qwaudio/config.env
+~/.config/sideaudio/config.env
 ```
 
-Setting `QWAUDIO_CONFIG_DIR` or `XDG_CONFIG_HOME` can change the configuration directory. The
+Setting `SIDEAUDIO_CONFIG_DIR` or `XDG_CONFIG_HOME` can change the configuration directory. The
 `.env.local` and `.env` files in the development repository are still supported and take priority
 over the user configuration file.
 
 The desktop edition and CLI share one asset layer and keep their runtime state apart, mirroring how
 Qoder's IDE and CLI coexist. The shared assets — `config.env`, the local identity (`state.env`),
 memory documents (`USER.md`, `MEMORY.md`, `ASSISTANT.md`), frontend notes, and the shared agent
-`workspace/` — live in the CLI's user data directory (`~/.config/qwaudio`, overridable via
-`QWAUDIO_DATA_DIR`), so both editions act as the same assistant with one memory and one
+`workspace/` — live in the CLI's user data directory (`~/.config/sideaudio`, overridable via
+`SIDEAUDIO_DATA_DIR`), so both editions act as the same assistant with one memory and one
 configuration. Runtime state — `gateway.lock`, `tasks.json`, ACP session state, logs, and desktop
-skins — stays in each edition's own directory: `~/.config/qwaudio` for the CLI and the system
+skins — stays in each edition's own directory: `~/.config/sideaudio` for the CLI and the system
 application data directory for the desktop edition (`~/Library/Application Support/Qwen Audio
-Agent` on macOS, `~/.config/Qwen Audio Agent` on Linux, `%APPDATA%\Qwen Audio Agent` on Windows).
+Agent` on macOS, `~/.config/Side Audio Bot` on Linux, `%APPDATA%\Side Audio Bot` on Windows).
 Both editions can therefore run simultaneously as independent Gateway processes, sessions, tasks,
 and logs while sharing the user's assistant profile. Desktop installations upgrading from older
 versions copy only assets missing from the shared layer, including an old `workspace/`; when an
 asset exists on both sides, neither copy is overwritten or merged automatically. When
-`QWAUDIO_CONFIG_DIR` is explicitly set, the desktop edition respects it and keeps assets and runtime
+`SIDEAUDIO_CONFIG_DIR` is explicitly set, the desktop edition respects it and keeps assets and runtime
 state together in that directory, preserving full isolation for profile scenarios. Writes to shared
 memory and notes are serialized across processes so simultaneous Desktop and CLI updates are not
 silently lost.
@@ -37,7 +37,7 @@ CLI parameters > process environment variables > .env.local > .env > user config
 Run the following command to display the exact location of the current user configuration file:
 
 ```bash
-qwenaudio config
+sideaudio config
 ```
 
 ## Backend Setup Check
@@ -45,7 +45,7 @@ qwenaudio config
 After configuring the backend Agent, you can run a unified read-only check:
 
 ```bash
-qwenaudio setup
+sideaudio setup
 ```
 
 It checks the backend executable, ACP integration method, and necessary Adapters, and clearly
@@ -58,8 +58,8 @@ itself.
 To check only a specified backend or get machine-readable results:
 
 ```bash
-qwenaudio setup --backend codex
-qwenaudio setup --json
+sideaudio setup --backend codex
+sideaudio setup --json
 ```
 
 The JSON output uses the same shared detection module as the CLI, which can be directly reused
@@ -71,8 +71,8 @@ Backend Agents that are not installed can be installed on the local machine usin
 command:
 
 ```bash
-qwenaudio install codex
-qwenaudio install deepseek
+sideaudio install codex
+sideaudio install deepseek
 ```
 
 - Before installation, it detects and only fills in missing components: a native ACP backend is
@@ -119,29 +119,29 @@ DEEPSEEK_HARNESS_MODEL=deepseek-v4-pro
 
 Backend agents execute the actual tasks, so standard Agent Skills
 (`SKILL.md` folders in the open format) are installed for backends.
-`qwenaudio skill` is a branded entry point for the community-standard
+`sideaudio skill` is a branded entry point for the community-standard
 [skills.sh](https://skills.sh) installer (`npx skills`): every command is a
 1:1 passthrough, with one addition — installs target the backends that
 actually exist on this machine (CLI detected) plus the currently configured
 backend, instead of relying on skills.sh's own agent detection.
 
 ```bash
-qwenaudio skill install <source> --skill <name>   # install to every backend
-qwenaudio skill install <source> --list           # list skills in a source
-qwenaudio skill list                              # list installed skills
-qwenaudio skill remove <name>                     # remove a skill
-qwenaudio skill update                            # update installed skills
+sideaudio skill install <source> --skill <name>   # install to every backend
+sideaudio skill install <source> --list           # list skills in a source
+sideaudio skill list                              # list installed skills
+sideaudio skill remove <name>                     # remove a skill
+sideaudio skill update                            # update installed skills
 ```
 
 Supported sources are whatever skills.sh supports:
 
 | Source form | Example |
 | --- | --- |
-| GitHub shorthand | `qwenaudio skill install vercel-labs/agent-skills --skill web-design-guidelines` |
-| Repository URL (GitHub/GitLab/any git) | `qwenaudio skill install https://github.com/alirezarezvani/claude-skills --skill skill-security-auditor` |
-| Tree URL (skill subdirectory) | `qwenaudio skill install https://github.com/o/r/tree/main/skills/x --skill x` |
-| Hub skill page URL | `qwenaudio skill install https://clawhub.ai/thcjp/skills/excel-formula-tool-free --skill excel-formula-tool-free` |
-| Local directory | `qwenaudio skill install ./my-skill --skill my-skill` |
+| GitHub shorthand | `sideaudio skill install vercel-labs/agent-skills --skill web-design-guidelines` |
+| Repository URL (GitHub/GitLab/any git) | `sideaudio skill install https://github.com/alirezarezvani/claude-skills --skill skill-security-auditor` |
+| Tree URL (skill subdirectory) | `sideaudio skill install https://github.com/o/r/tree/main/skills/x --skill x` |
+| Hub skill page URL | `sideaudio skill install https://clawhub.ai/thcjp/skills/excel-formula-tool-free --skill excel-formula-tool-free` |
+| Local directory | `sideaudio skill install ./my-skill --skill my-skill` |
 
 For multi-skill repositories `--skill` is required (repeat it to install
 several); run `--list` first to see what a source provides. Installing an
@@ -162,7 +162,7 @@ the backend always sees a complete skill set on its first scan. Failures
 (for example offline) are logged and never block the voice gateway.
 
 The pinned skills.sh version can be overridden with
-`QWEN_AUDIO_AGENT_SKILLS_CLI_PACKAGE` (for example `skills@latest`). If a
+`SIDE_AUDIO_BOT_SKILLS_CLI_PACKAGE` (for example `skills@latest`). If a
 newly added backend is not yet supported by skills.sh, contribute an agent
 definition to its `src/agents.ts` — that is the official extension point.
 
@@ -177,7 +177,7 @@ own schedule:
 | Qoder | On session start; `/skills reload` inside a native session | Next backend session |
 | OpenCode, OpenClaw, Kimi Code, CodeBuddy, Codex | Snapshot at process or session start | After the backend process restarts |
 
-If a newly installed skill is not picked up, `qwenaudio gateway restart`
+If a newly installed skill is not picked up, `sideaudio gateway restart`
 restarts the backend process and always resolves it.
 
 ### Shared backend workspace
@@ -204,7 +204,7 @@ When you need to execute backend tasks, select a backend Agent (using OpenClaw a
 
 ```dotenv
 AGENT_PROTOCOL=openclaw
-QWEN_AUDIO_AGENT_BACKEND_MODEL=qwen3.7-max
+SIDE_AUDIO_BOT_BACKEND_MODEL=qwen3.7-max
 ```
 
 With the above configuration, OpenCode and OpenClaw can automatically download compatible
@@ -213,7 +213,7 @@ specified, the user's already installed and configured Agent is used preferentia
 overwriting its models, providers, tools, MCPs, Skills, and authentication. Other backends
 currently require users to install and configure them manually.
 
-This is the only backend model configuration entry for qwen-audio-agent. The Gateway maps this
+This is the only backend model configuration entry for side-audio-bot. The Gateway maps this
 value to the model identifier used by the selected backend; the model ID is still defined by each
 Agent and is not uniformly named by ACP. The backend's own native model environment variables can
 still be read by the backend, but the Gateway does not interpret them as model override requests.
@@ -229,7 +229,7 @@ project Sessions. The Gateway discovers model options from ACP `configOptions` b
 `category: model` and sets them via `session/set_config_option`; if the Agent does not provide
 model configuration, the target model is not in the selectable list, the call fails, or the
 returned result cannot be confirmed as effective, the current request will explicitly fail
-without silently switching to another model. When `QWEN_AUDIO_AGENT_BACKEND_MODEL` is not set,
+without silently switching to another model. When `SIDE_AUDIO_BOT_BACKEND_MODEL` is not set,
 the model setting interface is not called at all.
 
 The local identity key is automatically generated when the program first starts, saved in
@@ -246,8 +246,8 @@ codes, or tokens in them.
 If you need to place user preferences elsewhere, you can set:
 
 ```dotenv
-QWEN_AUDIO_AGENT_USER_MODEL_PATH=/absolute/path/to/USER.md
-QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH=/absolute/path/to/ASSISTANT.md
+SIDE_AUDIO_BOT_USER_MODEL_PATH=/absolute/path/to/USER.md
+SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH=/absolute/path/to/ASSISTANT.md
 ```
 
 In multi-user `browser` mode, each identity gets isolated Markdown documents under `users/`;
@@ -266,9 +266,9 @@ tasks.json            # Recovery state for backend tasks, results, and pending b
 These files, like `ASSISTANT.md`, `USER.md`, and `state.env`, are only readable and writable by the current user
 and are not written to the source code repository. Legacy `frontend-memory.json` content is split
 into `USER.md` and `MEMORY.md` on first launch. Advanced users can override the memory location
-with `QWEN_AUDIO_AGENT_MEMORY_PATH` (the old `QWEN_AUDIO_AGENT_FRONTEND_MEMORY_PATH` remains
+with `SIDE_AUDIO_BOT_MEMORY_PATH` (the old `SIDE_AUDIO_BOT_FRONTEND_MEMORY_PATH` remains
 accepted) and the task location with
-`QWEN_AUDIO_AGENT_TASK_STATE_PATH`.
+`SIDE_AUDIO_BOT_TASK_STATE_PATH`.
 
 ### Automatic Memory Reconciliation
 
@@ -279,11 +279,11 @@ or modifies `ASSISTANT.md` (see
 [Assistant Profile, User Preferences, and Memory](reference/memory.md) for details). Related optional configuration:
 
 ```bash
-QWEN_AUDIO_MEMORY_AUTO=on         # off globally disables automatic reconciliation (default on)
-QWEN_AUDIO_MEMORY_MODEL=qwen-flash  # Extraction model (default qwen-flash)
-QWEN_AUDIO_MEMORY_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+SIDE_AUDIO_MEMORY_AUTO=on         # off globally disables automatic reconciliation (default on)
+SIDE_AUDIO_MEMORY_MODEL=qwen-flash  # Extraction model (default qwen-flash)
+SIDE_AUDIO_MEMORY_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
                                   # Any OpenAI-compatible endpoint, including local Ollama
-QWEN_AUDIO_MEMORY_API_KEY=        # Defaults to reusing DASHSCOPE_API_KEY
+SIDE_AUDIO_MEMORY_API_KEY=        # Defaults to reusing DASHSCOPE_API_KEY
 ```
 
 When neither Key is configured (e.g., a purely local speech-to-speech frontend), automatic
@@ -294,10 +294,10 @@ reconciliation is silently disabled; explicitly requested memory is not affected
 `AGENT_PROTOCOL` has no default value and is also an optional configuration. When left blank,
 the Gateway only provides frontend real-time voice chat; requests requiring backend execution
 will return a clear error without creating tasks or guessing execution results.
-You can also use `qwenaudio --backend none` to explicitly start frontend-only mode.
+You can also use `sideaudio --backend none` to explicitly start frontend-only mode.
 
 The default OpenClaw address is `http://127.0.0.1:18789`. When
-`OPENCLAW_BASE_URL` is set explicitly, qwen-audio-agent connects to that
+`OPENCLAW_BASE_URL` is set explicitly, side-audio-bot connects to that
 Gateway as an external black box. It does not start another OpenClaw Gateway
 or read, copy, or modify the Gateway's model credentials:
 
@@ -317,14 +317,14 @@ OPENCLAW_GATEWAY_TOKEN=replace-with-your-token
 ```
 
 External mode still starts the lightweight official `openclaw acp` bridge on
-the qwen-audio-agent host and speaks ACP over stdio to it. The bridge then
-connects to the user-managed remote Gateway. qwen-audio-agent never starts,
+the side-audio-bot host and speaks ACP over stdio to it. The bridge then
+connects to the user-managed remote Gateway. side-audio-bot never starts,
 stops, reconfigures, or moves that remote Gateway. The official bridge reports
 the real network, TLS, and authentication error instead of using the 300 ms
 local startup probe. If local security software terminates the bridge, the turn
 fails explicitly while the remote Gateway remains untouched.
 
-If local security policy blocks only qwen-audio-agent's OpenClaw launcher,
+If local security policy blocks only side-audio-bot's OpenClaw launcher,
 point to a trusted OpenClaw executable and the Gateway will run the lightweight
 bridge directly:
 
@@ -333,12 +333,12 @@ OPENCLAW_ACP_BIN=/absolute/path/to/openclaw
 ```
 
 This does not change ownership of the remote Gateway. The local process remains
-an ACP bridge and is stopped with the qwen-audio-agent Gateway.
+an ACP bridge and is stopped with the side-audio-bot Gateway.
 
 When `OPENCLAW_BASE_URL` is not set, it preferentially launches the `openclaw`
 in the user environment. When both
-`DASHSCOPE_API_KEY` and `QWEN_AUDIO_AGENT_BACKEND_MODEL` are provided, an independent Bailian
-configuration and state directory is generated for the qwen-audio-agent process, without
+`DASHSCOPE_API_KEY` and `SIDE_AUDIO_BOT_BACKEND_MODEL` are provided, an independent Bailian
+configuration and state directory is generated for the side-audio-bot process, without
 modifying the user's native configuration. When no backend model is specified, it inherits the
 user's native configuration, models, and authentication, but does not enable external messaging
 channels such as DingTalk in the independent instance. In managed mode, if the original configuration
@@ -351,18 +351,18 @@ OpenCode: The Gateway interacts with it via `opencode acp` and manages the local
 to open the native Session interface. When there is no compatible installation, it automatically
 uses a fixed npm package; users do not need to separately install or start the service.
 `OPENCODE_BASE_URL` names that local Session UI service; it is not a remote ACP execution
-endpoint that qwen-audio-agent can attach to:
+endpoint that side-audio-bot can attach to:
 
 ```dotenv
 AGENT_PROTOCOL=opencode
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Qoder uses the local `qodercli --acp` and has no HTTP backend address:
 
 ```dotenv
 AGENT_PROTOCOL=qoder
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 The unified ACP Adapter maintains a fixed native coordination Session for each user, and
@@ -389,7 +389,7 @@ authentication, provider, model, MCP, Skill, and Session configuration.
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Run `qwen` interactively and use `/auth` for first-time authentication. The
@@ -407,7 +407,7 @@ Qwen Code's experimental network service is not treated as a remote backend.
 
 Kimi Code ([MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code))
 connects via the official native ACP entry point `kimi acp`. The current integration verifies
-and requires Kimi Code `0.31.0` or higher; `qwenaudio setup --backend kimi` checks both the
+and requires Kimi Code `0.31.0` or higher; `sideaudio setup --backend kimi` checks both the
 executable and version, and rejects older implementations below the compatible baseline.
 
 You can install the verified version using the official installation script:
@@ -423,7 +423,7 @@ backend:
 
 ```dotenv
 AGENT_PROTOCOL=kimi
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 You can also use Kimi Code's official temporary model environment variables to provide a Kimi
@@ -436,14 +436,14 @@ KIMI_MODEL_API_KEY=your-kimi-code-key
 KIMI_MODEL_BASE_URL=https://api.kimi.com/coding/v1
 ```
 
-`config.env` is created by qwen-audio-agent as a `0600` file readable and writable only by the
+`config.env` is created by side-audio-bot as a `0600` file readable and writable only by the
 current user; writing actual API keys to the repository is prohibited. Kimi Code's native
 configuration, OAuth credentials, and Session storage are still managed by Kimi by default;
-qwen-audio-agent does not modify these files. Setting `KIMI_CODE_HOME` can explicitly select a
+side-audio-bot does not modify these files. Setting `KIMI_CODE_HOME` can explicitly select a
 different Kimi data directory, and setting `KIMI_WORKSPACE` can override the coordination
 workspace.
 
-When `QWEN_AUDIO_AGENT_BACKEND_MODEL` is explicitly set, the Gateway overrides the Kimi Session
+When `SIDE_AUDIO_BOT_BACKEND_MODEL` is explicitly set, the Gateway overrides the Kimi Session
 model via ACP `session/set_config_option` and confirms it takes effect; if left blank, Kimi
 selects its own default model. Advanced configuration:
 
@@ -475,11 +475,11 @@ comes with an ACP mode; the Gateway starts it using `hermes acp`:
 
 ```dotenv
 AGENT_PROTOCOL=hermes
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Hermes uses its own configured model and provider by default. Only when
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` is explicitly set will the Gateway override its Session
+`SIDE_AUDIO_BOT_BACKEND_MODEL` is explicitly set will the Gateway override its Session
 model via ACP. Before first use, you can run `hermes acp --check` to check dependencies.
 Advanced configuration:
 
@@ -499,11 +499,11 @@ and complete a login via `/login`.
 
 ```dotenv
 AGENT_PROTOCOL=codebuddy
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 By default, it directly uses CodeBuddy's existing model configuration. Only when
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` is explicitly set will the coordination workspace generate a
+`SIDE_AUDIO_BOT_BACKEND_MODEL` is explicitly set will the coordination workspace generate a
 project-level `.codebuddy/models.json`, reading the specified model and address via environment
 variables. Advanced configuration:
 
@@ -515,7 +515,7 @@ CODEBUDDY_MODEL_URL=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/compl
 
 After canceling the model override, the Gateway removes the `.codebuddy/models.json` it
 generated and restores CodeBuddy's original model; user-modified files are always preserved.
-When the override is enabled, changes to `QWEN_AUDIO_AGENT_BACKEND_MODEL` are automatically
+When the override is enabled, changes to `SIDE_AUDIO_BOT_BACKEND_MODEL` are automatically
 synced to the system-generated file.
 
 ### Codex
@@ -528,11 +528,11 @@ version via `npx`.
 
 ```dotenv
 AGENT_PROTOCOL=codex
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 By default, it reuses the user's `~/.codex`, login state, and model. The model is only
-overridden when `QWEN_AUDIO_AGENT_BACKEND_MODEL` is explicitly set; `CODEX_BASE_URL` is only
+overridden when `SIDE_AUDIO_BOT_BACKEND_MODEL` is explicitly set; `CODEX_BASE_URL` is only
 used to configure a custom model service address. Neither modifies the user's configuration
 file. Advanced configuration:
 
@@ -555,12 +555,12 @@ ACP adapter is needed, but Claude Code must be installed and authenticated first
 
 ```dotenv
 AGENT_PROTOCOL=claude
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Model and credentials are managed by Claude Code itself by default, reusing the existing login
 state in `~/.claude`; you can also set `ANTHROPIC_API_KEY`. Only when
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` is explicitly set will the Gateway override its Session
+`SIDE_AUDIO_BOT_BACKEND_MODEL` is explicitly set will the Gateway override its Session
 model via ACP. Advanced configuration:
 
 ```dotenv
@@ -587,7 +587,7 @@ higher.
 One-click install installs both the core and the adapter:
 
 ```bash
-qwenaudio install pi
+sideaudio install pi
 ```
 
 Or install both packages manually:
@@ -618,7 +618,7 @@ PI_ACP_RUNTIME=auto
 
 - `PI_BIN` / `PI_ACP_BIN` override the pi core and pi-acp adapter executables.
 - `PI_WORKSPACE` overrides the working directory (default
-  `~/.config/qwaudio/workspace`, shared with the other managed backends).
+  `~/.config/sideaudio/workspace`, shared with the other managed backends).
 - `PI_ACP_RUNTIME` (`auto` / `binary` / `package`) controls whether the adapter uses
   a local binary or starts on demand via `npx`.
 
@@ -626,7 +626,7 @@ PI_ACP_RUNTIME=auto
 > Built-in Sandbox" — read, write, and bash execute directly with the current user's
 > privileges — and pi-acp does not implement ACP `session/request_permission`.
 > Therefore Pi is **always equivalent to `full` permission**, regardless of
-> `QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE`, and no permission confirmation ever
+> `SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE`, and no permission confirmation ever
 > appears in the voice session. Use it only in trusted projects and trusted prompt
 > environments.
 
@@ -640,7 +640,7 @@ directly managed by the Gateway, and do not accept `--backend-url`.
 
 ## Backend Permission Modes
 
-`QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` can be set to:
+`SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` can be set to:
 
 - `native` (default): Permissions are determined and requested by the backend Agent itself;
   the Gateway only forwards them as-is.
@@ -675,7 +675,7 @@ entry point is allowed per user at a time. The CLI does not preempt the existing
 by default; use this when you need to explicitly take over:
 
 ```bash
-qwenaudio tui --takeover
+sideaudio tui --takeover
 ```
 
 Only one TUI can run per user. The Gateway, desktop app, and WebUI can all reside
@@ -690,7 +690,7 @@ proxy with access authentication, and configure the public Origin:
 
 ```dotenv
 HOST=127.0.0.1
-QWEN_AUDIO_AGENT_ALLOWED_ORIGINS=https://voice.example.com
+SIDE_AUDIO_BOT_ALLOWED_ORIGINS=https://voice.example.com
 ```
 
 The reverse proxy must:
@@ -700,14 +700,14 @@ The reverse proxy must:
 - Preserve the public `Host`;
 - Forward traffic to the local `127.0.0.1:3101`.
 
-`QWEN_AUDIO_AGENT_AUTH_SECRET` is only used to sign the local identity, not as a remote access
+`SIDE_AUDIO_BOT_AUTH_SECRET` is only used to sign the local identity, not as a remote access
 password. It must not be used as a substitute for reverse proxy authentication. Multiple
 trusted Origins can be separated by English commas.
 
 ## Gateway Operation
 
 A single data directory only allows one local Gateway at any time. The CLI, TUI, and WebUI
-share `~/.config/qwaudio` and preferentially reuse the same instance; the desktop edition uses
+share `~/.config/sideaudio` and preferentially reuse the same instance; the desktop edition uses
 a separate directory and only reuses or manages the Gateway under its own directory. Multiple
 clients within the same directory can connect simultaneously, but do not each start a set of
 backend Agents. The instance identity is recorded in a temporary `gateway.lock` file under the
@@ -720,35 +720,35 @@ Remote Gateways do not participate in the local single-instance lease.
 By default, the Gateway starts and manages the selected Agent's ACP process. If the local
 service port of OpenCode or OpenClaw is already occupied by another process, it will select an
 idle port and will not take over or close the user's process. OpenClaw is always started as an
-independent Gateway by qwen-audio-agent, using isolated runtime state and Session storage; it
+independent Gateway by side-audio-bot, using isolated runtime state and Session storage; it
 can read the user's existing model and capability configuration, but does not share Sessions
 with the user's persistent Gateway, nor does it reconnect to the external messaging channels
 configured by the user. OpenCode's ACP process always reuses its native configuration and
 Session storage; the native interface being unavailable does not affect ACP task execution.
 
-`qwenaudio`, `qwenaudio gateway`, and `qwenaudio gateway run` all run in the foreground.
+`sideaudio`, `sideaudio gateway`, and `sideaudio gateway run` all run in the foreground.
 When you need it to run persistently in the background, use:
 
 ```bash
-qwenaudio gateway install    # Install and immediately start the user service
-qwenaudio gateway status
-qwenaudio gateway restart
-qwenaudio gateway stop
-qwenaudio gateway start
-qwenaudio gateway uninstall
+sideaudio gateway install    # Install and immediately start the user service
+sideaudio gateway status
+sideaudio gateway restart
+sideaudio gateway stop
+sideaudio gateway start
+sideaudio gateway uninstall
 ```
 
 The background service re-reads `config.env` each time it starts. After modifying configuration,
-run `qwenaudio gateway restart` to apply it. Service logs are located at
-`~/.config/qwaudio/logs/gateway.log`; on Linux, you can also view them via
-`journalctl --user -u qwen-audio-agent-gateway`.
+run `sideaudio gateway restart` to apply it. Service logs are located at
+`~/.config/sideaudio/logs/gateway.log`; on Linux, you can also view them via
+`journalctl --user -u side-audio-bot-gateway`.
 
 ## Local Logs
 
-qwen-audio-agent uses a unified local structured log, written by default to:
+side-audio-bot uses a unified local structured log, written by default to:
 
 ```text
-~/.config/qwaudio/logs/
+~/.config/sideaudio/logs/
 ├── gateway.log   # Gateway, Realtime, ACP, and task lifecycle
 ├── desktop.log   # Desktop main process and embedded Gateway lifecycle
 ├── cli.log       # CLI command lifecycle
@@ -768,12 +768,12 @@ retained. These can be adjusted via the following environment variables:
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `QWEN_AUDIO_LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent` |
-| `QWEN_AUDIO_LOG_DIR` | `logs` under the user config directory | Custom log directory |
-| `QWEN_AUDIO_LOG_MAX_BYTES` | `10485760` | Rotation threshold for a single log file |
-| `QWEN_AUDIO_LOG_MAX_FILES` | `5` | Total number of current and rotated files to retain |
-| `QWEN_AUDIO_LOG_FILE` | `1` | Set to `0` to disable file logging |
-| `QWEN_AUDIO_LOG_CONSOLE` | `1` | Set to `0` to disable terminal log output |
+| `SIDE_AUDIO_LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent` |
+| `SIDE_AUDIO_LOG_DIR` | `logs` under the user config directory | Custom log directory |
+| `SIDE_AUDIO_LOG_MAX_BYTES` | `10485760` | Rotation threshold for a single log file |
+| `SIDE_AUDIO_LOG_MAX_FILES` | `5` | Total number of current and rotated files to retain |
+| `SIDE_AUDIO_LOG_FILE` | `1` | Set to `0` to disable file logging |
+| `SIDE_AUDIO_LOG_CONSOLE` | `1` | Set to `0` to disable terminal log output |
 
 Logs are only stored locally and are not automatically uploaded. Before reporting issues, check
 and share relevant snippets as needed; even though the system automatically desensitizes, you
@@ -816,21 +816,21 @@ user's installation; when `installed` is explicitly set, it directly errors.
 The minimum version can be overridden by `OPENCODE_MIN_VERSION` for validating other
 compatible versions.
 
-The OpenCode started by qwen-audio-agent inherits the user's original global configuration by
+The OpenCode started by side-audio-bot inherits the user's original global configuration by
 default (usually `~/.config/opencode/opencode.json`), so already installed MCPs, Skills,
 permissions, models, and plugins can continue to be used. The coordination rules and
 third-layer Session tools are dynamically provided by the Gateway through ACP in each request
 round, without additionally installing or overwriting the OpenCode Agent.
 
-If the user's configuration or third-party plugins conflict with qwen-audio-agent, you can
+If the user's configuration or third-party plugins conflict with side-audio-bot, you can
 temporarily enable isolation mode for troubleshooting:
 
 ```dotenv
-QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG=true
+SIDE_AUDIO_BOT_OPENCODE_ISOLATE_USER_CONFIG=true
 ```
 
 You can also specify a different OpenCode user configuration directory via
-`QWEN_AUDIO_AGENT_OPENCODE_XDG_CONFIG_HOME`. After isolation, MCPs and plugins from the
+`SIDE_AUDIO_BOT_OPENCODE_XDG_CONFIG_HOME`. After isolation, MCPs and plugins from the
 original global configuration are not automatically loaded.
 
 ## Realtime model selection
@@ -839,9 +839,9 @@ One Gateway owns one active Realtime model. The Desktop settings page can config
 for a locally owned Gateway, and the CLI provides the equivalent commands:
 
 ```bash
-qwenaudio config show
-qwenaudio config set --realtime-model qwen3.5-omni-flash-realtime
-qwenaudio gateway restart
+sideaudio config show
+sideaudio config set --realtime-model qwen3.5-omni-flash-realtime
+sideaudio gateway restart
 ```
 
 The exact supported IDs are:
@@ -869,24 +869,24 @@ them to the configuration file:
 | Setting | Default |
 | --- | --- |
 | `HOST` / `PORT` | `127.0.0.1` / `3101` |
-| `QWEN_AUDIO_AGENT_ALLOWED_ORIGINS` | Empty; only loopback allowed |
+| `SIDE_AUDIO_BOT_ALLOWED_ORIGINS` | Empty; only loopback allowed |
 | `OPENCODE_WORKSPACE` | `workspaces/opencode` under the user config directory |
 | `QODER_WORKSPACE` | `workspaces/qoder` under the user config directory |
-| `QWEN_AUDIO_AGENT_BACKEND_MODEL` | Empty; uses the backend Agent's original model |
-| `QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` | `native` |
-| `QWEN_AUDIO_AGENT_ACP_FORWARD_ENV` | Empty; comma-separated opt-in environment names for generic ACP only |
+| `SIDE_AUDIO_BOT_BACKEND_MODEL` | Empty; uses the backend Agent's original model |
+| `SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` | `native` |
+| `SIDE_AUDIO_BOT_ACP_FORWARD_ENV` | Empty; comma-separated opt-in environment names for generic ACP only |
 | `QWEN_AUDIO_REALTIME_MODEL` | `qwen-audio-3.0-realtime-plus` |
 | `QWEN_AUDIO_REALTIME_PROVIDER` | `dashscope` |
 | `QWEN_AUDIO_REALTIME_VOICE` | Empty; optional Audio-family override, otherwise runtime uses `longanqian` |
 | `QWEN_OMNI_REALTIME_VOICE` | Empty; optional Omni-family override, otherwise runtime uses `Ethan` |
 | `SPEECH_TO_SPEECH_REALTIME_URL` | `ws://127.0.0.1:8765/v1/realtime` |
 | `SPEECH_TO_SPEECH_AUTH_TOKEN` | Empty; only for proxies with Bearer authentication |
-| `QWEN_AUDIO_AGENT_IDENTITY_MODE` | `personal` |
-| `QWEN_AUDIO_AGENT_TUI_AUDIO_MODE` | `half` |
+| `SIDE_AUDIO_BOT_IDENTITY_MODE` | `personal` |
+| `SIDE_AUDIO_BOT_TUI_AUDIO_MODE` | `half` |
 | `AGENT_TIMEOUT_MS` | `300000` |
 
 The macOS TUI CoreAudio helper is compiled by default to
-`~/Library/Caches/qwaudio/tui/macos-voice-io`, requiring no additional configuration. It
+`~/Library/Caches/sideaudio/tui/macos-voice-io`, requiring no additional configuration. It
 continuously records audio during playback, and only supports voice interruption.
 The Linux and Windows minimal TUI uses the bundled Python audio bridge with
 `sounddevice`/PortAudio half-duplex; during reply playback the microphone is paused, only
@@ -894,13 +894,13 @@ supporting manual interruption via the `x` key, and resumes after playback ends 
 interrupted.
 
 On Linux and Windows, you can explicitly enable PortAudio full-duplex via
-`qwenaudio tui --audio-mode full` or by setting `QWEN_AUDIO_AGENT_TUI_AUDIO_MODE=full`. This
+`sideaudio tui --audio-mode full` or by setting `SIDE_AUDIO_BOT_TUI_AUDIO_MODE=full`. This
 mode has no echo cancellation and only supports direct speech interruption; wearing headphones
 is recommended to avoid speaker echo triggering false recognition or false interruption.
 macOS always uses CoreAudio AEC full-duplex and is not affected by this option.
 
 If PortAudio full-duplex persistently reports input overflow, output underflow, or device
-errors, please exit the TUI and switch to `qwenaudio tui --audio-mode half`. Different
+errors, please exit the TUI and switch to `sideaudio tui --audio-mode half`. Different
 Linux/Windows sound cards and Bluetooth headsets have varying levels of support for
 simultaneous input and output streams with different sampling rates; half-duplex is the
 compatibility fallback.

@@ -1,8 +1,8 @@
-# Qwen Audio Agent Car 架构设计
+# Side Audio Bot Car 架构设计
 
 ## 概述
 
-Qwen Audio Agent Car 的 Agent 是智能座舱助手的大脑。它负责理解用户意图、维护长期记忆和多轮上下文、调度 Built-in Skills，并把工具执行结果转换成 UI actions 和自然语言回复。
+Side Audio Bot Car 的 Agent 是智能座舱助手的大脑。它负责理解用户意图、维护长期记忆和多轮上下文、调度 Built-in Skills，并把工具执行结果转换成 UI actions 和自然语言回复。
 
 当前 Agent 同时服务两条入口：
 

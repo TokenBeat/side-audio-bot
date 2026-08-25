@@ -26,7 +26,7 @@ test('preserves explicit zero numeric settings', () => {
 })
 
 test('uses the shared user data workspace for the default OpenCode workspace', () => {
-  const directory = resolve('/home/user/.config/qwaudio')
+  const directory = resolve('/home/user/.config/sideaudio')
   assert.equal(
     resolveBackendWorkspace('opencode', {}, directory),
     resolve(directory, 'workspace'),
@@ -46,19 +46,19 @@ test('uses only the explicit OPENCODE_WORKSPACE setting', () => {
 test('uses the default ACP Session mode unless a custom OpenCode Agent is explicit', () => {
   assert.equal(resolveOpenCodeCoordinatorAgent({}), '')
   assert.equal(resolveOpenCodeCoordinatorAgent({
-    OPENCODE_COORDINATOR_AGENT: 'qwen-audio-agent-backend',
+    OPENCODE_COORDINATOR_AGENT: 'side-audio-bot-backend',
   }), '')
   assert.equal(resolveOpenCodeCoordinatorAgent({
     OPENCODE_COORDINATOR_AGENT: 'custom-coordinator',
   }), 'custom-coordinator')
   assert.equal(resolveOpenCodeCoordinatorAgent({
-    QWEN_AUDIO_AGENT_BACKEND_AGENT: 'shared-agent',
+    SIDE_AUDIO_BOT_BACKEND_AGENT: 'shared-agent',
     OPENCODE_COORDINATOR_AGENT: 'custom-coordinator',
   }), 'shared-agent')
 })
 
 test('uses the shared user data workspace for the default Qoder workspace', () => {
-  const directory = resolve('/home/user/.config/qwaudio')
+  const directory = resolve('/home/user/.config/sideaudio')
   assert.equal(
     resolveBackendWorkspace('qoder', {}, directory),
     resolve(directory, 'workspace'),
@@ -66,7 +66,7 @@ test('uses the shared user data workspace for the default Qoder workspace', () =
 })
 
 test('shares one default workspace across additional ACP backends', () => {
-  const directory = resolve('/home/user/.config/qwaudio')
+  const directory = resolve('/home/user/.config/sideaudio')
   for (const backend of ['hermes', 'kimi', 'codebuddy', 'codex', 'qwen', 'pi']) {
     assert.equal(
       resolveBackendWorkspace(backend, {}, directory),
@@ -77,7 +77,7 @@ test('shares one default workspace across additional ACP backends', () => {
 
 test('maps one backend model name to each managed backend provider', () => {
   assert.deepEqual(resolveBackendModels({
-    QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-plus',
+    SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-plus',
   }), {
     common: 'qwen3.7-plus',
     openCode: 'alibaba-cn/qwen3.7-plus',
@@ -118,7 +118,7 @@ test('ignores backend-native model variables as Gateway overrides', () => {
 
 test('treats legacy auto as no backend model override', () => {
   assert.deepEqual(resolveBackendModels({
-    QWEN_AUDIO_AGENT_BACKEND_MODEL: 'AUTO',
+    SIDE_AUDIO_BOT_BACKEND_MODEL: 'AUTO',
   }), {
     common: '',
     openCode: '',
@@ -138,7 +138,7 @@ test('treats legacy auto as no backend model override', () => {
 
 test('uses only the unified backend model override', () => {
   assert.deepEqual(resolveBackendModels({
-    QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+    SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
     OPENCODE_MODEL: 'custom-open/code-model',
   }), {
     common: 'qwen3.7-max',
@@ -160,10 +160,10 @@ test('uses only the unified backend model override', () => {
 test('uses a DeepSeek-specific model without leaking unrelated overrides', () => {
   assert.equal(resolveBackendModels({
     DEEPSEEK_HARNESS_MODEL: 'deepseek-v4-flash',
-    QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+    SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
   }).deepSeekHarness, 'deepseek-v4-flash')
   assert.equal(resolveBackendModels({
-    QWEN_AUDIO_AGENT_BACKEND_MODEL: 'deepseek-v4-pro',
+    SIDE_AUDIO_BOT_BACKEND_MODEL: 'deepseek-v4-pro',
   }).deepSeekHarness, 'deepseek-v4-pro')
 })
 

@@ -1,11 +1,11 @@
 # Desktop Pet Skin Protocol
 
-This document defines the desktop pet package consumed by qwen-audio-agent.
+This document defines the desktop pet package consumed by side-audio-bot.
 It uses the Codex Pet atlas as its compatibility baseline and adds optional
 `animations.frames/fps` metadata for generated skins whose actions use a
 variable number of frames.
 
-`animations` is a qwen-audio-agent extension, not an official Codex Pet
+`animations` is a side-audio-bot extension, not an official Codex Pet
 manifest field. Community Codex Pet packages without it continue to use the
 fixed atlas rules.
 
@@ -68,7 +68,7 @@ Base fields:
 - `description`: optional.
 - `spriteVersionNumber`: optional and defaults to v1; v2 must set `2`.
 - `spritesheetPath`: required and normally `spritesheet.webp`.
-- `animations`: optional qwen-audio-agent animation extension.
+- `animations`: optional side-audio-bot animation extension.
 
 Each `animations` entry contains only:
 
@@ -79,7 +79,7 @@ Each `animations` entry contains only:
 
 Skins do not own animation lifecycle. `loop` and `fallback` are not part of
 this protocol. Legacy packages containing them remain importable, but
-qwen-audio-agent ignores their meaning. The skin consumer decides how long
+side-audio-bot ignores their meaning. The skin consumer decides how long
 an action runs and which action follows it.
 
 ## Defaults and compatibility
@@ -89,7 +89,7 @@ an action runs and which action follows it.
 - With `animations`, declared actions use `frames/fps`; omitted actions retain
   their defaults.
 - Native Codex clients may ignore `animations`, so the extension guarantees
-  precise playback in qwen-audio-agent only.
+  precise playback in side-audio-bot only.
 
 ## Producer checklist
 

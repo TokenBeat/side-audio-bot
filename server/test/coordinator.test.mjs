@@ -112,7 +112,7 @@ test('sends attachment metadata in the envelope and binary data as ACP blocks', 
     type: 'image',
     mimeType: 'image/png',
     data: 'aGVsbG8=',
-    uri: 'qwen-audio-agent://input/reference.png',
+    uri: 'side-audio-bot://input/reference.png',
   })
 })
 

@@ -285,7 +285,7 @@ test('classifies issue texts into short reasons', () => {
     ['OpenCode 1.17.9 低于最低版本 1.18.0', '版本不兼容'],
     ['Kimi Code 版本不兼容；自动部署需要 DASHSCOPE_API_KEY', '版本不兼容'],
     ['无法确认 Kimi Code 版本', '版本不兼容'],
-    ['缺少 DASHSCOPE_API_KEY 和 QWEN_AUDIO_AGENT_BACKEND_MODEL', '缺少百炼配置'],
+    ['缺少 DASHSCOPE_API_KEY 和 SIDE_AUDIO_BOT_BACKEND_MODEL', '缺少百炼配置'],
     ['缺少 claude-code-acp，并且 npx 不可用', '需要 ACP 适配器'],
     ['ACP_COMMAND 指定的命令不可用：missing-agent', '需要配置'],
     ['', '当前不可用'],

@@ -1,26 +1,26 @@
 # 配置
 
-正式安装后，qwen-audio-agent 从用户配置文件读取设置：
+正式安装后，side-audio-bot 从用户配置文件读取设置：
 
 ```text
-~/.config/qwaudio/config.env
+~/.config/sideaudio/config.env
 ```
 
-设置 `QWAUDIO_CONFIG_DIR` 或 `XDG_CONFIG_HOME` 可以更改配置目录。开发仓库中的
+设置 `SIDEAUDIO_CONFIG_DIR` 或 `XDG_CONFIG_HOME` 可以更改配置目录。开发仓库中的
 `.env.local` 和 `.env` 仍然支持，并优先于用户配置文件。
 
 桌面版与 CLI 共享同一个资产层、各自保留运行时状态（参照 Qoder IDE 与 qodercli
 的目录分层）。共享的资产——`config.env`、本地身份（`state.env`）、记忆文档
 （`USER.md`、`MEMORY.md`、`ASSISTANT.md`）、前台清单以及 Agent 共享 `workspace/`——
-统一放在 CLI 的用户数据目录（`~/.config/qwaudio`，可用 `QWAUDIO_DATA_DIR` 覆盖），
+统一放在 CLI 的用户数据目录（`~/.config/sideaudio`，可用 `SIDEAUDIO_DATA_DIR` 覆盖），
 两种形态是同一个助手：一份记忆、一份配置。运行时状态——`gateway.lock`、
 `tasks.json`、ACP 会话状态、日志与桌面皮肤——留在各自目录：CLI 为
-`~/.config/qwaudio`，桌面版为系统标准应用数据目录（macOS 为
-`~/Library/Application Support/Qwen Audio Agent`，Linux 为
-`~/.config/Qwen Audio Agent`，Windows 为 `%APPDATA%\Qwen Audio Agent`）。因此两者
+`~/.config/sideaudio`，桌面版为系统标准应用数据目录（macOS 为
+`~/Library/Application Support/Side Audio Bot`，Linux 为
+`~/.config/Side Audio Bot`，Windows 为 `%APPDATA%\Side Audio Bot`）。因此两者
 可以作为两个独立的 Gateway 进程同时运行，各自拥有会话、任务和日志，同时共享用户的
 助手配置。从旧版本升级时，桌面版只补齐共享层缺失的资产（包括旧 `workspace/`）；两边
-都存在时不会自动覆盖或合并。显式设置 `QWAUDIO_CONFIG_DIR` 时桌面版遵循该覆盖，资产与
+都存在时不会自动覆盖或合并。显式设置 `SIDEAUDIO_CONFIG_DIR` 时桌面版遵循该覆盖，资产与
 运行时状态落在同一目录，为 Profile 场景保留完全隔离。共享记忆与清单的写入使用跨进程
 串行事务，Desktop 与 CLI 同时更新时不会静默丢失内容。
 
@@ -33,7 +33,7 @@ CLI 参数 > 进程环境变量 > .env.local > .env > 用户配置文件 > 内�
 运行下面的命令可以显示当前用户配置文件的准确位置：
 
 ```bash
-qwenaudio config
+sideaudio config
 ```
 
 ## 后台 Setup 检查
@@ -41,7 +41,7 @@ qwenaudio config
 配置后台 Agent 后，可运行统一的只读检查：
 
 ```bash
-qwenaudio setup
+sideaudio setup
 ```
 
 它会检查后台可执行文件、ACP 接入方式和必要的 Adapter，并明确显示当前选择。
@@ -52,8 +52,8 @@ qwenaudio setup
 只检查指定后台或获取机器可读结果：
 
 ```bash
-qwenaudio setup --backend codex
-qwenaudio setup --json
+sideaudio setup --backend codex
+sideaudio setup --json
 ```
 
 JSON 输出与 CLI 使用同一个共享检测模块，可供桌面版和其他工具直接复用。
@@ -63,8 +63,8 @@ JSON 输出与 CLI 使用同一个共享检测模块，可供桌面版和其他�
 未安装的后台 Agent 可用统一命令安装到本机：
 
 ```bash
-qwenaudio install codex
-qwenaudio install deepseek
+sideaudio install codex
+sideaudio install deepseek
 ```
 
 - 安装前先检测，只补齐缺失的组件：原生 ACP 后台装好即可用；本体缺失时装本体；
@@ -110,14 +110,14 @@ DASHSCOPE_API_KEY=your-key
 
 ```dotenv
 AGENT_PROTOCOL=openclaw
-QWEN_AUDIO_AGENT_BACKEND_MODEL=qwen3.7-max
+SIDE_AUDIO_BOT_BACKEND_MODEL=qwen3.7-max
 ```
 
 OpenCode 和 OpenClaw 在以上配置下可以自动下载兼容版本并配置百炼模型，实现
 一键启动。若未指定后台模型，则优先使用用户已经安装和配置的 Agent，不覆盖其
 模型、Provider、工具、MCP、Skill 和认证。其他后台暂时需要用户自行安装配置。
 
-这是 qwen-audio-agent 唯一的后台模型配置入口。Gateway 会把该值映射为所选后台
+这是 side-audio-bot 唯一的后台模型配置入口。Gateway 会把该值映射为所选后台
 使用的模型标识；模型 ID 仍由各 Agent 定义，并不由 ACP 统一命名。后台自身的
 原生模型环境变量可以继续由后台读取，但 Gateway 不会把它们解释为模型覆盖请求。
 
@@ -130,7 +130,7 @@ Gateway 不会擅自重置。
 从 ACP `configOptions` 中按 `category: model` 发现模型选项，并通过
 `session/set_config_option` 设置；如果 Agent 没有提供模型配置、目标模型不在
 可选清单中、调用失败或返回结果无法确认生效，当前请求会明确失败，不会静默换用
-其他模型。未设置 `QWEN_AUDIO_AGENT_BACKEND_MODEL` 时完全不调用模型设置接口。
+其他模型。未设置 `SIDE_AUDIO_BOT_BACKEND_MODEL` 时完全不调用模型设置接口。
 
 本地身份密钥由程序首次启动时自动生成，保存在同一配置目录的 `state.env`，
 文件权限为仅当前用户可读写。
@@ -143,8 +143,8 @@ Gateway 不会擅自重置。
 如需把用户偏好放在其他位置，可设置：
 
 ```dotenv
-QWEN_AUDIO_AGENT_USER_MODEL_PATH=/absolute/path/to/USER.md
-QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH=/absolute/path/to/ASSISTANT.md
+SIDE_AUDIO_BOT_USER_MODEL_PATH=/absolute/path/to/USER.md
+SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH=/absolute/path/to/ASSISTANT.md
 ```
 
 多用户 `browser` 模式会在 `users/` 子目录中按身份隔离各自的 Markdown 文档，
@@ -162,8 +162,8 @@ tasks.json            # 后台任务、结果和待播报通知的恢复状态
 
 这些文件和 `ASSISTANT.md`、`USER.md`、`state.env` 一样只允许当前用户读写，不会写入源码仓库。
 旧版 `frontend-memory.json` 会在首次启动时拆分迁移到 `USER.md` 和 `MEMORY.md`。
-高级用户仍可通过 `QWEN_AUDIO_AGENT_MEMORY_PATH`（旧变量
-`QWEN_AUDIO_AGENT_FRONTEND_MEMORY_PATH` 仍兼容）和 `QWEN_AUDIO_AGENT_TASK_STATE_PATH`
+高级用户仍可通过 `SIDE_AUDIO_BOT_MEMORY_PATH`（旧变量
+`SIDE_AUDIO_BOT_FRONTEND_MEMORY_PATH` 仍兼容）和 `SIDE_AUDIO_BOT_TASK_STATE_PATH`
 覆盖位置。
 
 ### 自动记忆整理
@@ -173,11 +173,11 @@ tasks.json            # 后台任务、结果和待播报通知的恢复状态
 不会直接写文件或修改 `ASSISTANT.md`（详见[助手画像、用户偏好与记忆](reference/memory.zh.md)）。相关可选配置：
 
 ```bash
-QWEN_AUDIO_MEMORY_AUTO=on         # off 全局关闭自动整理（默认 on）
-QWEN_AUDIO_MEMORY_MODEL=qwen-flash  # 提取模型（默认 qwen-flash）
-QWEN_AUDIO_MEMORY_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+SIDE_AUDIO_MEMORY_AUTO=on         # off 全局关闭自动整理（默认 on）
+SIDE_AUDIO_MEMORY_MODEL=qwen-flash  # 提取模型（默认 qwen-flash）
+SIDE_AUDIO_MEMORY_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
                                   # 任意 OpenAI 兼容端点，含本地 Ollama
-QWEN_AUDIO_MEMORY_API_KEY=        # 默认复用 DASHSCOPE_API_KEY
+SIDE_AUDIO_MEMORY_API_KEY=        # 默认复用 DASHSCOPE_API_KEY
 ```
 
 两个 Key 都未配置时（如纯本地 speech-to-speech 前台），自动整理静默关闭，
@@ -187,10 +187,10 @@ QWEN_AUDIO_MEMORY_API_KEY=        # 默认复用 DASHSCOPE_API_KEY
 
 `AGENT_PROTOCOL` 没有默认值，也是可选配置。留空时 Gateway 仅提供前台实时语音
 聊天；需要后台执行的请求会返回明确错误，不会创建任务或猜测执行结果。
-也可以使用 `qwenaudio --backend none` 显式启动仅前台模式。
+也可以使用 `sideaudio --backend none` 显式启动仅前台模式。
 
 OpenClaw 默认地址为 `http://127.0.0.1:18789`。显式设置
-`OPENCLAW_BASE_URL` 时，qwen-audio-agent 会把该 Gateway 作为外部黑盒直接连接，
+`OPENCLAW_BASE_URL` 时，side-audio-bot 会把该 Gateway 作为外部黑盒直接连接，
 不会另起 OpenClaw Gateway，也不会读取、复制或修改它的模型认证数据：
 
 ```dotenv
@@ -208,13 +208,13 @@ OPENCLAW_BASE_URL=wss://openclaw.example.com
 OPENCLAW_GATEWAY_TOKEN=replace-with-your-token
 ```
 
-外部模式仍会在 qwen-audio-agent 本机启动轻量的官方 `openclaw acp` bridge，并通过
-stdio ACP 与它通信；该 bridge 再连接用户管理的远程 Gateway。qwen-audio-agent 不会
+外部模式仍会在 side-audio-bot 本机启动轻量的官方 `openclaw acp` bridge，并通过
+stdio ACP 与它通信；该 bridge 再连接用户管理的远程 Gateway。side-audio-bot 不会
 启动、停止、改端口或修改远程 Gateway。远程模式不做 300ms 本地端口预判，而由官方
 bridge 返回实际的网络、TLS 和认证错误。如果本机安全软件终止 bridge，本轮会明确失败，
 但远程 Gateway 不受影响。
 
-如果本机安全策略只拦截 qwen-audio-agent 的 OpenClaw 启动包装层，可以显式指定一个
+如果本机安全策略只拦截 side-audio-bot 的 OpenClaw 启动包装层，可以显式指定一个
 受信任的 OpenClaw 可执行文件，Gateway 将直接用它启动轻量 bridge：
 
 ```dotenv
@@ -222,11 +222,11 @@ OPENCLAW_ACP_BIN=/absolute/path/to/openclaw
 ```
 
 这不会改变远程 Gateway 的所有权；该进程仍只是本地 ACP bridge，并随
-qwen-audio-agent Gateway 关闭。
+side-audio-bot Gateway 关闭。
 
 未设置 `OPENCLAW_BASE_URL` 时，默认优先启动用户环境中的 `openclaw`。同时提供
 `DASHSCOPE_API_KEY` 和
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` 时，会为 qwen-audio-agent 进程生成独立的
+`SIDE_AUDIO_BOT_BACKEND_MODEL` 时，会为 side-audio-bot 进程生成独立的
 百炼配置和状态目录，不修改用户原生配置。未指定后台模型时则继承用户的原生
 配置、模型和认证，但不会在独立实例中启用钉钉等外部消息渠道。自管模式下若原配置
 启用了 Gateway Token，会自动读取并用于本地 ACP 连接；也可以通过
@@ -237,18 +237,18 @@ OpenClaw 配置。连接外部 Gateway 时，应同时设置 `OPENCLAW_GATEWAY_T
 OpenCode：Gateway 通过 `opencode acp` 与它交互，并管理用于打开原生 Session
 界面的本地服务。没有兼容安装时会自动使用固定 npm 包，用户不需要另行安装或
 启动服务。`OPENCODE_BASE_URL` 是该本地 Session UI 服务的地址，并不是可供
-qwen-audio-agent 连接的远程 ACP 执行地址：
+side-audio-bot 连接的远程 ACP 执行地址：
 
 ```dotenv
 AGENT_PROTOCOL=opencode
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Qoder 使用本机 `qodercli --acp`，没有 HTTP 后台地址：
 
 ```dotenv
 AGENT_PROTOCOL=qoder
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 统一 ACP Adapter 为每个用户维护一个固定的原生协调 Session，并通过 ACP 的
@@ -273,7 +273,7 @@ Code 自身配置。
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 首次认证请直接运行 `qwen`，然后使用 `/auth`；已经移除的 `qwen auth` 不会被调用。
@@ -290,7 +290,7 @@ QWEN_CODE_WORKSPACE=
 
 Kimi Code（[MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code)）
 通过官方原生 ACP 入口 `kimi acp` 接入。当前集成验证并要求 Kimi Code `0.31.0`
-或更高版本；`qwenaudio setup --backend kimi` 会同时检查可执行文件和版本，并拒绝
+或更高版本；`sideaudio setup --backend kimi` 会同时检查可执行文件和版本，并拒绝
 低于兼容基线的旧实现。
 
 可使用官方安装脚本安装经过验证的版本：
@@ -305,7 +305,7 @@ curl -fsSL https://code.kimi.com/kimi-code/install.sh | \
 
 ```dotenv
 AGENT_PROTOCOL=kimi
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 也可以使用 Kimi Code 官方的临时模型环境变量，在不改写
@@ -318,12 +318,12 @@ KIMI_MODEL_API_KEY=your-kimi-code-key
 KIMI_MODEL_BASE_URL=https://api.kimi.com/coding/v1
 ```
 
-`config.env` 由 qwen-audio-agent 创建为仅当前用户可读写的 `0600` 文件，禁止将
+`config.env` 由 side-audio-bot 创建为仅当前用户可读写的 `0600` 文件，禁止将
 实际 API Key 写入仓库。Kimi Code 的原生配置、OAuth 凭据和 Session 存储默认仍
-由 Kimi 自己管理；qwen-audio-agent 不修改这些文件。设置 `KIMI_CODE_HOME` 可以
+由 Kimi 自己管理；side-audio-bot 不修改这些文件。设置 `KIMI_CODE_HOME` 可以
 显式选择另一套 Kimi 数据目录，设置 `KIMI_WORKSPACE` 可以覆盖协调工作区。
 
-显式设置 `QWEN_AUDIO_AGENT_BACKEND_MODEL` 时，Gateway 会通过 ACP
+显式设置 `SIDE_AUDIO_BOT_BACKEND_MODEL` 时，Gateway 会通过 ACP
 `session/set_config_option` 覆盖 Kimi Session 模型并确认生效；留空则由 Kimi
 选择自身默认模型。高级配置：
 
@@ -354,11 +354,11 @@ Hermes Agent（[nousresearch/hermes-agent](https://github.com/nousresearch/herme
 
 ```dotenv
 AGENT_PROTOCOL=hermes
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Hermes 默认使用自身配置的模型与 provider。显式设置
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` 时，Gateway 才会通过 ACP 覆盖其 Session
+`SIDE_AUDIO_BOT_BACKEND_MODEL` 时，Gateway 才会通过 ACP 覆盖其 Session
 模型。首次使用前可运行 `hermes acp --check` 检查依赖。高级配置：
 
 ```dotenv
@@ -378,11 +378,11 @@ CodeBuddy Code（腾讯 `@tencent-ai/codebuddy-code`）使用
 
 ```dotenv
 AGENT_PROTOCOL=codebuddy
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 默认直接使用 CodeBuddy 已有的模型配置。只有显式设置
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` 时，协调工作区才会生成项目级
+`SIDE_AUDIO_BOT_BACKEND_MODEL` 时，协调工作区才会生成项目级
 `.codebuddy/models.json`，通过环境变量读取指定的模型与地址。高级配置：
 
 ```dotenv
@@ -393,7 +393,7 @@ CODEBUDDY_MODEL_URL=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/compl
 
 取消模型覆盖后，Gateway 会移除自己生成的 `.codebuddy/models.json`，恢复
 CodeBuddy 原有模型；用户手动修改的文件始终保留。启用覆盖时，
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` 的变化会自动同步到系统生成的文件。
+`SIDE_AUDIO_BOT_BACKEND_MODEL` 的变化会自动同步到系统生成的文件。
 
 ### Codex
 
@@ -404,11 +404,11 @@ Codex（[openai/codex](https://github.com/openai/codex)）通过 ACP 项目维�
 
 ```dotenv
 AGENT_PROTOCOL=codex
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 默认复用用户的 `~/.codex`、登录状态和模型。只有显式设置
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` 时才覆盖模型；`CODEX_BASE_URL` 只用于配置
+`SIDE_AUDIO_BOT_BACKEND_MODEL` 时才覆盖模型；`CODEX_BASE_URL` 只用于配置
 自定义模型服务地址。两者都不会修改用户配置文件。高级配置：
 
 ```dotenv
@@ -429,11 +429,11 @@ Claude Code 通过 Zed 维护的
 
 ```dotenv
 AGENT_PROTOCOL=claude
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 模型和凭据默认由 Claude Code 自己管理，并复用 `~/.claude` 中已有的登录状态；
-也可以设置 `ANTHROPIC_API_KEY`。显式设置 `QWEN_AUDIO_AGENT_BACKEND_MODEL`
+也可以设置 `ANTHROPIC_API_KEY`。显式设置 `SIDE_AUDIO_BOT_BACKEND_MODEL`
 时，Gateway 才会通过 ACP 覆盖其 Session 模型。高级配置：
 
 ```dotenv
@@ -458,7 +458,7 @@ Pi（earendil-works 的 [pi coding agent](https://pi.dev)，npm 包
 一键安装会同时安装本体与适配器：
 
 ```bash
-qwenaudio install pi
+sideaudio install pi
 ```
 
 也可以手动安装这两个包：
@@ -486,14 +486,14 @@ PI_ACP_RUNTIME=auto
 ```
 
 - `PI_BIN` / `PI_ACP_BIN` 分别覆盖 pi 本体与 pi-acp 适配器的可执行文件路径。
-- `PI_WORKSPACE` 覆盖工作目录（默认 `~/.config/qwaudio/workspace`，与其他托管后台共享）。
+- `PI_WORKSPACE` 覆盖工作目录（默认 `~/.config/sideaudio/workspace`，与其他托管后台共享）。
 - `PI_ACP_RUNTIME`（`auto` / `binary` / `package`）控制适配器使用本地二进制
   还是通过 `npx` 按需启动。
 
 > **警告：Pi 没有任何权限审批机制。** Pi 官方明确 "No Built-in Sandbox"——
 > read、write、bash 直接以当前用户权限执行；pi-acp 也未实现 ACP
 > `session/request_permission`。因此无论
-> `QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` 如何配置，Pi 都**始终等效
+> `SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` 如何配置，Pi 都**始终等效
 > `full` 权限**，语音会话中不会出现任何权限确认环节。只在可信项目和可信
 > 提示词环境中使用。
 
@@ -506,7 +506,7 @@ Kimi Code、Hermes、CodeBuddy、Codex、Claude Code 和 Pi 均由 Gateway 直�
 
 ## 后台权限模式
 
-`QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` 可设为：
+`SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` 可设为：
 
 - `native`（默认）：权限由后台 Agent 自己判断和询问，Gateway 只负责原样转发。
 - `full`：启动时明确授予最高权限，后台可直接执行命令、读写文件，不再逐次确认。
@@ -535,7 +535,7 @@ OpenClaw 的执行授权同时受 exec approvals、elevated 和执行 host 等�
 入口。CLI 默认不抢占现有桌面语音；需要明确接管时使用：
 
 ```bash
-qwenaudio tui --takeover
+sideaudio tui --takeover
 ```
 
 同一用户只能运行一个 TUI。Gateway、桌面应用和 WebUI 可以同时驻留；桌面球会在
@@ -549,7 +549,7 @@ Gateway 默认只信任字面量 loopback Host/Origin，避免恶意网页通过
 
 ```dotenv
 HOST=127.0.0.1
-QWEN_AUDIO_AGENT_ALLOWED_ORIGINS=https://voice.example.com
+SIDE_AUDIO_BOT_ALLOWED_ORIGINS=https://voice.example.com
 ```
 
 反向代理必须：
@@ -559,13 +559,13 @@ QWEN_AUDIO_AGENT_ALLOWED_ORIGINS=https://voice.example.com
 - 保留公开 `Host`；
 - 将流量转发至本机 `127.0.0.1:3101`。
 
-`QWEN_AUDIO_AGENT_AUTH_SECRET` 只用于签署本地身份，不是远程访问密码。不得用它
+`SIDE_AUDIO_BOT_AUTH_SECRET` 只用于签署本地身份，不是远程访问密码。不得用它
 替代反向代理认证。多个可信 Origin 可使用英文逗号分隔。
 
 ## Gateway 运行方式
 
 同一数据目录在任意时刻只允许一个本地 Gateway。CLI、TUI 和 WebUI 共用
-`~/.config/qwaudio`，会优先复用同一个实例；桌面版使用独立目录，只复用或管理
+`~/.config/sideaudio`，会优先复用同一个实例；桌面版使用独立目录，只复用或管理
 自己目录下的 Gateway。同一目录内的多个客户端可以同时连接，但不会各自启动一套
 后台 Agent。实例身份记录在
 用户配置目录下的临时 `gateway.lock` 中，Gateway 正常退出时会删除，异常退出留下的
@@ -575,34 +575,34 @@ QWEN_AUDIO_AGENT_ALLOWED_ORIGINS=https://voice.example.com
 
 Gateway 默认启动并管理所选 Agent 的 ACP 进程。若 OpenCode 或 OpenClaw 的本地
 服务端口已被其他进程占用，会选择空闲端口，不会接管或关闭用户进程。OpenClaw
-始终由 qwen-audio-agent 启动独立 Gateway，并使用隔离的运行状态和 Session
+始终由 side-audio-bot 启动独立 Gateway，并使用隔离的运行状态和 Session
 存储；它可以读取用户已有的模型与能力配置，但不会与用户常驻 Gateway 共享
 Session，也不会重复连接用户配置的外部消息渠道。OpenCode 的 ACP 进程始终
 复用其原生配置和 Session 存储，原生界面不可用不影响 ACP 任务执行。
 
-`qwenaudio`、`qwenaudio gateway` 和 `qwenaudio gateway run` 都在前台运行。
+`sideaudio`、`sideaudio gateway` 和 `sideaudio gateway run` 都在前台运行。
 需要后台常驻时使用：
 
 ```bash
-qwenaudio gateway install    # 安装并立即启动用户服务
-qwenaudio gateway status
-qwenaudio gateway restart
-qwenaudio gateway stop
-qwenaudio gateway start
-qwenaudio gateway uninstall
+sideaudio gateway install    # 安装并立即启动用户服务
+sideaudio gateway status
+sideaudio gateway restart
+sideaudio gateway stop
+sideaudio gateway start
+sideaudio gateway uninstall
 ```
 
 后台服务每次启动都会重新读取 `config.env`。修改配置后执行
-`qwenaudio gateway restart` 即可生效。服务日志位于
-`~/.config/qwaudio/logs/gateway.log`；Linux 也可以通过
-`journalctl --user -u qwen-audio-agent-gateway` 查看。
+`sideaudio gateway restart` 即可生效。服务日志位于
+`~/.config/sideaudio/logs/gateway.log`；Linux 也可以通过
+`journalctl --user -u side-audio-bot-gateway` 查看。
 
 ## 本地日志
 
-qwen-audio-agent 使用统一的本地结构化日志，默认写入：
+side-audio-bot 使用统一的本地结构化日志，默认写入：
 
 ```text
-~/.config/qwaudio/logs/
+~/.config/sideaudio/logs/
 ├── gateway.log   # Gateway、Realtime、ACP 与任务生命周期
 ├── desktop.log   # 桌面主进程与内嵌 Gateway 生命周期
 ├── cli.log       # CLI 命令生命周期
@@ -620,12 +620,12 @@ Authorization、Cookie、密码和 Secret 字段会在写入前脱敏；默认�
 
 | 设置 | 默认值 | 说明 |
 | --- | --- | --- |
-| `QWEN_AUDIO_LOG_LEVEL` | `info` | `trace`、`debug`、`info`、`warn`、`error`、`fatal` 或 `silent` |
-| `QWEN_AUDIO_LOG_DIR` | 用户配置目录下的 `logs` | 自定义日志目录 |
-| `QWEN_AUDIO_LOG_MAX_BYTES` | `10485760` | 单个日志文件的轮转阈值 |
-| `QWEN_AUDIO_LOG_MAX_FILES` | `5` | 当前文件和轮转文件的总保留数量 |
-| `QWEN_AUDIO_LOG_FILE` | `1` | 设为 `0` 禁用文件日志 |
-| `QWEN_AUDIO_LOG_CONSOLE` | `1` | 设为 `0` 禁用终端日志输出 |
+| `SIDE_AUDIO_LOG_LEVEL` | `info` | `trace`、`debug`、`info`、`warn`、`error`、`fatal` 或 `silent` |
+| `SIDE_AUDIO_LOG_DIR` | 用户配置目录下的 `logs` | 自定义日志目录 |
+| `SIDE_AUDIO_LOG_MAX_BYTES` | `10485760` | 单个日志文件的轮转阈值 |
+| `SIDE_AUDIO_LOG_MAX_FILES` | `5` | 当前文件和轮转文件的总保留数量 |
+| `SIDE_AUDIO_LOG_FILE` | `1` | 设为 `0` 禁用文件日志 |
+| `SIDE_AUDIO_LOG_CONSOLE` | `1` | 设为 `0` 禁用终端日志输出 |
 
 日志仅保存在本机，不会自动上传。反馈问题前可按需检查并分享相关片段；即使系统会
 自动脱敏，也应在发送前再次确认其中没有不希望公开的本机路径或业务信息。
@@ -661,18 +661,18 @@ OpenCode ACP 接入当前要求 OpenCode `1.18.0` 或更高版本。`auto` 模�
 版本时会使用固定兼容包，不修改用户安装；显式设置 `installed` 时直接报错。
 最低版本可由 `OPENCODE_MIN_VERSION` 覆盖，用于验证其他兼容版本。
 
-qwen-audio-agent 启动的 OpenCode 默认继承用户原有的全局配置（通常是
+side-audio-bot 启动的 OpenCode 默认继承用户原有的全局配置（通常是
 `~/.config/opencode/opencode.json`），因此已经安装的 MCP、Skill、权限、模型和
 插件可以继续使用。协调规则和第三层 Session 工具由 Gateway 在每轮请求中通过
 ACP 动态提供，不会额外安装或覆盖 OpenCode Agent。
 
-如果用户配置或第三方插件与 qwen-audio-agent 冲突，可以临时启用隔离模式排查：
+如果用户配置或第三方插件与 side-audio-bot 冲突，可以临时启用隔离模式排查：
 
 ```dotenv
-QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG=true
+SIDE_AUDIO_BOT_OPENCODE_ISOLATE_USER_CONFIG=true
 ```
 
-也可以通过 `QWEN_AUDIO_AGENT_OPENCODE_XDG_CONFIG_HOME` 指定另一套 OpenCode 用户
+也可以通过 `SIDE_AUDIO_BOT_OPENCODE_XDG_CONFIG_HOME` 指定另一套 OpenCode 用户
 配置目录。隔离后，原全局配置中的 MCP 和插件不会自动加载。
 
 ## Realtime 模型选择
@@ -681,9 +681,9 @@ QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG=true
 Gateway 的模型，CLI 提供等价命令：
 
 ```bash
-qwenaudio config show
-qwenaudio config set --realtime-model qwen3.5-omni-flash-realtime
-qwenaudio gateway restart
+sideaudio config show
+sideaudio config set --realtime-model qwen3.5-omni-flash-realtime
+sideaudio gateway restart
 ```
 
 精确支持的模型 ID 如下：
@@ -708,36 +708,36 @@ Gateway 时，或后续 CLI 运行时使用了冲突的已配置模型时，会�
 | 设置 | 默认值 |
 | --- | --- |
 | `HOST` / `PORT` | `127.0.0.1` / `3101` |
-| `QWEN_AUDIO_AGENT_ALLOWED_ORIGINS` | 空；只允许 loopback |
+| `SIDE_AUDIO_BOT_ALLOWED_ORIGINS` | 空；只允许 loopback |
 | `OPENCODE_WORKSPACE` | 用户配置目录下的 `workspaces/opencode` |
 | `QODER_WORKSPACE` | 用户配置目录下的 `workspaces/qoder` |
-| `QWEN_AUDIO_AGENT_BACKEND_MODEL` | 空；使用后台 Agent 原有模型 |
-| `QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` | `native` |
-| `QWEN_AUDIO_AGENT_ACP_FORWARD_ENV` | 空；仅供通用 ACP 显式传递的环境变量名，逗号分隔 |
+| `SIDE_AUDIO_BOT_BACKEND_MODEL` | 空；使用后台 Agent 原有模型 |
+| `SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` | `native` |
+| `SIDE_AUDIO_BOT_ACP_FORWARD_ENV` | 空；仅供通用 ACP 显式传递的环境变量名，逗号分隔 |
 | `QWEN_AUDIO_REALTIME_MODEL` | `qwen-audio-3.0-realtime-plus` |
 | `QWEN_AUDIO_REALTIME_PROVIDER` | `dashscope` |
 | `QWEN_AUDIO_REALTIME_VOICE` | 空；Audio 模型族的可选覆盖，未设置时运行时使用 `longanqian` |
 | `QWEN_OMNI_REALTIME_VOICE` | 空；Omni 模型族的可选覆盖，未设置时运行时使用 `Ethan` |
 | `SPEECH_TO_SPEECH_REALTIME_URL` | `ws://127.0.0.1:8765/v1/realtime` |
 | `SPEECH_TO_SPEECH_AUTH_TOKEN` | 空；仅用于带 Bearer 认证的代理 |
-| `QWEN_AUDIO_AGENT_IDENTITY_MODE` | `personal` |
-| `QWEN_AUDIO_AGENT_TUI_AUDIO_MODE` | `half` |
+| `SIDE_AUDIO_BOT_IDENTITY_MODE` | `personal` |
+| `SIDE_AUDIO_BOT_TUI_AUDIO_MODE` | `half` |
 | `AGENT_TIMEOUT_MS` | `300000` |
 
 macOS TUI 的 CoreAudio 辅助程序默认编译到
-`~/Library/Caches/qwaudio/tui/macos-voice-io`，无需额外配置。它在播报期间
+`~/Library/Caches/sideaudio/tui/macos-voice-io`，无需额外配置。它在播报期间
 持续收音，只支持语音打断。
 Linux 和 Windows 的 minimal TUI 通过随包提供的 Python 音频桥接使用
 `sounddevice`/PortAudio 半双工；播放回复时麦克风会暂停，只支持通过 `x` 键
 手动打断，播放结束或手动打断后恢复。
 
-Linux 和 Windows 可通过 `qwenaudio tui --audio-mode full` 或设置
-`QWEN_AUDIO_AGENT_TUI_AUDIO_MODE=full` 明确开启 PortAudio 全双工。此模式没有
+Linux 和 Windows 可通过 `sideaudio tui --audio-mode full` 或设置
+`SIDE_AUDIO_BOT_TUI_AUDIO_MODE=full` 明确开启 PortAudio 全双工。此模式没有
 回声消除，只支持直接说话打断；推荐佩戴耳机，避免扬声器回声触发误识别或误打断。
 macOS 始终使用 CoreAudio AEC 全双工，不受该选项影响。
 
 如果 PortAudio 全双工持续报告输入溢出、输出欠载或设备错误，请退出 TUI 并改用
-`qwenaudio tui --audio-mode half`。不同 Linux/Windows 声卡和蓝牙耳机对同时使用
+`sideaudio tui --audio-mode half`。不同 Linux/Windows 声卡和蓝牙耳机对同时使用
 不同采样率的输入、输出流支持程度不同，半双工是兼容性兜底。
 
 任务状态、通知重试、记忆容量与保留时间等运行参数同样使用内置默认值。只有明确

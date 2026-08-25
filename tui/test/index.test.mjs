@@ -99,7 +99,7 @@ test('parses a custom gateway, session and audio mode', () => {
   assert.equal(options.takeover, true)
   assert.equal(
     parseArguments([], {
-      QWEN_AUDIO_AGENT_TUI_AUDIO_MODE: 'FULL',
+      SIDE_AUDIO_BOT_TUI_AUDIO_MODE: 'FULL',
     }).audioMode,
     'full',
   )
@@ -202,7 +202,7 @@ test('bounds and validates the Gateway health check', async () => {
       return {
         ok: true,
         headers: {
-          getSetCookie: () => ['qwaudio=value; Path=/; HttpOnly'],
+          getSetCookie: () => ['sideaudio=value; Path=/; HttpOnly'],
           get: () => null,
         },
         json: async () => ({
@@ -215,7 +215,7 @@ test('bounds and validates the Gateway health check', async () => {
   })
   assert.equal(request.url, 'http://127.0.0.1:3101/api/health')
   assert.ok(request.init.signal)
-  assert.equal(result.cookie, 'qwaudio=value')
+  assert.equal(result.cookie, 'sideaudio=value')
   assert.equal(result.health.backend.ok, true)
 
   await assert.rejects(
@@ -298,7 +298,7 @@ test('keeps a fixed composer active while asynchronous output arrives', async ()
   renderer.update('你 >', '语音预览')
   renderer.print('[状态] 后台处理中')
   renderer.setStatus('Gateway 已连接 · 麦克风已开启')
-  renderer.finish('qwen-audio >', '完成')
+  renderer.finish('side-audio >', '完成')
   stdin.write('\n')
   await new Promise(resolve => setImmediate(resolve))
   stdin.write('\u0003')
@@ -612,14 +612,14 @@ test('appends only new assistant text and defers interleaved status lines', () =
   }
   const renderer = createTerminalTranscriptRenderer({ stdout })
 
-  renderer.stream('qwen-audio >', '从前有一只')
+  renderer.stream('side-audio >', '从前有一只')
   renderer.print('[正在处理] 查询天气')
-  renderer.stream('qwen-audio >', '从前有一只小狐狸')
-  renderer.finish('qwen-audio >', '从前有一只小狐狸。')
+  renderer.stream('side-audio >', '从前有一只小狐狸')
+  renderer.finish('side-audio >', '从前有一只小狐狸。')
 
   assert.equal(
     writes.join(''),
-    'qwen-audio > 从前有一只小狐狸。\n'
+    'side-audio > 从前有一只小狐狸。\n'
       + '[正在处理] 查询天气\n',
   )
 })
@@ -640,11 +640,11 @@ test('shows current-turn task status after the spoken acknowledgement', () => {
     task: { turnId: 'turn-1' },
   }, '[处理失败] Qoder CLI process exited with code 42')
 
-  output.push('qwen-audio > 正在为您生成一幅可爱的小猪画作。')
+  output.push('side-audio > 正在为您生成一幅可爱的小猪画作。')
   status.assistantFinished('turn-1')
 
   assert.deepEqual(output, [
-    'qwen-audio > 正在为您生成一幅可爱的小猪画作。',
+    'side-audio > 正在为您生成一幅可爱的小猪画作。',
     '[正在处理] 画一个小猪',
     '[处理失败] Qoder CLI process exited with code 42',
   ])
@@ -673,20 +673,20 @@ test('does not split a streamed reply on a provisional user ASR snapshot', () =>
   }
   const renderer = createTerminalTranscriptRenderer({ stdout })
 
-  renderer.stream('qwen-audio >', '科比的影响力依然深远。这些新闻')
+  renderer.stream('side-audio >', '科比的影响力依然深远。这些新闻')
   renderer.update('你 >', '就')
   renderer.stream(
-    'qwen-audio >',
+    'side-audio >',
     '科比的影响力依然深远。这些新闻都体现了曼巴精神。',
   )
   renderer.finish(
-    'qwen-audio >',
+    'side-audio >',
     '科比的影响力依然深远。这些新闻都体现了曼巴精神。',
   )
 
   assert.equal(
     writes.join(''),
-    'qwen-audio > 科比的影响力依然深远。这些新闻都体现了曼巴精神。\n',
+    'side-audio > 科比的影响力依然深远。这些新闻都体现了曼巴精神。\n',
   )
 })
 
@@ -703,8 +703,8 @@ test('discarding a provisional user snapshot does not cancel an assistant stream
     onUserDelta: content => renderer.update('你 >', content),
     onUser: content => renderer.finish('你 >', content),
     onUserDiscard: () => renderer.discardPreview(),
-    onAssistantDelta: content => renderer.stream('qwen-audio >', content),
-    onAssistant: content => renderer.finish('qwen-audio >', content),
+    onAssistantDelta: content => renderer.stream('side-audio >', content),
+    onAssistant: content => renderer.finish('side-audio >', content),
   })
 
   display.handle({
@@ -738,7 +738,7 @@ test('discarding a provisional user snapshot does not cancel an assistant stream
     content: '回复仍在继续。',
   })
 
-  assert.equal(writes.join(''), 'qwen-audio > 回复仍在继续。\n')
+  assert.equal(writes.join(''), 'side-audio > 回复仍在继续。\n')
 })
 
 test('wraps and redraws a long mutable ASR preview across terminal rows', () => {
@@ -876,8 +876,8 @@ test('reset releases terminal output blocked behind an interrupted response', ()
   })
   const display = createTranscriptDisplay({
     onUser: () => {},
-    onAssistant: content => renderer.finish('qwen-audio >', content),
-    onAssistantDelta: content => renderer.stream('qwen-audio >', content),
+    onAssistant: content => renderer.finish('side-audio >', content),
+    onAssistantDelta: content => renderer.stream('side-audio >', content),
     onReset: () => renderer.cancel(),
   })
 

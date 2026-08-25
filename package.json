@@ -1,18 +1,18 @@
 {
-  "name": "qwen-audio-agent",
-  "desktopName": "qwen-audio-agent.desktop",
+  "name": "side-audio-bot",
+  "desktopName": "side-audio-bot.desktop",
   "version": "1.11.0",
   "description": "A realtime voice frontend for mainstream AI agents.",
-  "author": "qwen-audio-agent contributors",
+  "author": "side-audio-bot contributors",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/QwenAudio/qwen-audio-agent.git"
+    "url": "git+https://github.com/TokenBeat/side-audio-bot.git"
   },
   "bugs": {
-    "url": "https://github.com/QwenAudio/qwen-audio-agent/issues"
+    "url": "https://github.com/TokenBeat/side-audio-bot/issues"
   },
-  "homepage": "https://github.com/QwenAudio/qwen-audio-agent#readme",
+  "homepage": "https://github.com/TokenBeat/side-audio-bot#readme",
   "keywords": [
     "qwen",
     "audio",
@@ -47,7 +47,7 @@
     "./web-dist/*": "./web/dist/*"
   },
   "bin": {
-    "qwenaudio": "cli/bin/qwenaudio.mjs"
+    "sideaudio": "cli/bin/sideaudio.mjs"
   },
   "files": [
     "cli/bin/",
@@ -59,14 +59,14 @@
     "config/codebuddy/workspace/.codebuddy/models.json",
     "docs/architecture.md",
     "docs/architecture.zh.md",
+    "docs/architecture-overview.html",
+    "docs/architecture-overview-en.html",
     "docs/architecture-overview.png",
     "docs/architecture-overview-en.png",
     "docs/desktop-fluid-orb-thinking.gif",
     "docs/desktop-goo-orb-thinking.gif",
-    "docs/qwen-audio-agent-three-layer-architecture.png",
-    "docs/qwen-audio-agent-three-layer-architecture-en.png",
-    "docs/qwen-audio-agent-three-layer-architecture.svg",
-    "docs/qwen-audio-agent-two-layer-architecture.png",
+    "docs/side-audio-bot-architecture-en.svg",
+    "docs/side-audio-bot-architecture-en.png",
     "docs/voice-agent-architecture-presentation.zh.md",
     "docs/configuration.md",
     "docs/configuration.zh.md",
@@ -154,7 +154,7 @@
     "desktop:build:local": "npm run build && electron-builder --config desktop/electron-builder.yml --config.mac.identity=- --config.mac.hardenedRuntime=false --config.mac.notarize=false --mac dmg",
     "desktop:build:linux": "npm run build && electron-builder --config desktop/electron-builder.yml --linux AppImage deb",
     "desktop:build:win": "npm run build && electron-builder --config desktop/electron-builder.yml --win --x64 --publish never",
-    "cli": "npm run start --workspace @qwen-audio-agent/cli --",
+    "cli": "npm run start --workspace @side-audio-bot/cli --",
     "tui": "npm run start --workspace tui --",
     "backend": "node scripts/start.mjs",
     "openclaw": "node scripts/openclaw-gateway.mjs",
@@ -164,7 +164,7 @@
     "example:car:build": "npm run build --prefix examples/car/react-app",
     "example:car:lint": "npm run lint --prefix examples/car/react-app",
     "lint": "eslint .",
-    "test": "node --test test/*.test.mjs && npm run test --workspace server && npm run test --workspace web && npm run test --workspace tui && npm run test --workspace desktop && npm run test --workspace @qwen-audio-agent/cli",
+    "test": "node --test test/*.test.mjs && npm run test --workspace server && npm run test --workspace web && npm run test --workspace tui && npm run test --workspace desktop && npm run test --workspace @side-audio-bot/cli",
     "audit:release": "node scripts/audit-dependencies.mjs",
     "version:set": "node scripts/set-version.mjs",
     "version:patch": "node scripts/set-version.mjs patch",

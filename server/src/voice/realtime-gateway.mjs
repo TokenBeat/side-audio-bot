@@ -840,11 +840,11 @@ export function attachRealtimeGateway(server, {
         }
         const progressText = [
           '[PROGRESS]',
-          '<qwen_audio_agent_progress>',
+          '<side_audio_bot_progress>',
           '这是后台任务的进度更新，不是最终结果，也不是用户的新请求。',
           '用一句自然的话简短说明进度，不要调用工具。',
           event.message,
-          '</qwen_audio_agent_progress>',
+          '</side_audio_bot_progress>',
         ].join('\n')
         frontend.injectResult(
           progressText,

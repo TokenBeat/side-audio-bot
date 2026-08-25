@@ -48,7 +48,7 @@ export async function launchWebUi(options, {
     options.sessionId,
     options.takeover,
   )
-  stdout.write(`qwenaudio WebUI: ${pageUrl}\n`)
+  stdout.write(`sideaudio WebUI: ${pageUrl}\n`)
   if (options.openBrowser) {
     try {
       await openBrowser(pageUrl, { platform, spawnImpl })

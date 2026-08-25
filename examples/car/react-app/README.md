@@ -1,6 +1,6 @@
-# Qwen Audio Agent Car 前端
+# Side Audio Bot Car 前端
 
-这是 Qwen Audio Agent Car 的 React + Vite 前端。它负责车机 UI、VoiceDock、浏览器麦克风采集、音频播放、调试面板和 Agent actions 的前端状态同步。
+这是 Side Audio Bot Car 的 React + Vite 前端。它负责车机 UI、VoiceDock、浏览器麦克风采集、音频播放、调试面板和 Agent actions 的前端状态同步。
 
 ## 技术栈
 

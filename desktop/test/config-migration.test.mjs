@@ -16,7 +16,7 @@ import {
 } from '../src/config-migration.mjs'
 
 function withDirectories(fn) {
-  const root = mkdtempSync(join(tmpdir(), 'qwaudio-config-migration-'))
+  const root = mkdtempSync(join(tmpdir(), 'sideaudio-config-migration-'))
   const desktopDir = join(root, 'desktop')
   const dataDir = join(root, 'shared')
   try {
@@ -33,12 +33,12 @@ function seed(directory, name, content) {
   return path
 }
 
-test('prefers QWAUDIO_CONFIG_DIR over the Electron userData directory', () => {
-  const override = '/tmp/qwaudio-profile'
+test('prefers SIDEAUDIO_CONFIG_DIR over the Electron userData directory', () => {
+  const override = '/tmp/sideaudio-profile'
   assert.equal(
     resolveDesktopConfigDirectory({
-      env: { QWAUDIO_CONFIG_DIR: override },
-      userDataDirectory: '/home/user/.config/Qwen Audio Agent',
+      env: { SIDEAUDIO_CONFIG_DIR: override },
+      userDataDirectory: '/home/user/.config/Side Audio Bot',
     }),
     resolve(override),
   )
@@ -48,9 +48,9 @@ test('falls back to the Electron userData directory without override', () => {
   assert.equal(
     resolveDesktopConfigDirectory({
       env: {},
-      userDataDirectory: '/home/user/.config/Qwen Audio Agent',
+      userDataDirectory: '/home/user/.config/Side Audio Bot',
     }),
-    resolve('/home/user/.config/Qwen Audio Agent'),
+    resolve('/home/user/.config/Side Audio Bot'),
   )
 })
 
@@ -85,13 +85,13 @@ test('does not use timestamps to choose between two user assets', () => {
 
 test('never overwrites an existing shared state.env identity', () => {
   withDirectories(({ desktopDir, dataDir }) => {
-    seed(desktopDir, 'state.env', 'QWEN_AUDIO_AGENT_AUTH_SECRET=desktop\n')
-    seed(dataDir, 'state.env', 'QWEN_AUDIO_AGENT_AUTH_SECRET=cli\n')
+    seed(desktopDir, 'state.env', 'SIDE_AUDIO_BOT_AUTH_SECRET=desktop\n')
+    seed(dataDir, 'state.env', 'SIDE_AUDIO_BOT_AUTH_SECRET=cli\n')
     const result = backfillSharedAssets({ desktopDir, dataDir })
     assert.deepEqual(result.skipped, ['state.env'])
     assert.equal(
       readFileSync(join(dataDir, 'state.env'), 'utf8'),
-      'QWEN_AUDIO_AGENT_AUTH_SECRET=cli\n',
+      'SIDE_AUDIO_BOT_AUTH_SECRET=cli\n',
     )
   })
 })

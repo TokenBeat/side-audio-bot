@@ -144,6 +144,6 @@ test('recognizes a detailed delegated acknowledgement as the same action preview
     ownerId: 'owner',
     sessionId: 'voice',
     turnId: 'turn-progress',
-    content: '好的老大，我已经开始检查你当前这个 qwen-audio-agent 项目的进度了，会看一下 git 分支、未提交改动和最近提交。',
+    content: '好的老大，我已经开始检查你当前这个 side-audio-bot 项目的进度了，会看一下 git 分支、未提交改动和最近提交。',
   }), true)
 })

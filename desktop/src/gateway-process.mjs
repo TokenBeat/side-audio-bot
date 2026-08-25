@@ -66,13 +66,13 @@ export function desktopGatewayEnvironment({
       env: merged,
       platform,
     }),
-    QWEN_AUDIO_AGENT_DESKTOP: '1',
-    QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY: '1',
+    SIDE_AUDIO_BOT_DESKTOP: '1',
+    SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY: '1',
     ...(runtimeRoot
-      ? { QWEN_AUDIO_AGENT_RUNTIME_ROOT: runtimeRoot }
+      ? { SIDE_AUDIO_BOT_RUNTIME_ROOT: runtimeRoot }
       : {}),
     ...(sourceRoot
-      ? { QWEN_AUDIO_AGENT_SOURCE_ROOT: sourceRoot }
+      ? { SIDE_AUDIO_BOT_SOURCE_ROOT: sourceRoot }
       : {}),
   }
 }
@@ -128,7 +128,7 @@ export function desktopGatewayCompatibility(health, env = process.env) {
     ).trim()
     const expectedOwnership = resolveBackendOwnership(expectedProtocol, {
       baseUrlConfigured: Boolean(configuredBaseUrl),
-      requestedOwnership: env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP,
+      requestedOwnership: env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP,
     })
     const actualOwnership = String(
       health?.backend?.ownership
@@ -160,7 +160,7 @@ export function desktopGatewayCompatibility(health, env = process.env) {
     }
     const expectedPermission = effectiveBackendPermissionMode(
       expectedProtocol,
-      env.QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE,
+      env.SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE,
     )
     const actualPermission = String(
       health?.backend?.permissionMode || 'native',
@@ -173,7 +173,7 @@ export function desktopGatewayCompatibility(health, env = process.env) {
       }
     }
     const expectedModel = String(
-      env.QWEN_AUDIO_AGENT_BACKEND_MODEL || '',
+      env.SIDE_AUDIO_BOT_BACKEND_MODEL || '',
     ).trim().toLowerCase()
     const actualModel = String(health?.backend?.model || '').trim().toLowerCase()
     if (expectedModel && expectedModel !== actualModel) {

@@ -63,7 +63,7 @@ test('projects input parts through the realtime provider boundary', () => {
       filename: 'cat.png',
       url: 'data:image/png;base64,aGVsbG8=',
       source: { type: 'clipboard', text: { value: '[Image 1]' } },
-      _meta: { 'qwen-audio-agent/inputRef': 'input_1' },
+      _meta: { 'side-audio-bot/inputRef': 'input_1' },
     },
   ])
   const text = projection.conversationItem.content[0].text
@@ -152,7 +152,7 @@ test('only reports a queued announcement as completed after response.done', asyn
       type: 'response.created',
       response: {
         id: 'response-1',
-        metadata: { qwen_audio_request_id: requestId },
+        metadata: { side_audio_request_id: requestId },
       },
     })
     waitingAfterCreated = frontend.responseWaiters.has('response-1')
@@ -755,7 +755,7 @@ test('builds cache-friendly policy, identity, memory and reconnect context', () 
     }],
   })
 
-  assert.match(prompt, /千问Audio/)
+  assert.match(prompt, /Side Audio/)
   assert.match(prompt, /与用户进行全双工语音交互的统一助手/)
   assert.match(prompt, /不要把自己描述成前台模型、后台模型/)
   assert.match(prompt, /Asia\/Shanghai/)
@@ -1543,7 +1543,7 @@ test('waits for the GA conversation item receipt before creating a response', as
     response: {
       id: 'resp-result',
       metadata: {
-        qwen_audio_request_id: frontend.pendingResponses[0].requestId,
+        side_audio_request_id: frontend.pendingResponses[0].requestId,
       },
     },
   })
@@ -1653,7 +1653,7 @@ test('does not correlate an automatic VAD response with a pending GA response', 
   await new Promise(resolve => setImmediate(resolve))
 
   const requested = sent.find(event => event.type === 'response.create')
-  assert.ok(requested.response.metadata.qwen_audio_request_id)
+  assert.ok(requested.response.metadata.side_audio_request_id)
   assert.equal(frontend.pendingResponses.length, 1)
 
   const automatic = {
@@ -1722,12 +1722,12 @@ test('correlates an accepted GA response through echoed metadata', async () => {
     { turnId: 'turn-announcement' },
   )
   await new Promise(resolve => setImmediate(resolve))
-  const requestId = sent[0].response.metadata.qwen_audio_request_id
+  const requestId = sent[0].response.metadata.side_audio_request_id
   const created = {
     type: 'response.created',
     response: {
       id: 'resp-announcement',
-      metadata: { qwen_audio_request_id: requestId },
+      metadata: { side_audio_request_id: requestId },
     },
   }
   frontend.handleLifecycle(created)
@@ -1770,7 +1770,7 @@ test('retries immediately after a known automatic response becomes idle', async 
   assert.equal(sent.length, 1)
   assert.equal(sent[0].type, 'response.create')
   assert.equal(
-    sent[0].response.metadata.qwen_audio_request_id,
+    sent[0].response.metadata.side_audio_request_id,
     pending.requestId,
   )
   frontend.settlePending(pending, { cancelled: true })

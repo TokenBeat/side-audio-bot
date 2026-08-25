@@ -19,7 +19,7 @@ test('maps OpenCode-style image parts to ACP image blocks', () => {
     type: 'image',
     mimeType: 'image/png',
     data: 'aGVsbG8=',
-    uri: 'qwen-audio-agent://input/reference.png',
+    uri: 'side-audio-bot://input/reference.png',
   }])
   assert.equal(promptWithInputParts('hello', []).constructor, String)
   assert.equal(promptWithInputParts('hello', [image])[0].text, 'hello')

@@ -65,20 +65,20 @@ function applyGatewayOptions(env, options) {
         && String(env[definition.baseUrlEnvironment] || '').trim()
       )
     )
-    env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP = resolveBackendOwnership(
+    env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP = resolveBackendOwnership(
       options.backend,
       { baseUrlConfigured },
     )
-    env.QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE =
+    env.SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE =
       options.backendPermissionMode
   } else {
-    delete env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP
-    delete env.QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE
+    delete env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP
+    delete env.SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE
   }
   if (options.backend && options.backendAgent) {
-    env.QWEN_AUDIO_AGENT_BACKEND_AGENT = options.backendAgent
+    env.SIDE_AUDIO_BOT_BACKEND_AGENT = options.backendAgent
   } else {
-    delete env.QWEN_AUDIO_AGENT_BACKEND_AGENT
+    delete env.SIDE_AUDIO_BOT_BACKEND_AGENT
   }
   if (definition?.baseUrlEnvironment) {
     env[definition.baseUrlEnvironment] = options.backendUrl
@@ -205,7 +205,7 @@ export async function main(argv, {
       ) {
         stdout.write(
           '配置文件已更新；当前 QWEN_AUDIO_REALTIME_MODEL 环境变量仍覆盖该值。'
-          + '请先取消环境变量，再执行 qwenaudio gateway restart\n',
+          + '请先取消环境变量，再执行 sideaudio gateway restart\n',
         )
       } else {
         stdout.write(`${GATEWAY_RESTART_FOLLOW_UP}\n`)
@@ -223,7 +223,7 @@ export async function main(argv, {
     return selected && !selected.ready ? 1 : 0
   }
   if (options.command === 'skill') {
-    // qwenaudio skill 是 skills.sh 的品牌化入口：参数组装后透传，输出原样展示。
+    // sideaudio skill 是 skills.sh 的品牌化入口：参数组装后透传，输出原样展示。
     if (options.skillAction === 'list') {
       stdout.write(skillTools.listSkills().stdout)
       return 0
@@ -243,7 +243,7 @@ export async function main(argv, {
         // 各后台发现新技能的时机不同：部分热加载，部分仅在进程/会话启动时扫描。
         stdout.write(
           '技能已安装；若运行中的后台未发现新技能，'
-          + '执行 qwenaudio gateway restart 后即可生效\n',
+          + '执行 sideaudio gateway restart 后即可生效\n',
         )
       }
       return 0
@@ -311,7 +311,7 @@ export async function main(argv, {
           // A background service does not inherit the invoking shell. Preserve
           // the shared profile directory explicitly, including custom profiles.
           ...(environment.dataDirectory
-            ? { QWAUDIO_DATA_DIR: environment.dataDirectory }
+            ? { SIDEAUDIO_DATA_DIR: environment.dataDirectory }
             : {}),
         }
       : {}
@@ -427,7 +427,7 @@ export async function main(argv, {
   const health = await inspectGateway(options.url)
   if (!health) {
     throw new Error(
-      `Gateway 未运行：${options.url}。请先执行 qwenaudio gateway`,
+      `Gateway 未运行：${options.url}。请先执行 sideaudio gateway`,
     )
   }
   if (options.command === 'webui') return runWebUi(options)

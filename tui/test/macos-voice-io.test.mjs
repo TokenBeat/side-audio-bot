@@ -13,7 +13,7 @@ test('uses the standard macOS cache for the native voice helper', () => {
     macVoiceIOBinaryPath({
       homeDirectory: '/Users/example',
     }),
-    resolve('/Users/example', 'Library/Caches/qwaudio/tui/macos-voice-io'),
+    resolve('/Users/example', 'Library/Caches/sideaudio/tui/macos-voice-io'),
   )
 })
 

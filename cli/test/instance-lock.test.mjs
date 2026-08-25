@@ -6,7 +6,7 @@ import test from 'node:test'
 import { acquireCliInstance } from '../src/instance-lock.mjs'
 
 test('allows only one live CLI instance', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwenaudio-cli-lock-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-cli-lock-'))
   const first = acquireCliInstance(directory, {
     pid: 101,
     token: 'first',
@@ -25,7 +25,7 @@ test('allows only one live CLI instance', () => {
         throw Object.assign(new Error('missing'), { code: 'ESRCH' })
       },
     }),
-    /另一个 qwenaudio CLI 已在运行/,
+    /另一个 sideaudio CLI 已在运行/,
   )
 
   first.release()
@@ -38,7 +38,7 @@ test('allows only one live CLI instance', () => {
 })
 
 test('recovers a stale CLI lock without deleting a replacement lock', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwenaudio-cli-stale-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-cli-stale-'))
   const path = join(directory, 'cli.lock')
   writeFileSync(path, JSON.stringify({ pid: 99, token: 'stale' }))
   const lock = acquireCliInstance(directory, {

@@ -12,7 +12,7 @@ function response() {
 }
 
 function tokenFrom(res) {
-  return res.headers['set-cookie'].match(/^qwen_audio_agent_identity=([^;]+)/)[1]
+  return res.headers['set-cookie'].match(/^side_audio_bot_identity=([^;]+)/)[1]
 }
 
 test('issues server-owned identities and rejects forged browser identifiers', () => {
@@ -22,10 +22,10 @@ test('issues server-owned identities and rejects forged browser identifiers', ()
   const token = tokenFrom(firstResponse)
 
   const recognized = manager.resolveUpgrade({
-    headers: { cookie: `qwen_audio_agent_identity=${token}` },
+    headers: { cookie: `side_audio_bot_identity=${token}` },
   })
   const forged = manager.resolveUpgrade({
-    headers: { cookie: 'qwen_audio_agent_identity=attacker-selected-client-id' },
+    headers: { cookie: 'side_audio_bot_identity=attacker-selected-client-id' },
   })
 
   assert.equal(recognized.ownerId, first.ownerId)
@@ -50,7 +50,7 @@ test('recognizes the same signed browser identity after a server restart', () =>
   const restartedManager = new IdentityManager({ secret })
 
   const recognized = restartedManager.resolveUpgrade({
-    headers: { cookie: `qwen_audio_agent_identity=${token}` },
+    headers: { cookie: `side_audio_bot_identity=${token}` },
   })
   assert.equal(recognized.ownerId, issued.ownerId)
 })
@@ -77,6 +77,6 @@ test('ignores malformed percent-encoded identity cookies without throwing', () =
   })
 
   assert.equal(manager.resolveUpgrade({
-    headers: { cookie: 'qwen_audio_agent_identity=%E0%A4%A' },
+    headers: { cookie: 'side_audio_bot_identity=%E0%A4%A' },
   }), null)
 })

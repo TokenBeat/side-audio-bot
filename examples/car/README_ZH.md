@@ -1,4 +1,4 @@
-# Qwen Audio Agent Car
+# Side Audio Bot Car
 
 [中文](README_ZH.md) | [English](README.md)
 
@@ -7,14 +7,14 @@
 真实的座舱交互不应该像在缓慢菜单里下指令。驾驶员或乘客自然说话，助手持续聆听，
 车辆任务在执行时也不阻塞当前对话。
 
-**Qwen Audio Agent Car** 是 `qwen-audio-agent` 的智能座舱示例。它把车机 UI、
+**Side Audio Bot Car** 是 `side-audio-bot` 的智能座舱示例。它把车机 UI、
 实时语音、文本 Agent、车辆控制、导航、音乐、淘宝闪购、天气、联网查询、记忆和
 自定义技能放在一个可运行的 demo 里。当前示例刻意保持自包含，让
-qwen-audio-agent 主运行时继续维持通用边界。
+side-audio-bot 主运行时继续维持通用边界。
 
 ## 快速开始
 
-以下命令默认在 `qwen-audio-agent` 仓库根目录执行。
+以下命令默认在 `side-audio-bot` 仓库根目录执行。
 
 ### 1. 配置环境
 
@@ -69,7 +69,7 @@ npm run example:car:web
 
 ## 架构
 
-![Qwen Audio Agent Car 架构](docs/system-architecture.svg)
+![Side Audio Bot Car 架构](docs/system-architecture.svg)
 
 ## 开发
 

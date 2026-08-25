@@ -9,8 +9,8 @@ import { randomInt } from 'node:crypto'
 
 const ROOT = resolve(join(fileURLToPath(import.meta.url), '..', '..'))
 const IS_WIN = process.platform === 'win32'
-const IS_DESKTOP = process.env.QWEN_AUDIO_AGENT_DESKTOP === '1'
-const DESKTOP_INSTALLED_ONLY = process.env.QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY
+const IS_DESKTOP = process.env.SIDE_AUDIO_BOT_DESKTOP === '1'
+const DESKTOP_INSTALLED_ONLY = process.env.SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY
 const FIRST_ARG = process.argv[2] || ''
 const CLI_ARGS = process.argv.slice(2)
 
@@ -21,16 +21,16 @@ function fatal(msg) { console.error(msg); process.exit(1) }
 // ── config dir ───────────────────────────────────────────────────────────────
 
 function userConfigDir() {
-  if (process.env.QWAUDIO_CONFIG_DIR) return process.env.QWAUDIO_CONFIG_DIR
-  if (process.env.XDG_CONFIG_HOME) return join(process.env.XDG_CONFIG_HOME, 'qwaudio')
+  if (process.env.SIDEAUDIO_CONFIG_DIR) return process.env.SIDEAUDIO_CONFIG_DIR
+  if (process.env.XDG_CONFIG_HOME) return join(process.env.XDG_CONFIG_HOME, 'sideaudio')
   const home = process.env.HOME || process.env.USERPROFILE
-  if (home) return join(home, '.config', 'qwaudio')
-  fatal('OpenClaw requires QWAUDIO_CONFIG_DIR, XDG_CONFIG_HOME, or HOME.')
+  if (home) return join(home, '.config', 'sideaudio')
+  fatal('OpenClaw requires SIDEAUDIO_CONFIG_DIR, XDG_CONFIG_HOME, or HOME.')
 }
 
 // ── run Node helper scripts ──────────────────────────────────────────────────
 
-const SOURCE_ROOT = process.env.QWEN_AUDIO_AGENT_SOURCE_ROOT || ROOT
+const SOURCE_ROOT = process.env.SIDE_AUDIO_BOT_SOURCE_ROOT || ROOT
 
 function runHelper(op, ...args) {
   const isDesktopHelper = SOURCE_ROOT !== ROOT
@@ -48,18 +48,18 @@ function runHelper(op, ...args) {
 // ── directory setup ──────────────────────────────────────────────────────────
 
 const USER_DIR = userConfigDir()
-const STATE_DIR = process.env.QWEN_AUDIO_AGENT_OPENCLAW_STATE_DIR || join(USER_DIR, 'backends', 'openclaw', 'state')
-const WORKSPACE = process.env.QWEN_AUDIO_AGENT_OPENCLAW_WORKSPACE || join(USER_DIR, 'workspaces', 'openclaw')
-process.env.QWEN_AUDIO_AGENT_OPENCLAW_STATE_DIR = STATE_DIR
-process.env.QWEN_AUDIO_AGENT_OPENCLAW_WORKSPACE = WORKSPACE
+const STATE_DIR = process.env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR || join(USER_DIR, 'backends', 'openclaw', 'state')
+const WORKSPACE = process.env.SIDE_AUDIO_BOT_OPENCLAW_WORKSPACE || join(USER_DIR, 'workspaces', 'openclaw')
+process.env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR = STATE_DIR
+process.env.SIDE_AUDIO_BOT_OPENCLAW_WORKSPACE = WORKSPACE
 mkdirSync(STATE_DIR, { recursive: true })
 mkdirSync(WORKSPACE, { recursive: true })
 // ── managed (DashScope) OpenClaw ─────────────────────────────────────────────
 
 let managed = false
-const MODEL = (process.env.QWEN_AUDIO_AGENT_BACKEND_MODEL || '').toLowerCase()
+const MODEL = (process.env.SIDE_AUDIO_BOT_BACKEND_MODEL || '').toLowerCase()
 const EXTERNAL_SERVICE = (
-  process.env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP === 'external'
+  process.env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP === 'external'
 )
 if (
   !EXTERNAL_SERVICE
@@ -73,10 +73,10 @@ if (
   mkdirSync(cfgDir, { recursive: true })
   copyFileSync(join(ROOT, 'config', 'openclaw', 'openclaw.json5'), join(cfgDir, 'openclaw.json5'))
   process.env.OPENCLAW_CONFIG_PATH = join(cfgDir, 'openclaw.json5')
-  const modelId = process.env.QWEN_AUDIO_AGENT_BACKEND_MODEL.includes('/')
-    ? process.env.QWEN_AUDIO_AGENT_BACKEND_MODEL.split('/')[1] : process.env.QWEN_AUDIO_AGENT_BACKEND_MODEL
-  process.env.QWEN_AUDIO_AGENT_OPENCLAW_MODEL = `bailian/${modelId}`
-  process.env.QWEN_AUDIO_AGENT_OPENCLAW_MODEL_ID = modelId
+  const modelId = process.env.SIDE_AUDIO_BOT_BACKEND_MODEL.includes('/')
+    ? process.env.SIDE_AUDIO_BOT_BACKEND_MODEL.split('/')[1] : process.env.SIDE_AUDIO_BOT_BACKEND_MODEL
+  process.env.SIDE_AUDIO_BOT_OPENCLAW_MODEL = `bailian/${modelId}`
+  process.env.SIDE_AUDIO_BOT_OPENCLAW_MODEL_ID = modelId
 }
 
 // ── gateway-specific setup ───────────────────────────────────────────────────
@@ -165,8 +165,8 @@ async function runPackage() {
 }
 async function runManaged() {
   if (!process.env.DASHSCOPE_API_KEY) fatal('Automatic OpenClaw setup requires DASHSCOPE_API_KEY.')
-  if (!process.env.QWEN_AUDIO_AGENT_BACKEND_MODEL || MODEL === 'auto') {
-    fatal('Automatic OpenClaw setup requires QWEN_AUDIO_AGENT_BACKEND_MODEL.')
+  if (!process.env.SIDE_AUDIO_BOT_BACKEND_MODEL || MODEL === 'auto') {
+    fatal('Automatic OpenClaw setup requires SIDE_AUDIO_BOT_BACKEND_MODEL.')
   }
   await runPackage()
 }

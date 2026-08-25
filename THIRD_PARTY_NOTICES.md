@@ -1,7 +1,9 @@
 # Third-Party Notices
 
-qwen-audio-agent 使用并分发若干开源组件。项目自身使用 Apache License 2.0；
+side-audio-bot 使用并分发若干开源组件。项目自身使用 Apache License 2.0；
 第三方组件仍分别受其原许可证约束。
+
+side-audio-bot is based on qwen-audio-agent, Copyright 2026 qwen-audio-agent contributors.
 
 主要组件包括：
 

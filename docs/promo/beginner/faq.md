@@ -12,7 +12,7 @@
 
 分两部分，如实说明：
 
-- **唤醒词检测**（说"你好千问"激活）：完全在你的电脑本地运行，音频不出设备
+- **唤醒词检测**（说"你好煤球"激活）：完全在你的电脑本地运行，音频不出设备
 - **语音识别与合成**：经阿里云百炼的语音服务处理（这是它能听懂普通话/英语并开口回答的原因）
 
 你的 Key 和聊天记录只保存在自己电脑的本地目录里，不会上传到我们的任何服务器。
@@ -43,5 +43,5 @@
 ## 出问题找谁？
 
 - 先看这份 FAQ 和 [上手指南](quickstart.md)
-- [GitHub 讨论区](https://github.com/QwenAudio/qwen-audio-agent/discussions) 发问
+- [GitHub 讨论区](https://github.com/TokenBeat/side-audio-bot/discussions) 发问
 - [README](../../../README.md) 底部有微信群二维码，进群直接问

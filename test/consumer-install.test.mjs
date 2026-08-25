@@ -11,7 +11,7 @@
 // The test needs npm and the registry, which a plain unit run should not
 // depend on, so it only runs when explicitly enabled:
 //
-//   QWEN_AUDIO_CONSUMER_PROBE=1 node --test test/consumer-install.test.mjs
+//   SIDE_AUDIO_BOT_CONSUMER_PROBE=1 node --test test/consumer-install.test.mjs
 //
 // CI enables it on one matrix job after the build step.
 
@@ -24,10 +24,10 @@ import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 
 const projectRoot = resolve(fileURLToPath(import.meta.url), '../..')
-const enabled = process.env.QWEN_AUDIO_CONSUMER_PROBE === '1'
+const enabled = process.env.SIDE_AUDIO_BOT_CONSUMER_PROBE === '1'
 
 function installedRoot(consumer) {
-  return join(consumer, 'node_modules', 'qwen-audio-agent')
+  return join(consumer, 'node_modules', 'side-audio-bot')
 }
 
 async function waitForLease(configDir, timeoutMs = 30_000) {
@@ -54,14 +54,14 @@ test('a consumer with only the declared dependencies can run the CLI and Gateway
   assert.ok(tarball.endsWith('.tgz'), `unexpected pack output: ${pack.stdout}`)
   t.after(() => rmSync(resolve(projectRoot, tarball), { force: true }))
 
-  const consumer = mkdtempSync(join(tmpdir(), 'qwaudio-consumer-'))
+  const consumer = mkdtempSync(join(tmpdir(), 'sideaudio-consumer-'))
   t.after(() => rmSync(consumer, { recursive: true, force: true }))
   writeFileSync(join(consumer, 'package.json'), JSON.stringify({
-    name: 'qwaudio-consumer-probe',
+    name: 'sideaudio-consumer-probe',
     private: true,
     type: 'module',
     dependencies: {
-      'qwen-audio-agent': `file:${resolve(projectRoot, tarball)}`,
+      'side-audio-bot': `file:${resolve(projectRoot, tarball)}`,
     },
   }))
 
@@ -77,18 +77,18 @@ test('a consumer with only the declared dependencies can run the CLI and Gateway
   // 1. The CLI entry resolves its whole import graph from the consumer's
   //    node_modules alone.
   const help = spawnSync(process.execPath, [
-    join(installedRoot(consumer), 'cli/bin/qwenaudio.mjs'),
+    join(installedRoot(consumer), 'cli/bin/sideaudio.mjs'),
     '--help',
   ], { cwd: consumer, encoding: 'utf8' })
-  assert.equal(help.status, 0, `qwenaudio --help failed: ${help.stderr}`)
-  assert.match(help.stdout, /qwenaudio/)
+  assert.equal(help.status, 0, `sideaudio --help failed: ${help.stderr}`)
+  assert.match(help.stdout, /sideaudio/)
 
   // 2. The setup gate: an unconfigured Gateway start must refuse with an
   //    actionable error instead of listening with a dead voice.
   const gateEnvironment = {
     ...process.env,
-    QWAUDIO_CONFIG_DIR: mkdtempSync(join(tmpdir(), 'qwaudio-gate-')),
-    QWEN_AUDIO_LOG_CONSOLE: '1',
+    SIDEAUDIO_CONFIG_DIR: mkdtempSync(join(tmpdir(), 'sideaudio-gate-')),
+    SIDE_AUDIO_LOG_CONSOLE: '1',
     DASHSCOPE_API_KEY: '',
     QWEN_AUDIO_REALTIME_API_KEY: '',
     AGENT_PROTOCOL: '',
@@ -105,7 +105,7 @@ test('a consumer with only the declared dependencies can run the CLI and Gateway
 
   // 3. A configured start serves the health contract; the lease is how a
   //    consumer finds the system-assigned port without bookkeeping.
-  const configDir = mkdtempSync(join(tmpdir(), 'qwaudio-probe-'))
+  const configDir = mkdtempSync(join(tmpdir(), 'sideaudio-probe-'))
   t.after(() => rmSync(configDir, { recursive: true, force: true }))
   const gateway = spawn(process.execPath, [
     join(installedRoot(consumer), 'server/src/index.mjs'),
@@ -113,7 +113,7 @@ test('a consumer with only the declared dependencies can run the CLI and Gateway
     cwd: consumer,
     env: {
       ...process.env,
-      QWAUDIO_CONFIG_DIR: configDir,
+      SIDEAUDIO_CONFIG_DIR: configDir,
       DASHSCOPE_API_KEY: 'sk-consumer-probe',
       AGENT_PROTOCOL: '',
       PORT: '0',
@@ -185,7 +185,7 @@ function makeWebp(width, height) {
 }
 
 async function main() {
-  const audioAgent = require('qwen-audio-agent/electron')
+  const audioAgent = require('side-audio-bot/electron')
   const api = await audioAgent.load()
   assert.equal(typeof audioAgent.PRELOAD_PATH, 'string')
   for (const name of [
@@ -200,14 +200,14 @@ async function main() {
 
   // Settings are collected through the store, never through a file the host
   // names itself.
-  const configDir = mkdtempSync(join(tmpdir(), 'qwaudio-embed-'))
+  const configDir = mkdtempSync(join(tmpdir(), 'sideaudio-embed-'))
   const settings = api.createSettingsStore({ configDir })
   assert.equal(settings.ready(), false)
   settings.save({ dashscopeApiKey: 'sk-embed-probe' })
   assert.equal(settings.ready(), true)
 
   // Import a skin before the Gateway starts; the Gateway then serves it.
-  const skinSource = mkdtempSync(join(tmpdir(), 'qwaudio-skin-'))
+  const skinSource = mkdtempSync(join(tmpdir(), 'sideaudio-skin-'))
   mkdirSync(join(skinSource, 'probe--host'), { recursive: true })
   writeFileSync(join(skinSource, 'probe--host', 'pet.json'), JSON.stringify({
     id: 'probe--host',

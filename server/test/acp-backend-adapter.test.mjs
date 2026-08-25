@@ -182,7 +182,7 @@ function fakeAcpClient({
           response: { stopReason: 'end_turn' },
         }
       }
-      if (prompt.includes('qwen_audio_agent_delegation_result')) {
+      if (prompt.includes('side_audio_bot_delegation_result')) {
         return {
           content: completed('第三层结果已整理'),
           response: { stopReason: 'end_turn' },
@@ -741,7 +741,7 @@ test('uses one ACP profile family while preserving backend differences', () => {
   const codexConfig = JSON.parse(connection(codex).env.CODEX_CONFIG)
   assert.equal(codexConfig.model, 'qwen3.7-max')
   assert.equal(
-    codexConfig.model_providers['qwen-audio-agent'].base_url,
+    codexConfig.model_providers['side-audio-bot'].base_url,
     'https://example.com/compatible-mode/v1',
   )
   const nativeCodex = acpBackendProfile({
@@ -1293,7 +1293,7 @@ test('automatically allows only the Gateway-owned Session MCP tools', async () =
   const result = await adapter.handlePermission({
     toolCall: {
       toolCallId: 'session-tool',
-      title: 'qwen_audio_agent_session_start (qwen_audio_agent)',
+      title: 'side_audio_bot_session_start (side_audio_bot)',
     },
     options: [
       { optionId: 'once', name: 'Allow', kind: 'allow_once' },
@@ -1376,7 +1376,7 @@ test('busy-coordinator cancellation uses ACP directly and reconciles on the next
   const followUp = client.calls.findLast(call => (
     call[0] === 'prompt' && call[2].includes('plain follow-up')
   ))
-  assert.match(followUp[2], /qwen_audio_agent_reconciliation/)
+  assert.match(followUp[2], /side_audio_bot_reconciliation/)
   assert.match(followUp[2], /delegated_session_cancelled/)
   assert.equal(adapter.pendingCoordinatorFacts.has('owner-one'), false)
   await adapter.close()
@@ -1536,7 +1536,7 @@ test('replaces a restored OpenCode coordinator with a stale mode', async () => {
       configOptions: [{
         id: 'mode',
         type: 'select',
-        currentValue: 'qwen-audio-agent-backend',
+        currentValue: 'side-audio-bot-backend',
         options: [{ value: 'build' }, { value: 'plan' }],
       }],
     },
@@ -1897,7 +1897,7 @@ test('OpenClaw routes each owner to the configured coordinator Agent through ACP
     client: fakeAcpClient(),
   })
   assert.deepEqual(adapter.coordinatorMeta('Owner One'), {
-    sessionKey: 'agent:voice-coordinator:qwen-audio-agent:owner%20one:backend',
+    sessionKey: 'agent:voice-coordinator:side-audio-bot:owner%20one:backend',
   })
 })
 

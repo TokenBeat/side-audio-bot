@@ -2,7 +2,7 @@
 
 ## Title（二选一）
 
-- Show HN: qwen-audio-agent – Full-duplex voice interface for coding agents
+- Show HN: side-audio-bot – Full-duplex voice interface for coding agents
 - Show HN: Talk to Claude Code/Codex hands-free, with tasks running in parallel
 
 ## Body

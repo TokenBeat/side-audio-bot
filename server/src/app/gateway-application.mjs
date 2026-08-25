@@ -234,8 +234,8 @@ app.get('/api/health', (req, res) => {
     // Contract surface: clients branch on a capability, not a product version.
     protocolVersion: GATEWAY_PROTOCOL_VERSION,
     capabilities: GATEWAY_CAPABILITIES,
-    gatewayInstanceId: process.env.QWEN_AUDIO_GATEWAY_INSTANCE_ID || null,
-    gatewayStartedAt: process.env.QWEN_AUDIO_GATEWAY_STARTED_AT || null,
+    gatewayInstanceId: process.env.SIDE_AUDIO_GATEWAY_INSTANCE_ID || null,
+    gatewayStartedAt: process.env.SIDE_AUDIO_GATEWAY_STARTED_AT || null,
     inputSuspension: inputArbitration.status(),
     voiceConfigured: realtime.configured,
     realtimeProvider: realtime.provider,
@@ -280,7 +280,7 @@ app.post('/api/input/suspend', (req, res) => {
       ttlMs: req.body?.ttlMs,
     }))
   } catch (error) {
-    if (error?.code === 'QWAUDIO_INPUT_OWNER_REQUIRED') {
+    if (error?.code === 'SIDEAUDIO_INPUT_OWNER_REQUIRED') {
       return res.status(400).json({ error: error.message, code: error.code })
     }
     throw error
@@ -486,9 +486,9 @@ const start = ({ host = config.host, port = config.port } = {}) => {
     const boundPort = address && typeof address === 'object' ? address.port : port
     const origin = `http://${host}:${boundPort}`
     const readyReport = {
-      type: 'qwen-audio-agent:gateway-ready',
+      type: 'side-audio-bot:gateway-ready',
       origin,
-      instanceId: process.env.QWEN_AUDIO_GATEWAY_INSTANCE_ID || null,
+      instanceId: process.env.SIDE_AUDIO_GATEWAY_INSTANCE_ID || null,
     }
     if (parentPort) {
       // Electron utilityProcess.
@@ -501,7 +501,7 @@ const start = ({ host = config.host, port = config.port } = {}) => {
       origin,
       backend: config.agentProtocol || 'none',
       realtimeProvider,
-    }, `qwen-audio-agent running at ${origin}`)
+    }, `side-audio-bot running at ${origin}`)
   })
   return server
 }

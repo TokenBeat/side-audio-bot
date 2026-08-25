@@ -1,4 +1,4 @@
-# Qwen Audio Agent Car
+# Side Audio Bot Car
 
 [中文](README_ZH.md) | [English](README.md)
 
@@ -8,15 +8,15 @@ Real cockpit interaction should not feel like issuing commands to a slow menu.
 The driver or passenger speaks naturally, the assistant keeps listening, and
 vehicle tasks continue without blocking the conversation.
 
-**Qwen Audio Agent Car** is a smart cockpit example for
-`qwen-audio-agent`. It combines a car UI, realtime speech, a text Agent,
+**Side Audio Bot Car** is a smart cockpit example for
+`side-audio-bot`. It combines a car UI, realtime speech, a text Agent,
 vehicle control, navigation, music, flash-buy workflows, weather, web search,
 memory, and custom skills in one runnable demo. The example is intentionally
-self-contained today, so the core qwen-audio-agent runtime remains generic.
+self-contained today, so the core side-audio-bot runtime remains generic.
 
 ## Quick Start
 
-Run the following commands from the `qwen-audio-agent` repository root.
+Run the following commands from the `side-audio-bot` repository root.
 
 ### 1. Configure Environment
 
@@ -75,7 +75,7 @@ Open `http://localhost:5173`.
 
 ## Architecture
 
-![Qwen Audio Agent Car architecture](docs/system-architecture.svg)
+![Side Audio Bot Car architecture](docs/system-architecture.svg)
 
 ## Development
 

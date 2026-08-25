@@ -3,10 +3,10 @@
 业务宿主可以注入自定义 Realtime Provider，而不必修改 Gateway 的语音会话与后台 Agent 逻辑。
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 import {
   createRealtimeProviderRegistry,
-} from 'qwen-audio-agent/realtime-provider'
+} from 'side-audio-bot/realtime-provider'
 import { privateRealtimeProvider } from './private-realtime-provider.mjs'
 
 const realtimeProviderRegistry = createRealtimeProviderRegistry({

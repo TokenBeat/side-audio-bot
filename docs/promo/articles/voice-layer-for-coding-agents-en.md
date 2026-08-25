@@ -1,6 +1,6 @@
 # We built a full-duplex voice layer for coding agents (conversation keeps going while tasks run)
 
-qwen-audio-agent is an open-source realtime voice runtime that sits in
+side-audio-bot is an open-source realtime voice runtime that sits in
 front of your existing AI coding agents. It connects to backends over
 ACP (Agent Client Protocol), so it works with Claude Code, Codex,
 OpenCode, Qoder, Kimi Code and more, without touching the agents
@@ -44,11 +44,11 @@ Architecture notes worth sharing:
    renderings: a spoken summary and a full inline (markdown/code) view.
    Reading chat-style answers aloud never works.
 
-It is Apache-2.0, installs with `npm install -g qwen-audio-agent`, and
+It is Apache-2.0, installs with `npm install -g side-audio-bot`, and
 runs on top of DashScope realtime voice by default (a speech-to-speech
 frontend for fully local stacks is also available).
 
-Repo: https://github.com/QwenAudio/qwen-audio-agent
+Repo: https://github.com/TokenBeat/side-audio-bot
 
 We would love feedback from people who have tried to bolt voice onto
 coding agents: how do you handle permission prompts over audio, and what

@@ -14,7 +14,7 @@
 因此，对话中说“以后回答短一点”或“以后你叫小舟”会更新当前用户的 `USER.md`，
 不会修改实例级 `ASSISTANT.md`；本轮临时要求只在本轮生效。
 
-用户数据保存在配置目录下（CLI 为 `~/.config/qwaudio/`）：
+用户数据保存在配置目录下（CLI 为 `~/.config/sideaudio/`）：
 
 | 文件 | 说明 |
 | --- | --- |
@@ -33,7 +33,7 @@
 首次启动会从随包模板 `config/frontend-agent/ASSISTANT.md` 创建本地
 `ASSISTANT.md`，之后升级不会覆盖。直接编辑本地文件即可更改整个助手实例的默认名称、
 人格、关系定位和表达风格，下一次建立语音会话时生效；也可用
-`QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH` 指向其他文件。
+`SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH` 指向其他文件。
 
 `ASSISTANT.md` 不是对话记忆，也不是运行规则。助手不会通过 `memory` 工具修改它；
 写在其中的工具、权限、安全、记忆、任务路由或能力声明不会覆盖 `PROMPT.md`。
@@ -45,13 +45,13 @@
 回复风格和默认做法。只有用户明确设定或纠正时才会修改；会话后自动整理可以补记这类
 明确指令，但不能推测用户偏好。
 
-判断标准不是描述对象，而是作用域：“助手默认叫千问 Audio”属于 `ASSISTANT.md`；当前
+判断标准不是描述对象，而是作用域：“助手默认叫 Side Audio”属于 `ASSISTANT.md`；当前
 用户在对话中说“以后你叫小舟”，则“小舟”是当前用户的覆盖，属于 `USER.md`。同理，
 “默认继续 A 项目”属于 `USER.md`，而“A 项目使用 React”只是事实，属于 `MEMORY.md`。
 文件是普通 Markdown，工具写入立即生效，直接编辑则在下一次语音会话生效。如需放在
 其他位置，可设置
-`QWEN_AUDIO_AGENT_USER_MODEL_PATH`（旧名称
-`QWEN_AUDIO_AGENT_USER_PROFILE_PATH` 仍可读取）。
+`SIDE_AUDIO_BOT_USER_MODEL_PATH`（旧名称
+`SIDE_AUDIO_BOT_USER_PROFILE_PATH` 仍可读取）。
 
 请勿在其中保存密码、API Key、验证码或令牌。
 
@@ -68,9 +68,9 @@
 - **自动整理**：会话结束后，一个轻量文本模型会查漏补缺，把用户明确提出的长期交互
   指令写入 `USER.md`，把稳定事实与决定写入 `MEMORY.md`。自动整理默认使用
   DashScope 的 `qwen-flash` 模型（复用 `DASHSCOPE_API_KEY`）；没有可用 API Key
-  时自动关闭，明确要求的记忆不受影响。设置 `QWEN_AUDIO_MEMORY_AUTO=off`
-  可全局关闭；`QWEN_AUDIO_MEMORY_MODEL`、`QWEN_AUDIO_MEMORY_BASE_URL`、
-  `QWEN_AUDIO_MEMORY_API_KEY` 可指向任意 OpenAI 兼容端点（含本地 Ollama）。
+  时自动关闭，明确要求的记忆不受影响。设置 `SIDE_AUDIO_MEMORY_AUTO=off`
+  可全局关闭；`SIDE_AUDIO_MEMORY_MODEL`、`SIDE_AUDIO_MEMORY_BASE_URL`、
+  `SIDE_AUDIO_MEMORY_API_KEY` 可指向任意 OpenAI 兼容端点（含本地 Ollama）。
 
 Realtime 与自动整理都通过同一个记忆服务提交受限 Markdown 变更，不能直接写文件。
 自动整理可以补记用户明确说出的称呼或回复偏好，但不会推测这些设定，也永远不能修改

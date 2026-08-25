@@ -1,5 +1,5 @@
 <svg width="1440" height="820" viewBox="0 0 1440 820" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">Qwen Audio Agent Car 宏观系统架构</title>
+  <title id="title">Side Audio Agent Car 宏观系统架构</title>
   <desc id="desc">用户语音进入 Realtime S2S。Realtime 可直接语音回复，也可以通过 Tool Call 进入 Agent 能力体系，由 Agent 编排 Skills 和原子能力层后，将最终文本交回 Realtime S2S 播报。</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1440" y2="820" gradientUnits="userSpaceOnUse">

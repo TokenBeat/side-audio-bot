@@ -17,9 +17,9 @@ const translations = {
   '没有提交成功：{message}': 'Submission failed: {message}',
   'Gateway 已连接': 'Gateway connected',
   '能力服务尚未连接': 'Backend service not connected',
-  'qwen-audio-agent Gateway 尚未连接': 'qwen-audio-agent Gateway not connected',
+  'side-audio-bot Gateway 尚未连接': 'side-audio-bot Gateway not connected',
   '正在听你说': 'Listening',
-  'qwen-audio-agent Gateway 已断开，正在重连': 'qwen-audio-agent Gateway disconnected, reconnecting',
+  'side-audio-bot Gateway 已断开，正在重连': 'side-audio-bot Gateway disconnected, reconnecting',
   '网关重连后未找到这次后台执行，请重新提交。': 'This background task was not found after the gateway reconnected. Please submit it again.',
   '{holder}正在使用语音': '{holder} is using voice',
   '正在接入语音': 'Connecting voice',
@@ -123,7 +123,7 @@ function currentLanguage() {
     // Ignore malformed or unavailable locations.
   }
   try {
-    const stored = globalThis.localStorage?.getItem('qwen-audio-lang')
+    const stored = globalThis.localStorage?.getItem('side-audio-lang')
     if (stored) return stored
   } catch {
     // localStorage can throw in privacy modes; fall through to navigator

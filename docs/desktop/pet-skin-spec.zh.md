@@ -1,10 +1,10 @@
 # 桌宠皮肤协议
 
-本文定义 qwen-audio-agent 使用的桌宠皮肤包格式。它以 Codex Pet 图集为
+本文定义 side-audio-bot 使用的桌宠皮肤包格式。它以 Codex Pet 图集为
 兼容基础，并增加可选的 `animations.frames/fps`，用于描述生成式皮肤中每个
 动作实际占用的帧。
 
-`animations` 是 qwen-audio-agent 扩展，不是 Codex Pet 官方清单字段。未提供
+`animations` 是 side-audio-bot 扩展，不是 Codex Pet 官方清单字段。未提供
 该字段的 Codex Pet 社区皮肤仍按固定图集规则播放。
 
 ## 包结构
@@ -66,7 +66,7 @@
 - `description`：可选。
 - `spriteVersionNumber`：可选，省略时为 v1；v2 必须填写 `2`。
 - `spritesheetPath`：必填，通常为 `spritesheet.webp`。
-- `animations`：可选的 qwen-audio-agent 动画扩展。
+- `animations`：可选的 side-audio-bot 动画扩展。
 
 每个 `animations` 条目只包含：
 
@@ -75,7 +75,7 @@
 - `fps`：可选，播放帧率，大于 0 且不超过 60；省略时为 8。
 
 皮肤不得控制动作生命周期。`loop`、`fallback` 不属于本协议；旧皮肤即使包含
-这些字段也会被兼容导入，但 qwen-audio-agent 不读取其含义。动作是否持续、何时
+这些字段也会被兼容导入，但 side-audio-bot 不读取其含义。动作是否持续、何时
 结束以及随后播放什么，由使用皮肤的播放器决定。
 
 ## 缺省与兼容
@@ -83,7 +83,7 @@
 - 没有 `animations`：按 Codex Pet 的固定行、固定有效帧数和默认时序播放。
 - 有 `animations`：所声明动作使用 `frames/fps`；未声明动作继续使用默认规则。
 - 原生 Codex 客户端可能忽略 `animations`，因此该扩展保证的是
-  qwen-audio-agent 中的精确播放。
+  side-audio-bot 中的精确播放。
 
 ## 制作方检查清单
 

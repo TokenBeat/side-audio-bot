@@ -178,7 +178,7 @@ export function buildCoordinatorPrompt({
       }
     : null
   const envelope = {
-    protocol: 'qwen-audio-agent.coordination.v1',
+    protocol: 'side-audio-bot.coordination.v1',
     request_id: clean(coordinationRunId),
     owner_scope: 'current_authenticated_user',
     voice_session_id: clean(voiceSessionId),
@@ -207,9 +207,9 @@ export function buildCoordinatorPrompt({
   }
 
   return [
-    '<qwen_audio_agent_request>',
+    '<side_audio_bot_request>',
     JSON.stringify(envelope, null, 2),
-    '</qwen_audio_agent_request>',
+    '</side_audio_bot_request>',
     ...(userModel.length
       ? [`<user_preferences>\n${userModel.join('\n')}\n</user_preferences>`]
       : []),
@@ -268,11 +268,11 @@ export class Coordinator {
       const state = coordinatorResponseState(result.content)
       if (!state || state === 'completed') break
       result = await run([
-        '<qwen_audio_agent_protocol_retry>',
+        '<side_audio_bot_protocol_retry>',
         `request_id=${clean(options.coordinationRunId)}`,
         `上一条响应返回了不受支持的 state=${state}，因此不能作为最终结果交付。`,
         '请继续完成同一个用户请求。只有工作真实完成后，才返回 state=completed 的最终响应；不要返回进度、受理确认或未来承诺。',
-        '</qwen_audio_agent_protocol_retry>',
+        '</side_audio_bot_protocol_retry>',
       ].join('\n'))
     }
     const finalState = coordinatorResponseState(result.content)

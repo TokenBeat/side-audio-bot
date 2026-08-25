@@ -27,7 +27,7 @@ export default function TopBar({ weather }) {
   return (
     <header className="topbar">
       <div className="brand">
-        <span className="logo-mark"><img className="logo-qwen-icon" src={qwenLogo} alt="" aria-hidden="true" />Qwen Audio Agent Car</span>
+        <span className="logo-mark"><img className="logo-qwen-icon" src={qwenLogo} alt="" aria-hidden="true" />Side Audio Bot Car</span>
         <span className="weather">
           <svg className="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M18 17H7.5a4.5 4.5 0 0 1-.6-8.96A6.2 6.2 0 0 1 18.5 10 3.5 3.5 0 0 1 18 17Z" opacity=".35" />

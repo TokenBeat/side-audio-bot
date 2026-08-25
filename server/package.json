@@ -1,5 +1,5 @@
 {
-  "name": "@qwen-audio-agent/server",
+  "name": "@side-audio-bot/server",
   "private": true,
   "version": "1.11.0",
   "type": "module",

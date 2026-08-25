@@ -216,7 +216,7 @@ export default function ChatPanel({ onClose, messages, onMessagesChange, onActio
   return (
     <div className="chat-panel" ref={panelRef} style={{ left: position.x, top: position.y }}>
       <div className="chat-header" onMouseDown={handleDragStart}>
-        <span className="chat-title">Qwen Audio Agent Car · 调试</span>
+        <span className="chat-title">Side Audio Bot Car · 调试</span>
         <div className="chat-header-actions">
           <button className="chat-reset" onClick={onClearHistory} aria-label="清空">
             <svg className="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">

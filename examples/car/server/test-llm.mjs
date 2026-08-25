@@ -20,7 +20,7 @@ async function testChat() {
   const completion = await client.chat.completions.create({
     model,
     messages: [
-      { role: 'system', content: '你是 Qwen Audio Agent Car，一个智能座舱语音助手。请简短回答。' },
+      { role: 'system', content: '你是 Side Audio Bot Car，一个智能座舱语音助手。请简短回答。' },
       { role: 'user', content: '你好，介绍一下你自己' },
     ],
   })

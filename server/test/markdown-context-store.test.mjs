@@ -6,7 +6,7 @@ import test from 'node:test'
 import { MarkdownContextStore } from '../src/conversation/markdown-context-store.mjs'
 
 function store(scope = 'memory') {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-markdown-memory-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-markdown-memory-'))
   const filePath = join(directory, scope === 'user' ? 'USER.md' : 'MEMORY.md')
   return {
     filePath,

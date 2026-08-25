@@ -189,7 +189,7 @@ test('describes backend-owned authentication actions', () => {
   assert.equal(authenticationSupport('opencode', {
     env: {
       DASHSCOPE_API_KEY: 'key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
     },
     platform: 'darwin',
   }).required, false)

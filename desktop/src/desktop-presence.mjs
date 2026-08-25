@@ -17,7 +17,7 @@ export class DesktopPresence {
     this.state = state
     const window = this.getWindow?.()
     if (window && !window.isDestroyed()) {
-      window.webContents.send('qwen-audio-agent:lifecycle', { state, reason })
+      window.webContents.send('side-audio-bot:lifecycle', { state, reason })
     }
   }
 
@@ -30,7 +30,7 @@ export class DesktopPresence {
     if (this.state === 'hidden') {
       this.send('waking', reason)
     } else {
-      window.webContents.send('qwen-audio-agent:lifecycle', {
+      window.webContents.send('side-audio-bot:lifecycle', {
         state: this.state,
         reason: 'activity',
       })

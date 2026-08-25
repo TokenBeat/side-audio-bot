@@ -22,7 +22,7 @@ async function closeServer(server) {
 }
 
 test('serves bundled assets and proxies only the protected API path', async t => {
-  const webRoot = await mkdtemp(resolve(tmpdir(), 'qwaudio-renderer-'))
+  const webRoot = await mkdtemp(resolve(tmpdir(), 'sideaudio-renderer-'))
   await mkdir(resolve(webRoot, 'assets'))
   await writeFile(
     resolve(webRoot, 'index.html'),
@@ -76,9 +76,9 @@ test('serves bundled assets and proxies only the protected API path', async t =>
 })
 
 test('serves imported skin assets without falling back to index.html', async t => {
-  const webRoot = await mkdtemp(resolve(tmpdir(), 'qwaudio-renderer-'))
+  const webRoot = await mkdtemp(resolve(tmpdir(), 'sideaudio-renderer-'))
   await writeFile(resolve(webRoot, 'index.html'), '<!doctype html>')
-  const skinsRoot = await mkdtemp(resolve(tmpdir(), 'qwaudio-skins-'))
+  const skinsRoot = await mkdtemp(resolve(tmpdir(), 'sideaudio-skins-'))
   await mkdir(resolve(skinsRoot, 'firefly--lingxiaotian'))
   await writeFile(
     resolve(skinsRoot, 'firefly--lingxiaotian/pet.json'),
@@ -169,7 +169,7 @@ test('relays the protected realtime WebSocket to the Gateway', async t => {
     await closeServer(gateway)
   })
 
-  const webRoot = await mkdtemp(resolve(tmpdir(), 'qwaudio-renderer-'))
+  const webRoot = await mkdtemp(resolve(tmpdir(), 'sideaudio-renderer-'))
   await writeFile(resolve(webRoot, 'index.html'), '<!doctype html>')
   t.after(() => rm(webRoot, { recursive: true, force: true }))
   const renderer = await startDesktopRendererServer({

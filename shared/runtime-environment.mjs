@@ -17,9 +17,9 @@ import { parseEnv } from 'node:util'
 import { backendDefinitions } from './backend-catalog.mjs'
 import { resolveRealtimeFrontendConfiguration } from './realtime-provider-catalog.mjs'
 
-const SECRET_KEY = 'QWEN_AUDIO_AGENT_AUTH_SECRET'
+const SECRET_KEY = 'SIDE_AUDIO_BOT_AUTH_SECRET'
 const USER_CONFIG_TEMPLATE = [
-  '# qwen-audio-agent 用户配置',
+  '# side-audio-bot 用户配置',
   'DASHSCOPE_API_KEY=',
   'QWEN_AUDIO_REALTIME_PROVIDER=dashscope',
   '# Hugging Face speech-to-speech：将上一行改为 speech-to-speech，并设置服务地址',
@@ -30,19 +30,19 @@ const USER_CONFIG_TEMPLATE = [
   'AGENT_PROTOCOL=',
   '# 权限模式：native（后台自行询问）或 full（最高权限；仅支持安全映射的后端）',
   '# Pi 没有权限审批机制，无论配置什么都始终生效 full',
-  '# QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native',
+  '# SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native',
   '# 可选：显式覆盖后台模型；留空时使用 Agent 原有模型',
-  '# QWEN_AUDIO_AGENT_BACKEND_MODEL=',
-  '# 可选：QWEN_AUDIO_AGENT_BACKEND_AGENT=协调 Agent ID',
+  '# SIDE_AUDIO_BOT_BACKEND_MODEL=',
+  '# 可选：SIDE_AUDIO_BOT_BACKEND_AGENT=协调 Agent ID',
   '# Kimi Code 可复用原生登录，或设置官方 KIMI_MODEL_* 临时模型变量',
   '# DeepSeek（Harness Developer Preview）：DEEPSEEK_API_KEY=your-key',
   '# 通用 ACP：ACP_COMMAND=your-agent，ACP_ARGS=["--acp"]',
-  '# 通用 ACP 如需额外环境变量：QWEN_AUDIO_AGENT_ACP_FORWARD_ENV=NAME_A,NAME_B',
+  '# 通用 ACP 如需额外环境变量：SIDE_AUDIO_BOT_ACP_FORWARD_ENV=NAME_A,NAME_B',
   '',
   '# 可选日志设置：默认 info、单文件 10 MiB、保留 5 份',
-  '# QWEN_AUDIO_LOG_LEVEL=info',
-  '# QWEN_AUDIO_LOG_MAX_BYTES=10485760',
-  '# QWEN_AUDIO_LOG_MAX_FILES=5',
+  '# SIDE_AUDIO_BOT_LOG_LEVEL=info',
+  '# SIDE_AUDIO_BOT_LOG_MAX_BYTES=10485760',
+  '# SIDE_AUDIO_BOT_LOG_MAX_FILES=5',
   '',
 ].join('\n')
 const USER_MODEL_TEMPLATE = [
@@ -93,11 +93,11 @@ export function userConfigDirectory(
   env = process.env,
   homeDirectory = homedir(),
 ) {
-  if (env.QWAUDIO_CONFIG_DIR) return resolve(env.QWAUDIO_CONFIG_DIR)
+  if (env.SIDEAUDIO_CONFIG_DIR) return resolve(env.SIDEAUDIO_CONFIG_DIR)
   const base = env.XDG_CONFIG_HOME
     ? resolve(env.XDG_CONFIG_HOME)
     : resolve(homeDirectory, '.config')
-  return resolve(base, 'qwaudio')
+  return resolve(base, 'sideaudio')
 }
 
 // 资产目录：配置、身份、记忆、清单与共享 workspace 等"用户资产"的归属地。
@@ -108,7 +108,7 @@ export function userDataDirectory(
   env = process.env,
   homeDirectory = homedir(),
 ) {
-  if (env.QWAUDIO_DATA_DIR) return resolve(env.QWAUDIO_DATA_DIR)
+  if (env.SIDEAUDIO_DATA_DIR) return resolve(env.SIDEAUDIO_DATA_DIR)
   return userConfigDirectory(env, homeDirectory)
 }
 
@@ -332,7 +332,7 @@ function collectLegacyWorkspaceNotices(configDirectory, sharedWorkspace) {
 
 function codeBuddyModelName(env) {
   const configured = String(
-    env.QWEN_AUDIO_AGENT_BACKEND_MODEL || '',
+    env.SIDE_AUDIO_BOT_BACKEND_MODEL || '',
   ).trim()
   const separator = configured.indexOf('/')
   return separator >= 0 ? configured.slice(separator + 1) : configured
@@ -516,8 +516,8 @@ export function loadRuntimeEnvironment({
   const claudeWorkspace = workspace('claude')
   const piWorkspace = workspace('pi')
   const acpWorkspace = workspace('acp')
-  const openClawStateDirectory = env.QWEN_AUDIO_AGENT_OPENCLAW_STATE_DIR
-    ? resolve(root, env.QWEN_AUDIO_AGENT_OPENCLAW_STATE_DIR)
+  const openClawStateDirectory = env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR
+    ? resolve(root, env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR)
     : resolve(configDirectory, 'backends/openclaw/state')
   let migratedFiles = []
   let legacyWorkspaceNotices = []
@@ -530,7 +530,7 @@ export function loadRuntimeEnvironment({
       legacyPath: legacyFrontendMemoryPath,
       memoryPath: frontendMemoryPath,
       userModelPath,
-      ownerId: env.QWEN_AUDIO_AGENT_PERSONAL_OWNER_ID || 'user_personal',
+      ownerId: env.SIDE_AUDIO_BOT_PERSONAL_OWNER_ID || 'user_personal',
       configDirectory: dataDirectory,
     })) {
       migratedFiles.push(frontendMemoryPath, userModelPath)
@@ -555,7 +555,7 @@ export function loadRuntimeEnvironment({
       )
     }
     mkdirSync(openClawStateDirectory, { recursive: true, mode: 0o700 })
-    env.QWEN_AUDIO_AGENT_OPENCLAW_STATE_DIR = openClawStateDirectory
+    env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR = openClawStateDirectory
     migratedFiles.push(...[
       [resolve(root, 'runtime/tasks.json'), taskStatePath],
     ].filter(([legacyPath, targetPath]) => (
@@ -605,7 +605,7 @@ export function hasDashScopeCredential(env = process.env) {
 export function requireDashScopeCredential(env = process.env) {
   if (hasDashScopeCredential(env)) return
   throw new Error(
-    '缺少 DASHSCOPE_API_KEY。请运行 qwenaudio config 查看配置文件位置。',
+    '缺少 DASHSCOPE_API_KEY。请运行 sideaudio config 查看配置文件位置。',
   )
 }
 

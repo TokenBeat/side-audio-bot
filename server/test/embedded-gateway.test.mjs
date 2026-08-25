@@ -37,7 +37,7 @@ test('PORT=0 binds a random port and reports the origin to the parent host', asy
     const bootstrap = await import('../src/app/bootstrap.mjs')
     server = bootstrap.server
     const message = await reported
-    assert.equal(message.type, 'qwen-audio-agent:gateway-ready')
+    assert.equal(message.type, 'side-audio-bot:gateway-ready')
     const address = server.address()
     assert.equal(typeof address, 'object')
     assert.ok(address.port > 0)

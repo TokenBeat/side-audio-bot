@@ -1,17 +1,17 @@
-# qwen-audio-agent 架构
+# side-audio-bot 架构
 
 本文档定义产品边界。违反这些不变性的变更属于架构变更，而非局部功能开发。
 
 ## 1. 用户可见模型
 
-用户与一个 qwen-audio 助手对话。内部存在两个 qwen-audio-agent 层：
+用户与一个 side-audio 助手对话。内部存在两个 side-audio-bot 层：
 
 1. **实时前端** — 全双工语音、简单直接回答，以及基本的本地时间/记忆工具。
 2. **后端 Agent** — 一个持久 Agent Session，负责处理所有需要工具、当前信息、文件、应用程序、代码或多步工作的请求。
 
 后端可以是 OpenCode、OpenClaw、Qoder、Qwen Code、Kimi Code、Pi 或其他 ACP 兼容 Agent。
 它内部可以使用工具、技能、Agent 或其他 Session。这些都是后端私有实现细节，
-不会创建额外的 qwen-audio-agent 层。所有后端通过一个 ACP 客户端和一个
+不会创建额外的 side-audio-bot 层。所有后端通过一个 ACP 客户端和一个
 共享协调适配器连接；后端特定的启动和能力行为位于已注册的驱动程序中。
 
 ## 2. 非阻塞请求流
@@ -116,7 +116,7 @@ Gateway 直接回答非委派 Work。对于 `delegated` Work，它创建一个�
 ACP 适配器为每个 owner 和后端拥有一个持久协调器 Session 身份：
 
 ```text
-qwen-audio-agent:<owner>:backend
+side-audio-bot:<owner>:backend
 ```
 
 Gateway 在该稳定键之后存储原生 ACP Session ID，并在后续轮次调用
@@ -129,12 +129,12 @@ Gateway 在该稳定键之后存储原生 ACP Session ID，并在后续轮次调
 Gateway 队列和 ACP 适配器都对写入进行串行化。这种双重保护防止并发消息在一个
 后端 Session 内部发生竞争。
 
-后端 Agent 拥有自己的执行策略。qwen-audio-agent 提供用户请求、最近的语音上下文、
+后端 Agent 拥有自己的执行策略。side-audio-bot 提供用户请求、最近的语音上下文、
 本地偏好和最终响应格式；它不指导后端 Agent 如何使用后端特定能力。
 
 ## 5. Work 状态
 
-qwen-audio-agent Work 记录是交付回执，而非后端内部任务图的镜像。
+side-audio-bot Work 记录是交付回执，而非后端内部任务图的镜像。
 
 ```text
 queued → running ─────────────────────────→ completed
@@ -290,7 +290,7 @@ Session 生命周期代码。声明外部后台服务，并不意味着 ACP 连�
 能力，缺失或互相矛盾时在启动阶段直接拒绝。后台子进程只接收跨平台运行所需的系统
 变量和当前 Plugin 声明的凭证命名空间，Gateway 身份、Realtime、Memory 以及其他
 后台的密钥不会跨过该边界。通用 ACP 命令如确有需要，可通过
-`QWEN_AUDIO_AGENT_ACP_FORWARD_ENV` 显式列出额外变量名。
+`SIDE_AUDIO_BOT_ACP_FORWARD_ENV` 显式列出额外变量名。
 
 HTTP/WebSocket 应用由可注入的组合根构造。导入应用工厂不会监听端口；CLI 和桌面版
 使用轻量 bootstrap，而测试及未来客户端可以注入彼此隔离的 Agent、任务、会话、
@@ -308,7 +308,7 @@ OpenClaw 使用一个小型 ACP bridge。未显式配置地址时，Gateway 启�
 OpenClaw Gateway。外部连接不使用面向本地启动的短时端口探测，而由 bridge 报告实际的
 网络、TLS 和认证结果。本地 bridge 退出只会中断 ACP 连接，不会触碰远程 Gateway。
 
-Codex 也遵循同一边界：qwen-audio-agent 通过 ACP stdio 启动 `codex-acp`，该适配器再
+Codex 也遵循同一边界：side-audio-bot 通过 ACP stdio 启动 `codex-acp`，该适配器再
 通过自己的本地 stdio 协议启动 Codex App Server。Codex App Server 可以提供其他传输，
 但它们不是远程 ACP 端点，不应泄漏进共享 ACP 适配层。
 

@@ -472,14 +472,14 @@ test('desktop gateway environment applies saved settings and packaged roots', ()
   assert.equal(environment.DASHSCOPE_API_KEY, 'saved')
   assert.equal(environment.QWEN_AUDIO_REALTIME_API_KEY, 'saved')
   assert.equal(environment.AGENT_PROTOCOL, 'none')
-  assert.equal(environment.QWEN_AUDIO_AGENT_DESKTOP, '1')
-  assert.equal(environment.QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY, '1')
+  assert.equal(environment.SIDE_AUDIO_BOT_DESKTOP, '1')
+  assert.equal(environment.SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY, '1')
   assert.equal(
-    environment.QWEN_AUDIO_AGENT_RUNTIME_ROOT,
+    environment.SIDE_AUDIO_BOT_RUNTIME_ROOT,
     '/Applications/Qwen.app/Contents/Resources/runtime',
   )
   assert.equal(
-    environment.QWEN_AUDIO_AGENT_SOURCE_ROOT,
+    environment.SIDE_AUDIO_BOT_SOURCE_ROOT,
     '/Applications/Qwen.app/Contents/Resources/app.asar',
   )
 })

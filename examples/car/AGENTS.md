@@ -1,8 +1,8 @@
-# Qwen Audio Agent Car — 项目指南
+# Side Audio Bot Car — 项目指南
 
 ## 项目概览
 
-Qwen Audio Agent Car 是 qwen-audio-agent 的智能座舱语音 Agent 示例。详见 README.md。
+Side Audio Bot Car 是 side-audio-bot 的智能座舱语音 Agent 示例。详见 README.md。
 
 ## 核心概念
 

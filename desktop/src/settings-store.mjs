@@ -45,7 +45,7 @@ function requiredConfigDirectory(configDir) {
     const error = new Error(
       'createSettingsStore 需要显式的 configDir：嵌入宿主必须与独立版隔离数据目录',
     )
-    error.code = 'QWAUDIO_GATEWAY_CONFIG_DIR_REQUIRED'
+    error.code = 'SIDEAUDIO_GATEWAY_CONFIG_DIR_REQUIRED'
     throw error
   }
   return resolve(directory)

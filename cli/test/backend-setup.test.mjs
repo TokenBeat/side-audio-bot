@@ -132,7 +132,7 @@ test('reports automatic OpenCode and OpenClaw package setup', () => {
     backend: 'opencode',
     env: {
       DASHSCOPE_API_KEY: 'test-key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
     },
     commands: { npx: '/bin/npx' },
   }).backends[0]
@@ -144,7 +144,7 @@ test('reports automatic OpenCode and OpenClaw package setup', () => {
     backend: 'openclaw',
     env: {
       DASHSCOPE_API_KEY: 'test-key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
     },
     commands: { npx: '/bin/npx' },
   }).backends[0]
@@ -161,7 +161,7 @@ test('does not report automatic fallback ready without Bailian setup', () => {
     }).backends[0]
     assert.equal(item.ready, false)
     assert.match(item.issues[0], /DASHSCOPE_API_KEY/)
-    assert.match(item.issues[0], /QWEN_AUDIO_AGENT_BACKEND_MODEL/)
+    assert.match(item.issues[0], /SIDE_AUDIO_BOT_BACKEND_MODEL/)
   }
 })
 
@@ -247,7 +247,7 @@ test('requires a compatible Pi version and its ACP adapter', () => {
 
   const installedOnly = inspector({
     backend: 'pi',
-    env: { QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY: '1' },
+    env: { SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY: '1' },
     commands: { pi: '/bin/pi', npx: '/bin/npx' },
     versions: { '/bin/pi': '0.84.1' },
   }).backends[0]
@@ -326,9 +326,9 @@ test('honors explicit package and binary runtime requirements', () => {
 
 test('desktop installed-only mode disables every npx fallback', () => {
   const env = {
-    QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY: '1',
+    SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY: '1',
     DASHSCOPE_API_KEY: 'test-key',
-    QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+    SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
   }
 
   // 未安装时不再走百炼自动部署，直接报告未安装

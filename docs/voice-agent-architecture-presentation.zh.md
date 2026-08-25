@@ -3,9 +3,9 @@ marp: true
 theme: default
 paginate: true
 size: 16:9
-title: qwen-audio-agent：面向持续对话与长时任务的语音 Agent 架构
+title: side-audio-bot：面向持续对话与长时任务的语音 Agent 架构
 description: 前后台协同、异步任务、独立执行、自然播报与长期记忆
-footer: qwen-audio-agent · Voice Agent Architecture
+footer: side-audio-bot · Voice Agent Architecture
 style: |
   section {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -258,7 +258,7 @@ style: |
 
 # 面向持续对话与长时任务的语音 Agent 架构
 
-## qwen-audio-agent 架构设计
+## side-audio-bot 架构设计
 
 低延迟对话 · 异步工作 · 独立执行 · 自然播报 · 长期记忆
 
@@ -330,11 +330,11 @@ style: |
 
 # 两级运行架构：实时前台与后台协调
 
-![三级架构的前两级](./qwen-audio-agent-two-layer-architecture.png)
+![三级架构的前两级](./side-audio-bot-architecture-en.png)
 
 <!--
 [Sources]
-- docs/qwen-audio-agent-two-layer-architecture.png
+- docs/side-audio-bot-architecture-en.png
 -->
 
 ---
@@ -491,7 +491,7 @@ objective: “继续当前页面工作，修复登录失败问题；保持现有
 
 ```json
 {
-  "protocol": "qwen-audio-agent.coordination.v1",
+  "protocol": "side-audio-bot.coordination.v1",
   "request_id": "work_...",
   "owner_scope": "current_authenticated_user",
   "voice_session_id": "...",
@@ -729,11 +729,11 @@ if (outcome?.completed) {
 <!-- _footer: "" -->
 <!-- _paginate: false -->
 
-![bg contain](./qwen-audio-agent-three-layer-architecture.png)
+![bg contain](./side-audio-bot-architecture-en.png)
 
 <!--
 [Sources]
-- docs/qwen-audio-agent-three-layer-architecture.png
+- docs/side-audio-bot-architecture-en.png
 -->
 
 ---
@@ -774,11 +774,11 @@ if (outcome?.completed) {
 
 ```js
 export const ACP_SESSION_TOOL_NAMES = [
-  'qwen_audio_agent_sessions_list',
-  'qwen_audio_agent_session_start',
-  'qwen_audio_agent_session_send',
-  'qwen_audio_agent_session_status',
-  'qwen_audio_agent_session_cancel',
+  'side_audio_bot_sessions_list',
+  'side_audio_bot_session_start',
+  'side_audio_bot_session_send',
+  'side_audio_bot_session_status',
+  'side_audio_bot_session_cancel',
 ]
 ```
 

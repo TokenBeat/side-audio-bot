@@ -198,7 +198,7 @@ function selectSettingsTab(value, { focus = false } = {}) {
   for (const panel of settingsPanels) {
     panel.hidden = panel.dataset.settingsPanel !== selected
   }
-  localStorage.setItem('qwen-audio-agent.settings-tab', selected)
+  localStorage.setItem('side-audio-bot.settings-tab', selected)
 }
 
 for (const tab of settingsTabs) {
@@ -212,7 +212,7 @@ for (const tab of settingsTabs) {
     selectSettingsTab(settingsTabs[next].dataset.settingsTab, { focus: true })
   })
 }
-selectSettingsTab(localStorage.getItem('qwen-audio-agent.settings-tab'))
+selectSettingsTab(localStorage.getItem('side-audio-bot.settings-tab'))
 
 function renderWakeShortcutStatus(registered) {
   recordWakeShortcut.classList.toggle('invalid', registered === false)
@@ -248,7 +248,7 @@ function renderWakeShortcut() {
 
 async function restoreWakeShortcutRegistration() {
   try {
-    const registered = await window.qwenAudioAgentDesktop.resumeWakeShortcut()
+    const registered = await window.sideAudioBotDesktop.resumeWakeShortcut()
     renderWakeShortcutStatus(registered)
   } catch {
     renderWakeShortcutStatus(false)
@@ -290,7 +290,7 @@ recordWakeShortcut.addEventListener('click', async () => {
     return
   }
   try {
-    await window.qwenAudioAgentDesktop.pauseWakeShortcut()
+    await window.sideAudioBotDesktop.pauseWakeShortcut()
     recordingWakeShortcut = true
     recordWakeShortcut.blur()
     renderWakeShortcut()
@@ -351,11 +351,11 @@ function renderUpdater(status) {
 
 checkUpdates.addEventListener('click', () => {
   if (updaterState?.phase === 'downloaded') {
-    void window.qwenAudioAgentDesktop.installUpdate()
+    void window.sideAudioBotDesktop.installUpdate()
     return
   }
   checkUpdates.disabled = true
-  window.qwenAudioAgentDesktop.checkUpdates()
+  window.sideAudioBotDesktop.checkUpdates()
     .then(renderUpdater)
     .catch(() => {
       checkUpdates.disabled = false
@@ -363,13 +363,13 @@ checkUpdates.addEventListener('click', () => {
 })
 
 openLogs.addEventListener('click', () => {
-  window.qwenAudioAgentDesktop.openLogs().catch(error => {
+  window.sideAudioBotDesktop.openLogs().catch(error => {
     showMessage(friendlyError(error, t('无法打开日志目录')), 'error')
   })
 })
 
-window.qwenAudioAgentDesktop.onUpdaterStatus(renderUpdater)
-window.qwenAudioAgentDesktop.loadUpdaterStatus()
+window.sideAudioBotDesktop.onUpdaterStatus(renderUpdater)
+window.sideAudioBotDesktop.loadUpdaterStatus()
   .then(renderUpdater)
   .catch(() => {})
 
@@ -614,7 +614,7 @@ function showNodejsInstallGuidance(text, backendId) {
   link.className = 'message-link'
   link.textContent = t('下载 Node.js')
   link.addEventListener('click', () => {
-    window.qwenAudioAgentDesktop.openExternal('https://nodejs.org/')
+    window.sideAudioBotDesktop.openExternal('https://nodejs.org/')
   })
   message.append(' ', link)
 }
@@ -626,7 +626,7 @@ async function installBackendRow(id) {
   showMessage('')
   renderBackendOptions(selectedBackend())
   try {
-    const result = await window.qwenAudioAgentDesktop.installBackend(id)
+    const result = await window.sideAudioBotDesktop.installBackend(id)
     if (result?.report) backendReport = result.report
     if (!result?.ok) {
       // 用户在确认框取消属于正常操作，不提示；其余失败行内 + 消息条。
@@ -656,7 +656,7 @@ async function installBackendRow(id) {
 }
 
 // 安装进度由主进程流式推送：行内只保留最近一行输出（截断显示）。
-window.qwenAudioAgentDesktop.onBackendInstallProgress(progress => {
+window.sideAudioBotDesktop.onBackendInstallProgress(progress => {
   if (!progress || progress.backend !== installingBackend) return
   if (progress.phase === 'start') {
     installProgressText = progress.title || t('正在安装…')
@@ -742,7 +742,7 @@ backendList.addEventListener('click', event => {
   const configuration = event.target.closest('.backend-configure')
   if (!configuration || configuration.disabled) return
   event.preventDefault()
-  window.qwenAudioAgentDesktop.configureBackend(configuration.dataset.backend)
+  window.sideAudioBotDesktop.configureBackend(configuration.dataset.backend)
     .then(result => {
       // The backend owns its native configuration flow. We only remember that
       // it was opened and re-run the shared read-only probe when the user
@@ -995,7 +995,7 @@ async function refreshRuntime() {
   if (refreshingRuntime || applying) return
   refreshingRuntime = true
   try {
-    runtime = await window.qwenAudioAgentDesktop.loadRuntimeStatus()
+    runtime = await window.sideAudioBotDesktop.loadRuntimeStatus()
     renderRuntime()
     if (backendReport && !installingBackend) {
       renderBackendOptions(selectedBackend() || settings?.agentProtocol)
@@ -1027,7 +1027,7 @@ async function refreshRuntime() {
 async function detectBackendOptions(force = false) {
   refreshBackends.disabled = true
   try {
-    backendReport = await window.qwenAudioAgentDesktop.detectBackends(
+    backendReport = await window.sideAudioBotDesktop.detectBackends(
       force ? { force: true } : undefined,
     )
     renderBackendOptions(selectedBackend() || settings?.agentProtocol)
@@ -1246,11 +1246,11 @@ for (const control of [
 }
 
 getApiKey.addEventListener('click', () => {
-  window.qwenAudioAgentDesktop.openExternal(BAILIAN_API_KEY_URL)
+  window.sideAudioBotDesktop.openExternal(BAILIAN_API_KEY_URL)
 })
 
 getStepFunApiKey?.addEventListener('click', () => {
-  window.qwenAudioAgentDesktop.openExternal(STEPFUN_API_KEY_URL)
+  window.sideAudioBotDesktop.openExternal(STEPFUN_API_KEY_URL)
 })
 
 orbSkinSelect.addEventListener('change', () => {
@@ -1261,7 +1261,7 @@ orbSkinSelect.addEventListener('change', () => {
 importSkinButton.addEventListener('click', async () => {
   importSkinButton.disabled = true
   try {
-    const imported = await window.qwenAudioAgentDesktop.importSkin()
+    const imported = await window.sideAudioBotDesktop.importSkin()
     if (!imported) return
     skins = [
       ...skins.filter(skin => skin.id !== imported.id),
@@ -1286,7 +1286,7 @@ removeSkinButton.addEventListener('click', async () => {
   if (!skin) return
   removeSkinButton.disabled = true
   try {
-    await window.qwenAudioAgentDesktop.removeSkin(id)
+    await window.sideAudioBotDesktop.removeSkin(id)
     skins = skins.filter(item => item.id !== id)
     // 删掉的可能正是当前皮肤：回到内置外观，由用户点应用持久化。
     renderSkinOptions('fluid')
@@ -1313,7 +1313,7 @@ applyNodePath.addEventListener('click', async () => {
   const retryId = pendingNodePathBackend
   pendingNodePathBackend = ''
   try {
-    await window.qwenAudioAgentDesktop.setNodePath(path)
+    await window.sideAudioBotDesktop.setNodePath(path)
     nodePathRow.hidden = true
     showMessage(t('路径已保存，正在重新检测…'))
     await detectBackendOptions(true)
@@ -1340,7 +1340,7 @@ form.addEventListener('submit', async event => {
   updateApplyState()
   showMessage(t('正在应用…'))
   try {
-    const result = await window.qwenAudioAgentDesktop.saveSettings(formSettings())
+    const result = await window.sideAudioBotDesktop.saveSettings(formSettings())
     settings = result.settings
     runtime = result.runtime
     renderWakeShortcutStatus(result.wakeShortcutRegistered)
@@ -1369,7 +1369,7 @@ form.addEventListener('submit', async event => {
   }
 })
 
-window.qwenAudioAgentDesktop.loadSettings().then(value => {
+window.sideAudioBotDesktop.loadSettings().then(value => {
   settings = value.settings
   skins = value.skins || []
   runtime = value.runtime

@@ -4,7 +4,7 @@
 
 ## What is it?
 
-**Qwen Audio Agent** is a small glowing orb that lives on your Mac desktop. You talk to it; it understands, gets things done, and answers out loud — no typing involved.
+**Side Audio Bot** is a small glowing orb that lives on your Mac desktop. You talk to it; it understands, gets things done, and answers out loud — no typing involved.
 
 Two things make it different from ordinary voice assistants:
 
@@ -13,8 +13,8 @@ Two things make it different from ordinary voice assistants:
 
 ## Step 1 — Install
 
-1. Download the `mac-universal.dmg` from the [latest release](https://github.com/QwenAudio/qwen-audio-agent/releases/latest)
-2. Open it and drag **Qwen Audio Agent** into Applications
+1. Download the `mac-universal.dmg` from the [latest release](https://github.com/TokenBeat/side-audio-bot/releases/latest)
+2. Open it and drag **Side Audio Bot** into Applications
 3. Launch it from Launchpad
 
 > If macOS warns about an unidentified developer: System Settings → Privacy & Security → "Open Anyway".
@@ -40,7 +40,7 @@ Talk while it talks. Interrupt anytime. Change your mind mid-sentence.
 
 - **It hides itself** when idle; or just say "你可以退下了" ("you may go")
 - **Bring it back** with `⇧⌘ Space` or the menu-bar icon
-- **Wake word**: enable it in settings, then say "你好千问" — detection runs fully on-device, audio never leaves your Mac
+- **Wake word**: enable it in settings, then say "你好煤球" — detection runs fully on-device, audio never leaves your Mac
 - **Two looks**: pick between the fluid audio orb and the liquid gradient orb in settings
 
 ## Prefer typing?
@@ -49,4 +49,4 @@ The same app ships a web interface — same conversations, no voice required.
 
 ## Need help?
 
-See the [FAQ](faq.md), ask in [GitHub Discussions](https://github.com/QwenAudio/qwen-audio-agent/discussions), or join the WeChat group (QR code in the [README](../../../README.md)).
+See the [FAQ](faq.md), ask in [GitHub Discussions](https://github.com/TokenBeat/side-audio-bot/discussions), or join the WeChat group (QR code in the [README](../../../README.md)).

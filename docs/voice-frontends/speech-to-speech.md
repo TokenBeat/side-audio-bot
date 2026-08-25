@@ -1,6 +1,6 @@
 # Using the Hugging Face speech-to-speech Frontend
 
-qwen-audio-agent can also connect to a self-hosted
+side-audio-bot can also connect to a self-hosted
 [Hugging Face speech-to-speech](https://github.com/huggingface/speech-to-speech).
 It combines VAD, STT, LLM, and TTS into an OpenAI Realtime compatible service. The entire
 voice pipeline can run fully locally, or you can swap out individual models or services
@@ -67,7 +67,7 @@ you can also choose smaller CPU-friendly local models; the LLM can point to a lo
 running vLLM / llama.cpp, or to cloud models such as Bailian via an OpenAI-compatible
 endpoint. See the official speech-to-speech documentation for specific parameters.
 
-## Connecting to qwen-audio-agent
+## Connecting to side-audio-bot
 
 Set the following in `config.env`:
 

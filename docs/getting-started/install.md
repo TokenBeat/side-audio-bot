@@ -9,20 +9,20 @@ The repository provides `.nvmrc` and `.node-version`; when using nvm, you can si
 Install from npm (recommended):
 
 ```bash
-npm install -g qwen-audio-agent
+npm install -g side-audio-bot
 ```
 
 You can also install the latest code directly from GitHub:
 
 ```bash
-npm install -g git+https://github.com/QwenAudio/qwen-audio-agent.git
+npm install -g git+https://github.com/TokenBeat/side-audio-bot.git
 ```
 
 ## Install from Source
 
 ```bash
-git clone https://github.com/QwenAudio/qwen-audio-agent.git
-cd qwen-audio-agent
+git clone https://github.com/TokenBeat/side-audio-bot.git
+cd side-audio-bot
 npm install
 npm run install:global
 ```
@@ -32,43 +32,43 @@ npm run install:global
 Upgrade to the latest npm version:
 
 ```bash
-npm install -g qwen-audio-agent@latest
+npm install -g side-audio-bot@latest
 ```
 
 Upgrade to the latest GitHub code:
 
 ```bash
-npm install -g git+https://github.com/QwenAudio/qwen-audio-agent.git
+npm install -g git+https://github.com/TokenBeat/side-audio-bot.git
 ```
 
-After upgrading, if the Gateway is running as a background service, run `qwenaudio gateway restart` for the new version to take effect.
+After upgrading, if the Gateway is running as a background service, run `sideaudio gateway restart` for the new version to take effect.
 
 ## Verify Installation
 
 View the exact location of the configuration file and confirm the installation is ready:
 
 ```bash
-qwenaudio config
+sideaudio config
 ```
 
 After configuring the backend agent, you can run a read-only check to confirm whether the backend executable, ACP integration, and adapter are ready:
 
 ```bash
-qwenaudio setup
+sideaudio setup
 ```
 
 ## Configuration File Location
 
-The CLI uses `~/.config/qwaudio/config.env`; the desktop version uses the system's standard application data directory
-(`~/Library/Application Support/Qwen Audio Agent` on macOS). The two have separate Gateways,
-locks, logs, and settings, and can run simultaneously. Set `QWAUDIO_CONFIG_DIR` or
+The CLI uses `~/.config/sideaudio/config.env`; the desktop version uses the system's standard application data directory
+(`~/Library/Application Support/Side Audio Bot` on macOS). The two have separate Gateways,
+locks, logs, and settings, and can run simultaneously. Set `SIDEAUDIO_CONFIG_DIR` or
 `XDG_CONFIG_HOME` to change the configuration directory. See [Configuration](../configuration.md) for details.
 
 ## Obtain a DashScope API Key
 
 Alibaba Cloud Model Studio (Bailian) provides a
 [free trial quota](https://help.aliyun.com/zh/model-studio/new-free-quota) for Qwen Audio 3.0 Realtime. After creating an API Key,
-you can start using qwen-audio-agent for free.
+you can start using side-audio-bot for free.
 
 1. Open the [API Key page](https://bailian.console.aliyun.com/?tab=model#/api-key) in the Bailian console,
    log in to your account, and click **Create API Key**.

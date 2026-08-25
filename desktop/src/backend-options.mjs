@@ -12,7 +12,7 @@ function shortReason(issues) {
   if (!text) return '当前不可用'
   if (/未找到|PATH 中未找到/.test(text)) return '未安装'
   if (/低于最低版本|不兼容|无法确认.*版本/.test(text)) return '版本不兼容'
-  if (/DASHSCOPE_API_KEY|QWEN_AUDIO_AGENT_BACKEND_MODEL/.test(text)) {
+  if (/DASHSCOPE_API_KEY|SIDE_AUDIO_BOT_BACKEND_MODEL/.test(text)) {
     return '缺少百炼配置'
   }
   if (/ACP Adapter|缺少 \S+，并且 npx 不可用/.test(text)) return '需要 ACP 适配器'

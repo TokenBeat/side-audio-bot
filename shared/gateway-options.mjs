@@ -21,7 +21,7 @@ export function gatewayOptionsEnvironment({
   logConsole,
 } = {}) {
   const env = {}
-  if (configDir !== undefined) env.QWAUDIO_CONFIG_DIR = String(configDir)
+  if (configDir !== undefined) env.SIDEAUDIO_CONFIG_DIR = String(configDir)
   if (host !== undefined) env.HOST = String(host)
   if (port !== undefined) env.PORT = String(port)
   if (backend !== undefined) {
@@ -32,11 +32,11 @@ export function gatewayOptionsEnvironment({
   if (wakeWord !== undefined) {
     // The wake word engine is the only consumer of the optional sherpa-onnx
     // native dependency, so this single switch keeps it untouched for hosts.
-    env.QWEN_AUDIO_WAKE_WORD_ENABLED = wakeWord ? 'true' : 'false'
+    env.SIDE_AUDIO_WAKE_WORD_ENABLED = wakeWord ? 'true' : 'false'
   }
-  if (owner !== undefined) env.QWEN_AUDIO_GATEWAY_OWNER = String(owner)
+  if (owner !== undefined) env.SIDE_AUDIO_GATEWAY_OWNER = String(owner)
   if (logConsole !== undefined) {
-    env.QWEN_AUDIO_LOG_CONSOLE = logConsole ? '1' : '0'
+    env.SIDE_AUDIO_LOG_CONSOLE = logConsole ? '1' : '0'
   }
   return env
 }

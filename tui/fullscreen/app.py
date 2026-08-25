@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""qwen-audio-agent 全屏工作台 TUI(Textual):两种终端风格中的"全屏"版。
+"""side-audio-bot 全屏工作台 TUI(Textual):两种终端风格中的"全屏"版。
 
 与极简语音 TUI(src/index.mjs,npm run tui)的分工:
   - 极简版:纯语音、滚动输出、零依赖上手,适合快速对话
@@ -219,15 +219,15 @@ class VoiceEngine:
 def ensure_swift_helper():
     """定位(必要时用 swiftc 编译)0.5.0 的 CoreAudio 助手,返回二进制路径。
 
-    查找顺序:QWEN_AUDIO_AGENT_TUI_AEC_BINARY 环境变量 → 用户缓存目录
+    查找顺序:SIDE_AUDIO_BOT_TUI_AEC_BINARY 环境变量 → 用户缓存目录
     (源码 tui/native/macos-voice-io.swift,过期自动重编)→ 脚本同目录。
     """
-    env = os.environ.get("QWEN_AUDIO_AGENT_TUI_AEC_BINARY")
+    env = os.environ.get("SIDE_AUDIO_BOT_TUI_AEC_BINARY")
     if env and os.access(env, os.X_OK):
         return pathlib.Path(env)
     here = pathlib.Path(__file__).resolve().parent   # tui/fullscreen/
     repo = here.parent.parent
-    cache_root = pathlib.Path.home() / "Library/Caches/qwaudio"
+    cache_root = pathlib.Path.home() / "Library/Caches/sideaudio"
     candidates = [
         (cache_root / "tui/macos-voice-io",
          repo / "tui/native/macos-voice-io.swift"),
@@ -400,8 +400,8 @@ def build_app(args):
     STATUS_ZH = {"running": "进行中", "queued": "排队", "completed": "完成",
                  "failed": "失败", "cancelled": "已取消"}
 
-    class QwenAudioAgentApp(App):
-        TITLE = "qwen-audio-agent"
+    class SideAudioAgentApp(App):
+        TITLE = "side-audio-bot"
         CSS = """
         Screen { layout: vertical; background: $surface; }
         #statebar {
@@ -599,7 +599,7 @@ def build_app(args):
                     holder = frontend_label(m.get("holder"))
                     chat.write(
                         f"[yellow]· 语音正由{holder}使用;"
-                        "如需接管,请运行 qwenaudio --takeover[/yellow]")
+                        "如需接管,请运行 sideaudio --takeover[/yellow]")
                 elif mt == "transcript.delta" and m.get("role") == "user":
                     turn_id = str(m.get("turnId") or "")
                     incoming = m.get("content") or ""
@@ -623,7 +623,7 @@ def build_app(args):
                     text = self._assistant_streams.get(rid, "")
                     text += m.get("content") or ""
                     self._assistant_streams[rid] = text
-                    self._show_stream("qwen-audio", text, "bold")
+                    self._show_stream("side-audio", text, "bold")
                 elif mt == "transcript.final" and m.get("role") == "assistant":
                     rid = str(m.get("responseId") or "")
                     text = complete_transcript(
@@ -632,7 +632,7 @@ def build_app(args):
                     self._clear_stream()
                     if text:
                         chat.write(Text.assemble(
-                            ("qwen-audio", "bold"), (f"  {text}", "")))
+                            ("side-audio", "bold"), (f"  {text}", "")))
                 elif mt == "error":
                     self._clear_stream()
                     chat.write(f"[red]错误: {m.get('message')}[/red]")
@@ -736,7 +736,7 @@ def build_app(args):
             if self.http:
                 await self.http.close()
 
-    return QwenAudioAgentApp()
+    return SideAudioAgentApp()
 
 
 def main():

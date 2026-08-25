@@ -113,7 +113,7 @@ export const openClawBackendDriver = {
         return {
           sessionKey: `agent:${
             clean(coordinatorAgent)
-          }:qwen-audio-agent:${owner}:backend`,
+          }:side-audio-bot:${owner}:backend`,
         }
       },
       defaultDelegationTitle: 'OpenClaw 项目任务',

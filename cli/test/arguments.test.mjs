@@ -9,7 +9,7 @@ test('allows the Gateway to run without a backend Agent', () => {
   assert.equal(frontendOnly.backend, '')
   assert.equal(frontendOnly.backendUrl, '')
   assert.equal(parseArguments([], {
-    QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE: 'unused-invalid-value',
+    SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE: 'unused-invalid-value',
   }).backend, '')
   assert.equal(parseArguments(['gateway', '--backend', 'none'], {}).backend, '')
   assert.equal(parseArguments([], { AGENT_PROTOCOL: 'NONE' }).backend, '')
@@ -37,7 +37,7 @@ test('parses independent TUI and WebUI client commands', () => {
   assert.equal(tui.audioMode, 'full')
   assert.equal(
     parseArguments(['tui'], {
-      QWEN_AUDIO_AGENT_TUI_AUDIO_MODE: 'FULL',
+      SIDE_AUDIO_BOT_TUI_AUDIO_MODE: 'FULL',
     }).audioMode,
     'full',
   )
@@ -266,17 +266,17 @@ test('rejects client-only flags on unrelated commands', () => {
 
 test('documents the service and client commands', () => {
   const text = helpText()
-  assert.match(text, /^qwenaudio$/m)
-  assert.match(text, /qwenaudio \[gateway\]/)
+  assert.match(text, /^sideaudio$/m)
+  assert.match(text, /sideaudio \[gateway\]/)
   assert.match(text, /gateway install/)
   assert.match(text, /gateway uninstall/)
-  assert.match(text, /qwenaudio tui/)
-  assert.match(text, /qwenaudio webui/)
-  assert.match(text, /qwenaudio status/)
-  assert.match(text, /qwenaudio config/)
-  assert.match(text, /qwenaudio setup/)
+  assert.match(text, /sideaudio tui/)
+  assert.match(text, /sideaudio webui/)
+  assert.match(text, /sideaudio status/)
+  assert.match(text, /sideaudio config/)
+  assert.match(text, /sideaudio setup/)
   assert.match(text, /--json/)
-  assert.match(text, /qwenaudio install NAME/)
+  assert.match(text, /sideaudio install NAME/)
   assert.match(text, /--yes, -y/)
   assert.doesNotMatch(text, /--attach-openclaw/)
   assert.doesNotMatch(text, /--backend-mode/)

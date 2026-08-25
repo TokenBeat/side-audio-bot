@@ -191,7 +191,7 @@ export class TaskManager {
           ? 'queued'
           : wasActive ? 'failed' : saved.status,
         error: wasActive && !canRecoverDelegation
-          ? 'qwen-audio-agent 重启时这项工作尚未完成，请重新提交。'
+          ? 'side-audio-bot 重启时这项工作尚未完成，请重新提交。'
           : saved.error || null,
         completedAt: wasActive && !canRecoverDelegation
           ? Date.now()
@@ -259,7 +259,7 @@ export class TaskManager {
       }
       if (!canRecover?.(snapshot)) {
         task.status = 'failed'
-        task.error = 'qwen-audio-agent 重启时这项项目任务失去连接，请重新提交。'
+        task.error = 'side-audio-bot 重启时这项项目任务失去连接，请重新提交。'
         task.completedAt = Date.now()
         task.notificationStatus = 'pending'
         task.promise = Promise.resolve(publicTask(task))

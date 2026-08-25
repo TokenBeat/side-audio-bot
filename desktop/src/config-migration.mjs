@@ -8,8 +8,8 @@ import {
 } from 'node:fs'
 import { resolve } from 'node:path'
 
-// 桌面版与 CLI 共享同一份资产（配置、身份、记忆、清单，QWAUDIO_DATA_DIR
-// 指向 CLI 的 ~/.config/qwaudio）；运行时状态（gateway.lock、tasks.json、
+// 桌面版与 CLI 共享同一份资产（配置、身份、记忆、清单，SIDEAUDIO_DATA_DIR
+// 指向 CLI 的 ~/.config/sideaudio）；运行时状态（gateway.lock、tasks.json、
 // state/、logs/、皮肤等）仍留在桌面版自己的 Electron 数据目录，互不干扰。
 // tasks.json 属运行时状态，不参与共享与回填。
 const SHARED_ASSET_FILES = [
@@ -24,7 +24,7 @@ const SHARED_ASSET_FILES = [
 const BACKFILL_MARKER = 'shared-assets-backfill.json'
 
 export function resolveDesktopConfigDirectory({ env, userDataDirectory }) {
-  if (env.QWAUDIO_CONFIG_DIR) return resolve(env.QWAUDIO_CONFIG_DIR)
+  if (env.SIDEAUDIO_CONFIG_DIR) return resolve(env.SIDEAUDIO_CONFIG_DIR)
   return resolve(userDataDirectory)
 }
 
