@@ -6,7 +6,7 @@
 [![npm](https://img.shields.io/npm/v/side-audio-bot)](https://www.npmjs.com/package/side-audio-bot)
 [![node](https://img.shields.io/badge/node-%E2%89%A522.22.2-brightgreen)](https://nodejs.org/)
 [![license](https://img.shields.io/github/license/TokenBeat/side-audio-bot)](LICENSE)
-[![WeChat](https://img.shields.io/badge/WeChat-%E5%8A%A0%E5%85%A5%E8%AE%A8%E8%AE%BA-07C160?logo=wechat&logoColor=white)](#交流与分享)
+<!-- [![WeChat](https://img.shields.io/badge/WeChat-%E5%8A%A0%E5%85%A5%E8%AE%A8%E8%AE%BA-07C160?logo=wechat&logoColor=white)](#交流与分享) -->
 
 ## Agent，始终在场
 
@@ -20,38 +20,14 @@
 
 ## News
 
-- **2026-08-20 · [v1.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.11.0)**
-  🧩 开放可嵌入 Gateway 与 Realtime Provider 扩展；🛠️ 支持安装与管理 Agent Skill；📎 TUI 支持多模态输入；🎨 皮肤动画联动运行状态。
-- **2026-08-13 · [v1.10.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.10.0)**
-  🐋 新增实验性 DeepSeek Harness 后台接入，支持一键安装。
-- **2026-08-13 · [v1.9.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.9.0)**
-  🧩 桌面任务卡实时展示 Agent 进度；🔎 后台 Agent 选择更清晰、支持搜索；🎙️ 支持 Qwen3.5-Omni Realtime 前台模型接入。
-- **2026-08-09 · [v1.8.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.8.0)**
-  🆕 新增 Qwen Code 后台；🔧 修复已知问题。
-- **2026-08-07 · [v1.7.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.7.0)**
-  🎨 悬浮球开放自定义外观，兼容 [Awesome Codex Pet](https://codexpet.top/) 社区画廊的宠物包；🪟 优化 Windows 后台 Agent 启动。
-- **2026-08-06 · [v1.6.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.6.0)**
-  🪟 桌面版正式支持 Windows；🧠 新增无感记忆，会话结束后自动提取。
-- **2026-08-05 · [v1.5.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.5.0)**
-  ⏰ 新增定时提醒与进度查询；🗣️ 新增语音唤醒词“你好煤球”；🐧 桌面版支持 Linux 打包；桌面版数据目录与 CLI 隔离。
-- **2026-08-04 · [v1.4.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.4.0)**
-  🧠 新增个性化规则与清单管理；桌面版支持自动休眠与快捷键唤醒。
-- **2026-08-03 · [v1.3.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.3.0)**
-  🎙️ 新增 [🤗 speech-to-speech](https://github.com/huggingface/speech-to-speech) 前台接入，支持本地部署 VAD、STT、LLM 与 TTS 全链路。
-- **2026-08-01 · [v1.2.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.2.0)**
-  ⚡ 桌面版新增自动更新，优化启动速度与后台 Agent 检测。
-- **2026-07-31 · [v1.1.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.1.0)**
-  🤝 新增 Kimi Code CLI 后台，原生 ACP 接入。
-- **2026-07-30 · [v1.0.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.0.0)**
-  🚀 正式版发布，推出内置 Gateway 的 macOS 桌面版。
-- **2026-07-28 · [v0.9.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.9.0)**
-  🌍 项目正式开源，后台 Agent 统一接入 ACP 架构。
+- **2026-08-25 · [v1.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.11.0)**
+  side-audio-bot 首个正式版本，提供实时语音运行时、桌面端应用以及后台 Agent 支持。
 
 ## 对话继续，任务也在继续
 
 对话不会因为后台任务而停下；任务完成后，结果会自然回到当前对话：
 
-https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
+<!-- https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05 -->
 
 ### 核心特色
 
@@ -67,9 +43,9 @@ https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
 
 ## 参考架构
 
-![side-audio-bot 原理图](docs/architecture-overview.html)
+![side-audio-bot 原理图](docs/architecture-overview.png)
 
-> 交互式架构概览：打开 [`docs/architecture-overview.html`](docs/architecture-overview.html) 查看可切换主题、可导出图片的架构图。
+> 交互式架构概览：打开 [`docs/architecture-overview.html`](docs/architecture-overview.png) 查看可切换主题、可导出图片的架构图。
 
 能直接回答的问题会立即回答；需要工具或持续处理时，任务会交给后台 Agent。
 整个过程中，用户面对的始终是同一个助理。
@@ -236,12 +212,12 @@ npm run desktop   # 桌面悬浮球（macOS / Windows）
 
 你可以直接在 [GitHub Issues](https://github.com/TokenBeat/side-audio-bot/issues) 发起讨论。
 
-对中国用户，也可以扫描左侧二维码加入微信交流群；如果群二维码已满或过期，
+<!-- 对中国用户，也可以扫描左侧二维码加入微信交流群；如果群二维码已满或过期，
 扫描右侧任一维护者的个人二维码，维护者会邀请你进群。
 
 | 微信交流群 | 个人微信 | 个人微信 |
 | :---: | :---: | :---: |
-| <img src="docs/wechat-group-qr.png" width="240" alt="微信交流群二维码"> | <img src="docs/wechat-contact-qr.png" width="240" alt="李旭个人微信二维码"> | <img src="docs/wechat-pigeon-dan-qr.png" width="240" alt="Pigeon.Dan 个人微信二维码"> |
+| <img src="docs/wechat-group-qr.png" width="240" alt="微信交流群二维码"> | <img src="docs/wechat-contact-qr.png" width="240" alt="李旭个人微信二维码"> | <img src="docs/wechat-pigeon-dan-qr.png" width="240" alt="Pigeon.Dan 个人微信二维码"> | -->
 
 ## 参与贡献与安全
 

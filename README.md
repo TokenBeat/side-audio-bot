@@ -6,7 +6,7 @@
 [![npm](https://img.shields.io/npm/v/side-audio-bot)](https://www.npmjs.com/package/side-audio-bot)
 [![node](https://img.shields.io/badge/node-%E2%89%A522.22.2-brightgreen)](https://nodejs.org/)
 [![license](https://img.shields.io/github/license/TokenBeat/side-audio-bot)](LICENSE)
-[![WeChat](https://img.shields.io/badge/WeChat-join_chat-07C160?logo=wechat&logoColor=white)](#community)
+<!-- [![WeChat](https://img.shields.io/badge/WeChat-join_chat-07C160?logo=wechat&logoColor=white)](#community) -->
 
 ## Agent Presence
 
@@ -26,39 +26,15 @@ tells you:
 
 ## News
 
-- **2026-08-20 · [v1.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.11.0)**
-  🧩 Adds embeddable Gateway and Realtime Provider extensions; 🛠️ supports installing and managing Agent Skills; 📎 adds multimodal input to the TUI; 🎨 links pet animations to runtime states.
-- **2026-08-13 · [v1.10.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.10.0)**
-  🐋 Added experimental DeepSeek Harness backend support with one-click installation.
-- **2026-08-13 · [v1.9.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.9.0)**
-  🧩 Desktop task cards show live Agent progress; 🔎 backend Agent selection is clearer and searchable; 🎙️ supports Qwen3.5-Omni Realtime frontend integration.
-- **2026-08-09 · [v1.8.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.8.0)**
-  🆕 Adds Qwen Code backend; 🔧 fixes known issues.
-- **2026-08-07 · [v1.7.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.7.0)**
-  🎨 The orb opens up custom skins — import your own look, compatible with pet packs from the [Awesome Codex Pet](https://codexpet.top/) community gallery; 🪟 improved Windows backend Agent startup.
-- **2026-08-06 · [v1.6.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.6.0)**
-  🪟 Desktop app now officially supports Windows; 🧠 adds invisible memory with automatic extraction after each session.
-- **2026-08-05 · [v1.5.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.5.0)**
-  ⏰ Adds scheduled reminders and progress reporting; 🗣️ adds the voice wake word ("你好煤球"); 🐧 desktop build support for Linux; the desktop app now uses a data directory isolated from the CLI.
-- **2026-08-04 · [v1.4.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.4.0)**
-  🧠 Adds personalized rules and checklist management; desktop app supports auto-sleep and shortcut wake.
-- **2026-08-03 · [v1.3.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.3.0)**
-  🎙️ Adds [🤗 speech-to-speech](https://github.com/huggingface/speech-to-speech) frontend integration, supporting fully local VAD, STT, LLM, and TTS.
-- **2026-08-01 · [v1.2.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.2.0)**
-  ⚡ Desktop app adds auto-update, faster startup, and improved backend Agent detection.
-- **2026-07-31 · [v1.1.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.1.0)**
-  🤝 Adds Kimi Code CLI backend with native ACP integration.
-- **2026-07-30 · [v1.0.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.0.0)**
-  🚀 First stable release, introducing a macOS desktop app with a built-in Gateway.
-- **2026-07-28 · [v0.9.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.9.0)**
-  🌍 Project officially open-sourced; backend Agents unified under the ACP architecture.
+- **2026-08-25 · [v1.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.11.0)**
+  Initial release of side-audio-bot with realtime voice runtime, desktop app, and backend Agent support.
 
 ## Conversation Continues, Tasks Too
 
 Conversation doesn't stop for background tasks; when a task completes, the
 result naturally returns to the current conversation:
 
-https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
+<!-- https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05 -->
 
 ### Core Features
 
@@ -74,9 +50,9 @@ https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
 
 ## Architecture
 
-![side-audio-bot architecture](docs/architecture-overview-en.html)
+![side-audio-bot architecture](docs/architecture-overview-en.png)
 
-> Interactive architecture overview: open [`docs/architecture-overview-en.html`](docs/architecture-overview-en.html) for a themeable, exportable diagram.
+> Interactive architecture overview: open [`docs/architecture-overview-en.html`](docs/architecture-overview-en.png) for a themeable, exportable diagram.
 
 Questions that can be answered directly are answered immediately; when tools
 or sustained processing are needed, the task is delegated to the backend Agent.
@@ -254,13 +230,13 @@ For more build, test, and release instructions, see [CONTRIBUTING.md](CONTRIBUTI
 
 You can start discussions directly in [GitHub Issues](https://github.com/TokenBeat/side-audio-bot/issues).
 
-For users in China, scan the QR codes below to join the WeChat group. If the
+<!-- For users in China, scan the QR codes below to join the WeChat group. If the
 group QR code is full or expired, scan either maintainer's personal QR code
 to be invited.
 
 | WeChat Group | Personal | Personal |
 | :---: | :---: | :---: |
-| <img src="docs/wechat-group-qr.png" width="240" alt="WeChat group QR code"> | <img src="docs/wechat-contact-qr.png" width="240" alt="Li Xu personal WeChat QR code"> | <img src="docs/wechat-pigeon-dan-qr.png" width="240" alt="Pigeon.Dan personal WeChat QR code"> |
+| <img src="docs/wechat-group-qr.png" width="240" alt="WeChat group QR code"> | <img src="docs/wechat-contact-qr.png" width="240" alt="Li Xu personal WeChat QR code"> | <img src="docs/wechat-pigeon-dan-qr.png" width="240" alt="Pigeon.Dan personal WeChat QR code"> | -->
 
 ## Contributing and Security
 
