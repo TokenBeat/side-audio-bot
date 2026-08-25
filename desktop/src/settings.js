@@ -22,6 +22,19 @@ import {
   localizeDesktopDocument,
   localizeDesktopError,
 } from './i18n.mjs'
+import {
+  BLOUB_SHAPES,
+  BLOUB_COLORS,
+  BLOUB_EXPRESSIONS,
+  bloubEntryLabel,
+} from '../../shared/bloub-catalog.mjs'
+
+const orbBloubShape = document.querySelector('#orb-bloub-shape')
+const orbBloubColor = document.querySelector('#orb-bloub-color')
+const orbBloubExpression = document.querySelector('#orb-bloub-expression')
+const orbBloubAutoState = document.querySelector('#orb-bloub-auto-state')
+const orbBloubFixedShape = document.querySelector('#orb-bloub-fixed-shape')
+const bloubAppearance = document.querySelectorAll('.bloub-appearance')
 
 const form = document.querySelector('#settings-form')
 const gatewayUrl = document.querySelector('#gateway-url')
@@ -813,6 +826,11 @@ function formSettings() {
   return {
     gatewayUrl: gatewayUrl.value,
     orbSkin: orbSkinSelect.value,
+    orbBloubShape: orbBloubShape.value,
+    orbBloubColor: orbBloubColor.value,
+    orbBloubExpression: orbBloubExpression.value,
+    orbBloubAutoState: orbBloubAutoState.checked,
+    orbBloubFixedShape: orbBloubFixedShape.checked,
     autoHideSeconds: Number(autoHideSeconds.value),
     wakeShortcut: wakeShortcut.value,
     wakeWordEnabled: wakeWordEnabled.checked,
@@ -841,6 +859,11 @@ function fingerprint(value) {
   return JSON.stringify({
     gatewayUrl: value.gatewayUrl,
     orbSkin: value.orbSkin,
+    orbBloubShape: value.orbBloubShape,
+    orbBloubColor: value.orbBloubColor,
+    orbBloubExpression: value.orbBloubExpression,
+    orbBloubAutoState: value.orbBloubAutoState,
+    orbBloubFixedShape: value.orbBloubFixedShape,
     autoHideSeconds: value.autoHideSeconds,
     wakeShortcut: value.wakeShortcut,
     wakeWordEnabled: value.wakeWordEnabled,
@@ -1041,7 +1064,46 @@ function updateRemoveSkinState() {
   ))
 }
 
+function updateBloubAppearanceVisibility() {
+  const visible = orbSkinSelect.value === 'bloub-bot'
+  orbBloubShape.hidden = !visible
+  orbBloubColor.hidden = !visible
+  orbBloubExpression.hidden = !visible
+  orbBloubFixedShape.hidden = !visible
+  for (const element of bloubAppearance) {
+    element.hidden = !visible
+  }
+  if (visible) renderBloubAppearanceOptions()
+}
+
+// 设置窗口的生效语言：动态渲染的 option 不走 localizeDesktopDocument
+// 的文本遍历（它只在 applyLanguage 时跑一遍），必须在这里按语言取标签。
+function settingsLanguage() {
+  return effectiveDesktopLanguage(desktopLanguage.value, navigator.language)
+}
+
+function renderBloubAppearanceOptions() {
+  const language = settingsLanguage()
+  const renderOptions = (select, catalog, selected) => {
+    select.textContent = ''
+    for (const item of catalog) {
+      const option = document.createElement('option')
+      option.value = item.id
+      option.textContent = bloubEntryLabel(item, language) || item.id
+      select.append(option)
+    }
+    if (selected && catalog.some(item => item.id === selected)) {
+      select.value = selected
+    }
+  }
+
+  renderOptions(orbBloubShape, BLOUB_SHAPES, settings?.orbBloubShape)
+  renderOptions(orbBloubColor, BLOUB_COLORS, settings?.orbBloubColor)
+  renderOptions(orbBloubExpression, BLOUB_EXPRESSIONS, settings?.orbBloubExpression)
+}
+
 function renderSkinOptions(selected) {
+  const language = settingsLanguage()
   orbSkinSelect.textContent = ''
   const groups = [
     { label: t('内置'), type: 'theme' },
@@ -1055,7 +1117,11 @@ function renderSkinOptions(selected) {
     for (const skin of items) {
       const option = document.createElement('option')
       option.value = skin.id
-      option.textContent = skin.displayName || skin.id
+      option.textContent = (
+        language === 'en' && skin.displayNameEn
+          ? skin.displayNameEn
+          : (skin.displayName || skin.id)
+      )
       optgroup.append(option)
     }
     orbSkinSelect.append(optgroup)
@@ -1069,10 +1135,13 @@ function renderSkinOptions(selected) {
   }
   orbSkinSelect.value = selected || 'fluid'
   updateRemoveSkinState()
+  updateBloubAppearanceVisibility()
 }
 
 function render() {
   gatewayUrl.value = settings.gatewayUrl
+  desktopLanguage.value = settings.language || 'auto'
+  applyLanguage(desktopLanguage.value)
   renderSkinOptions(settings.orbSkin)
   const hideValue = String(settings.autoHideSeconds ?? 120)
   autoHideSeconds.querySelector('[data-custom]')?.remove()
@@ -1088,8 +1157,8 @@ function render() {
   autoHideSeconds.value = hideValue
   wakeShortcut.value = settings.wakeShortcut
   wakeWordEnabled.checked = settings.wakeWordEnabled || false
-  desktopLanguage.value = settings.language || 'auto'
-  applyLanguage(desktopLanguage.value)
+  orbBloubAutoState.checked = settings.orbBloubAutoState || false
+  orbBloubFixedShape.checked = settings.orbBloubFixedShape || false
   recordingWakeShortcut = false
   renderWakeShortcut()
   dashscopeApiKey.value = settings.dashscopeApiKey || ''
@@ -1124,6 +1193,11 @@ function render() {
 for (const control of [
   gatewayUrl,
   orbSkinSelect,
+  orbBloubShape,
+  orbBloubColor,
+  orbBloubExpression,
+  orbBloubAutoState,
+  orbBloubFixedShape,
   autoHideSeconds,
   dashscopeApiKey,
   realtimeBaseUrl,
@@ -1162,6 +1236,7 @@ for (const control of [
       renderUpdater(updaterState)
       renderBackendOptions(selectedBackend())
       renderSkinOptions(orbSkinSelect.value)
+      updateBloubAppearanceVisibility()
       renderRealtimeModelOptions(realtimeModel.value)
       renderStepFunModelOptions(stepfunModel.value)
       renderRuntime()
@@ -1178,7 +1253,10 @@ getStepFunApiKey?.addEventListener('click', () => {
   window.qwenAudioAgentDesktop.openExternal(STEPFUN_API_KEY_URL)
 })
 
-orbSkinSelect.addEventListener('change', updateRemoveSkinState)
+orbSkinSelect.addEventListener('change', () => {
+  updateRemoveSkinState()
+  updateBloubAppearanceVisibility()
+})
 
 importSkinButton.addEventListener('click', async () => {
   importSkinButton.disabled = true

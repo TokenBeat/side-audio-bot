@@ -17,7 +17,9 @@ import MessageContent from './MessageContent.jsx'
 import MultimodalComposer from './MultimodalComposer.jsx'
 import DesktopFluidOrb from './DesktopFluidOrb.jsx'
 import DesktopSpriteOrb from './DesktopSpriteOrb.jsx'
+import DesktopBloubOrb from './DesktopBloubOrb.jsx'
 import { desktopOrbClassName, resolveOrbVisualState } from './orb-presentation.js'
+import { useBloubAppearance } from './use-bloub-appearance.js'
 import {
   isBuiltinOrbSkin,
   resolveOrbSkinId,
@@ -202,7 +204,9 @@ export default function App() {
   }, [])
 
   const triggerSpriteAnimation = useCallback(name => {
-    if (!desktopOrbMode || isBuiltinOrbSkin(orbSkinId)) return
+    // bloub-bot 是内置皮肤但自带彩蛋动画（burst/comet），同样要放行。
+    if (!desktopOrbMode) return
+    if (isBuiltinOrbSkin(orbSkinId) && orbSkinId !== 'bloub-bot') return
     spriteAnimationCueId.current += 1
     setSpriteAnimationCue({ id: spriteAnimationCueId.current, name })
   }, [])
@@ -799,6 +803,11 @@ export default function App() {
     task => task.authorization?.status === 'pending',
   )
 
+  const bloubAppearance = useBloubAppearance({
+    orbSkinId,
+    orbVisualState,
+  })
+
   useEffect(() => {
     if (!desktopOrbMode) return
     const current = desktopRuntime.overall
@@ -867,7 +876,11 @@ export default function App() {
     const applyLifecycle = lifecycle => {
       if (!lifecycle?.state) return
       setDesktopLifecycle(lifecycle.state)
-      if (lifecycle.state === 'waking') lastWakeAtRef.current = Date.now()
+      if (lifecycle.state === 'waking') {
+        lastWakeAtRef.current = Date.now()
+        // 唤醒瞬间播孵化彩蛋：球先收成一颗蛋再孵回正常形态（bloub）。
+        triggerSpriteAnimation('hatching')
+      }
       if (lifecycle.reason === 'activity') noteInteraction()
       if (lifecycle.state === 'hidden') setActivity(t('已隐藏'))
       if (lifecycle.state === 'waking') setActivity(t('正在显示悬浮球'))
@@ -886,7 +899,7 @@ export default function App() {
       window.removeEventListener('pointerdown', onInteraction)
       window.removeEventListener('keydown', onInteraction)
     }
-  }, [noteInteraction])
+  }, [noteInteraction, triggerSpriteAnimation])
 
   useEffect(() => {
     if (!desktopOrbMode || desktopLifecycle !== 'waking') return
@@ -1108,9 +1121,23 @@ export default function App() {
         >
         {isBuiltinOrbSkin(orbSkinId) || spriteOrbFailed
           ? (
-              <DesktopFluidOrb
-                style={isBuiltinOrbSkin(orbSkinId) ? orbSkinId : 'fluid'}
-              />
+              orbSkinId === 'bloub-bot'
+                ? (
+                    <DesktopBloubOrb
+                      state={bloubAppearance.state}
+                      dragDirection={orbDragDirection}
+                      cue={spriteAnimationCue}
+                      onCueComplete={completeSpriteAnimationCue}
+                      shape={bloubAppearance.shape}
+                      color={bloubAppearance.color}
+                      expression={bloubAppearance.expression}
+                    />
+                  )
+                : (
+                    <DesktopFluidOrb
+                      style={isBuiltinOrbSkin(orbSkinId) ? orbSkinId : 'fluid'}
+                    />
+                  )
             )
           : (
               <DesktopSpriteOrb
