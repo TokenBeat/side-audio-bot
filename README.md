@@ -52,8 +52,6 @@ result naturally returns to the current conversation:
 
 ![side-audio-bot architecture](docs/architecture-overview-en.png)
 
-> Interactive architecture overview: open [`docs/architecture-overview-en.html`](docs/architecture-overview-en.png) for a themeable, exportable diagram.
-
 Questions that can be answered directly are answered immediately; when tools
 or sustained processing are needed, the task is delegated to the backend Agent.
 Throughout, the user always faces the same assistant.

@@ -45,8 +45,6 @@
 
 ![side-audio-bot 原理图](docs/architecture-overview.png)
 
-> 交互式架构概览：打开 [`docs/architecture-overview.html`](docs/architecture-overview.png) 查看可切换主题、可导出图片的架构图。
-
 能直接回答的问题会立即回答；需要工具或持续处理时，任务会交给后台 Agent。
 整个过程中，用户面对的始终是同一个助理。
 
