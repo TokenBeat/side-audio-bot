@@ -207,13 +207,13 @@ export async function extractZipArchive(zipPath, destination) {
       '-NoProfile',
       '-NonInteractive',
       '-Command',
-      'Expand-Archive -LiteralPath $env:QWEN_AUDIO_SKIN_ZIP '
-      + '-DestinationPath $env:QWEN_AUDIO_SKIN_DEST -Force',
+      'Expand-Archive -LiteralPath $env:SIDE_AUDIO_SKIN_ZIP '
+      + '-DestinationPath $env:SIDE_AUDIO_SKIN_DEST -Force',
     ], {
       env: {
         ...process.env,
-        QWEN_AUDIO_SKIN_ZIP: zipPath,
-        QWEN_AUDIO_SKIN_DEST: destination,
+        SIDE_AUDIO_SKIN_ZIP: zipPath,
+        SIDE_AUDIO_SKIN_DEST: destination,
       },
     })
     return
