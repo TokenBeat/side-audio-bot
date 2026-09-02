@@ -95,6 +95,89 @@ test('can correct existing Markdown with an exact edit', async () => {
   assert.doesNotMatch(memoryStore.read(OWNER), /每天晚上跑步/)
 })
 
+test('keeps a valid append when a sibling edit cannot be applied', async () => {
+  // 真实模型 15 轮里有 11 轮这么错：把【对话里的原话】当成 old_text，而 old_text
+  // 必须来自现有文档。apply 是整批原子的，所以修复前这一条坏 edit 会连带丢掉
+  // 同批里完全正确的 append —— 实测下来两个文档全空。
+  const events = []
+  const { instance, userStore, memoryStore } = extractor({
+    userText: '以后都叫我老张吧',
+    audit: { record: event => events.push(event) },
+    llmCall: async () => JSON.stringify({
+      changes: [
+        {
+          document: 'user',
+          // 这句在对话里有，在空的 USER.md 里没有
+          edits: [{ old_text: '以后都叫我老张吧', new_text: '以后都叫我老张' }],
+          append: '',
+        },
+        {
+          document: 'memory',
+          edits: [],
+          append: '## 所在地\n\n- 用户住在杭州西湖区。',
+        },
+      ],
+    }),
+  })
+  await instance.maybeRun({ ownerId: OWNER, sessionId: SESSION })
+  // 正确的那条落地了
+  assert.match(memoryStore.read(OWNER), /杭州西湖区/)
+  // 落不了地的 edit 没有被硬写进去
+  assert.doesNotMatch(userStore.read(OWNER), /老张/)
+  const dropped = events.find(event => event.reason === 'edit_not_applicable')
+  assert.ok(dropped, '摘掉无效 edit 必须留下审计记录')
+  assert.deepEqual(dropped.detail, [
+    { document: 'user', reason: 'not_found', old_text: '以后都叫我老张吧' },
+  ])
+  assert.equal(events.at(-1).op, 'patch')
+})
+
+test('drops the whole change when every edit is unappliable and nothing is appended', async () => {
+  const events = []
+  const { instance, memoryStore } = extractor({
+    audit: { record: event => events.push(event) },
+    llmCall: async () => JSON.stringify({
+      changes: [{
+        document: 'memory',
+        edits: [{ old_text: '文档里根本没有这句', new_text: '替换后' }],
+        append: '',
+      }],
+    }),
+  })
+  await instance.maybeRun({ ownerId: OWNER, sessionId: SESSION })
+  assert.equal(memoryStore.read(OWNER).includes('替换后'), false)
+  assert.equal(events.at(-1).reason, 'no_applicable_change')
+})
+
+test('drops an ambiguous edit but keeps the unique one in the same batch', async () => {
+  // edits 是顺序应用的，所以判定必须在副本上模拟：第一条替换掉唯一那处之后，
+  // 第二条才轮到。这里刻意让「跑步」在文档里出现两次。
+  const events = []
+  const { instance, memoryStore } = extractor({
+    audit: { record: event => events.push(event) },
+    llmCall: async () => JSON.stringify({
+      changes: [{
+        document: 'memory',
+        edits: [
+          { old_text: '游泳', new_text: '骑车' },
+          { old_text: '跑步', new_text: '快走' },
+        ],
+        append: '',
+      }],
+    }),
+  })
+  memoryStore.edit(OWNER, { append: '- 早上跑步\n- 晚上跑步\n- 周末游泳' })
+  await instance.maybeRun({ ownerId: OWNER, sessionId: SESSION })
+  const content = memoryStore.read(OWNER)
+  assert.match(content, /骑车/, '唯一命中的那条应当落地')
+  assert.doesNotMatch(content, /快走/, '出现两次的 old_text 必须被摘掉')
+  assert.match(content, /早上跑步[\s\S]*晚上跑步/, '原文不被破坏')
+  const dropped = events.find(event => event.reason === 'edit_not_applicable')
+  assert.deepEqual(dropped.detail, [
+    { document: 'memory', reason: 'ambiguous', old_text: '跑步' },
+  ])
+})
+
 test('reconciles a misplaced directive across both documents atomically', async () => {
   const { instance, userStore, memoryStore } = extractor({
     userText: '以后每次回复都加一句爱你哟',
@@ -252,12 +335,29 @@ test('createExtractorLlmCall posts to chat completions and surfaces errors', asy
   assert.equal(await llmCall({ system: 's', user: 'u' }), '{}')
   assert.equal(requests[0].url, 'https://example.com/v1/chat/completions')
   assert.equal(requests[0].options.headers.Authorization, 'Bearer test-key')
+  assert.equal(JSON.parse(requests[0].options.body).temperature, 0)
+
+  const retriedRequests = []
+  const compatible = createExtractorLlmCall({
+    baseUrl: 'https://example.com/v1',
+    apiKey: 'test-key',
+    model: 'strict-compatible-model',
+    fetchImpl: async (url, options) => {
+      retriedRequests.push({ url, options })
+      return retriedRequests.length === 1
+        ? { ok: false, status: 400, text: async () => 'unsupported temperature' }
+        : { ok: true, json: async () => ({ choices: [{ message: { content: '[]' } }] }) }
+    },
+  })
+  assert.equal(await compatible({ system: 's', user: 'u' }), '[]')
+  assert.equal(retriedRequests.length, 2)
+  assert.equal('temperature' in JSON.parse(retriedRequests[1].options.body), false)
 
   const failing = createExtractorLlmCall({
     baseUrl: 'https://example.com/v1',
     apiKey: 'test-key',
     model: 'qwen-flash',
-    fetchImpl: async () => ({ ok: false, status: 429 }),
+    fetchImpl: async () => ({ ok: false, status: 429, text: async () => 'rate limited' }),
   })
-  await assert.rejects(() => failing({ system: 's', user: 'u' }), /request failed: 429/)
+  await assert.rejects(() => failing({ system: 's', user: 'u' }), /request failed: 429 rate limited/)
 })

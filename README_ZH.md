@@ -1,6 +1,6 @@
 # Qwen Audio Agent
 
-[中文](README_ZH.md) | [English](README.md)
+[中文](README_ZH.md) | [English](README.md) | [用户手册](https://qwenaudio.github.io/qwen-audio-agent/zh/) | [快速开始](https://qwenaudio.github.io/qwen-audio-agent/zh/getting-started/quickstart)
 
 [![CI](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/qwen-audio-agent)](https://www.npmjs.com/package/qwen-audio-agent)
@@ -20,6 +20,8 @@
 
 ## News
 
+- **2026-08-27 · v2.0.0（开发中）**
+  🚧 下一代版本正在积极开发，持续完善 Agent 架构、任务生命周期、多模态输入、记忆与扩展能力。
 - **2026-08-20 · [v1.11.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.11.0)**
   🧩 开放可嵌入 Gateway 与 Realtime Provider 扩展；🛠️ 支持安装与管理 Agent Skill；📎 TUI 支持多模态输入；🎨 皮肤动画联动运行状态。
 - **2026-08-13 · [v1.10.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.10.0)**
@@ -77,7 +79,7 @@ https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
 
 ![qwen-audio-agent 接入参考架构](docs/qwen-audio-agent-three-layer-architecture.png)
 
-更完整的产品边界见[架构文档](docs/architecture.zh.md)，也可查看
+更完整的产品边界见[架构文档](docs/architecture/deep-dive.zh.md)，也可查看
 [语音 Agent 架构演示文档](docs/voice-agent-architecture-presentation.zh.md)。
 
 </details>
@@ -87,10 +89,10 @@ https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
 | 后台 Agent | 接入方式 | 接入准备 | 推荐指数 |
 | --- | --- | --- | --- |
 | 无 | N/A | 仅前台模式，无需配置 | ★★★★★ |
+| Qwen Code | 原生 ACP | 支持一键安装，需用户配置 | ★★★★★ |
 | OpenCode | 原生 ACP | 支持一键安装和百炼配置 | ★★★★★ |
 | OpenClaw | 内置 ACP 桥接 | 支持一键安装和百炼配置 | ★★★★★ |
 | Qoder | 原生 ACP | 支持一键安装，需用户配置 | ★★★★★ |
-| Qwen Code | 原生 ACP | 支持一键安装，需用户配置 | ★★★★☆ |
 | Kimi Code | 原生 ACP | 支持一键安装，需用户配置 | ★★★★★ |
 | Hermes | 原生 ACP | 支持一键安装，需用户配置 | ★★★★☆ |
 | CodeBuddy | 原生 ACP | 支持一键安装，需用户配置 | ★★★★☆ |
@@ -124,21 +126,16 @@ qwenaudio config
 
 ```dotenv
 DASHSCOPE_API_KEY=your-key
-# 语音前台模型：Omni Flash/Plus 或 Audio Flash/Plus（默认 Audio Plus）
+# 语音前台模型：Audio Flash/Plus 或 Omni Flash/Plus（默认 Audio Plus）
 QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-plus
 # 后台Agent：可选，不设置或设置为 none 时，启动仅前台模式
 AGENT_PROTOCOL=openclaw
-# 后台模型：可为空，留空则沿用 Agent 自身的用户配置
+# 后台模型：可为空；显式设置通过 ACP 标准覆盖，留空沿用 Agent 配置
 QWEN_AUDIO_AGENT_BACKEND_MODEL=qwen3.7-max
 ```
 
 > 默认使用 DashScope 实时语音前台；也可切换为本地 [speech-to-speech 前台](docs/voice-frontends/speech-to-speech.zh.md)，无需云端 API Key。
-> `qwen3.5-omni-flash-realtime` 与 `qwen3.5-omni-plus-realtime`
-> 在模型层支持文本、音频和图片输入。本版本客户端传输层仅启用文本和音频；
-> 图片/画面帧与原生视频传输仍保持关闭，待对应客户端和 Gateway 链路实现。
 
-桌面版或 `qwenaudio config set --realtime-model <id>` 配置 Gateway 统一使用的模型；
-CLI 修改后需要重启 Gateway。WebUI 与 TUI 只显示当前生效模型，不单独覆盖模型。
 
 2. 启动 Gateway，另开终端启动 TUI（也可用 `qwenaudio webui` 启动浏览器界面）：
 
@@ -152,26 +149,40 @@ qwenaudio tui    # 终端 2：TUI
 [语音前台](docs/voice-frontends/speech-to-speech.zh.md)与
 [TUI 注意](docs/getting-started/tui.zh.md)。
 
-## 示例
+## 示例与场景扩展
 
-仓库内提供智能座舱语音 Agent 示例，包含车控、导航、音乐、天气、联网查询、淘宝闪购和座舱 UI：
+当前 qwen-audio-agent 的主框架以桌面办公为核心：用户可以通过实时语音与 Agent
+持续交流，同时把需要工具、文件、代码或长时间处理的任务交给后台 Agent 执行。
+
+这套“前台对话 + 后台任务”的设计并不局限于桌面办公，未来也可以扩展到更多既能
+自然聊天、又能实际办事的场景。
+
+| 场景 | 描述 | 链接 | 状态 |
+| --- | --- | --- | --- |
+| 桌面办公 | 实时语音交流、进度追问、工具调用和后台任务执行。 | [文档][desktop-docs-zh] | 已提供 |
+| 智能座舱 | 车控、导航、音乐、天气和生活服务。 | [示例][smart-cockpit-example] | 已提供 |
+| 客服助手 | 问题澄清、订单查询、工单处理和人工转接。 | 待补充 | 规划中 |
+| 具身智能 | 语音指令、动作执行、巡检和异常反馈。 | 待补充 | 规划中 |
+| 直播助手 | 弹幕互动、商品讲解、优惠发放和风险提醒。 | 待补充 | 探索中 |
+
+仓库内已提供基于“前台对话 + 后台执行”边界的智能座舱参考场景，座舱 UI、
+轻量 A2A Agent 和座舱 Service 均可由客户替换：
 
 ```bash
-cp examples/car/.env.example examples/car/.env.local
-npm install --prefix examples/car/server
-npm install --prefix examples/car/react-app
-npm run example:car:server   # 终端 1：座舱 Agent 服务
-npm run example:car:web      # 终端 2：座舱 UI
+cp examples/smart-cockpit/.env.example examples/smart-cockpit/.env.local
+npm run example:smart-cockpit:install
+npm run example:smart-cockpit          # 同时启动 service、agent、gateway 和 client
 ```
 
-详细说明见 [examples/car](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/car)。
+详细说明见 [examples/smart-cockpit](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/smart-cockpit)。
+
+[desktop-docs-zh]: docs/desktop/overview.zh.md
+[smart-cockpit-example]: examples/smart-cockpit
 
 ## 桌面版
 
 桌面版提供常驻桌面的语音悬浮球，内置 Gateway，支持空闲自动休眠、自定义唤醒
-快捷键和本地语音唤醒。休眠时会断开 Realtime 前台，但桌面进程、Gateway、后台
-Agent 和已提交任务仍继续运行；它不等于退出或重启桌面版。任务完成后可以唤醒
-桌面版，并把结果带回当前对话。从发布页下载对应平台安装包，或从源码构建：
+快捷键和本地语音唤醒。从发布页下载对应平台安装包，或从源码构建：
 
 ```bash
 npm run desktop:build:local      # macOS

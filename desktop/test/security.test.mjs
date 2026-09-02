@@ -69,3 +69,23 @@ test('passes sprite skins through and drops invalid skin ids', () => {
     'http://127.0.0.1:3101/?desktop=orb',
   )
 })
+
+test('restores the desktop conversation panel without changing the client route', () => {
+  assert.equal(
+    desktopOrbUrl('http://127.0.0.1:3101/', { surfaceMode: 'panel' }),
+    'http://127.0.0.1:3101/?desktop=orb&surface=panel',
+  )
+})
+
+test('carries one validated persistent conversation session across renderer origins', () => {
+  assert.equal(
+    desktopOrbUrl('http://127.0.0.1:3101/', {
+      sessionId: 'desktop session',
+    }),
+    'http://127.0.0.1:3101/?desktop=orb&session=desktop+session',
+  )
+  assert.equal(
+    desktopOrbUrl('http://127.0.0.1:3101/', { sessionId: 'bad\nsession' }),
+    'http://127.0.0.1:3101/?desktop=orb',
+  )
+})

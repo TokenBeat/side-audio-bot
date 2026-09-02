@@ -3,6 +3,16 @@ import {
   resolveStepFunRealtimeModelProfile,
 } from '../../shared/realtime-model-catalog.mjs'
 
+export function gatewayStatusLabel(value) {
+  const text = String(value || '').trim()
+  if (!text) return ''
+  try {
+    return new URL(text).host
+  } catch {
+    return text
+  }
+}
+
 export function realtimeStatusLabel(provider) {
   if (provider === 'speech-to-speech') return 'Speech-to-Speech'
   if (provider === 'stepfun') return 'StepFun'
@@ -18,6 +28,10 @@ export function realtimeModelStatusLabel(model) {
   return profile.family === 'unknown'
     ? profile.label
     : profile.label.replace(/\s+Realtime\b/i, '')
+}
+
+export function realtimeRuntimeLabel(provider, model) {
+  return realtimeModelStatusLabel(model) || realtimeStatusLabel(provider)
 }
 
 export function realtimeModelRuntimeStatus(health, expectedModel = '') {

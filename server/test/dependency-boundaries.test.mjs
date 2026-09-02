@@ -8,13 +8,48 @@ const sourceRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../src')
 const projectRoot = resolve(sourceRoot, '../..')
 const sharedRoot = resolve(sourceRoot, '../../shared')
 const allowedDependencies = {
-  app: new Set(['agent', 'app', 'conversation', 'core', 'task', 'voice']),
+  app: new Set([
+    'agent',
+    'app',
+    'backend',
+    'client',
+    'conversation',
+    'core',
+    'delivery',
+    'domain',
+    'frontend',
+    'providers',
+    'session',
+    'task',
+    'transport',
+    'voice',
+  ]),
   process: new Set(['process', 'shared']),
   core: new Set(['core', 'shared']),
-  agent: new Set(['agent', 'core', 'shared']),
+  frontend: new Set(['frontend']),
+  providers: new Set(['core', 'frontend', 'providers', 'shared']),
+  agent: new Set(['agent', 'backend', 'core', 'shared']),
+  backend: new Set(['backend', 'core', 'shared']),
+  client: new Set(['client', 'delivery', 'shared', 'task']),
+  delivery: new Set(['delivery']),
   conversation: new Set(['conversation', 'core', 'shared']),
-  task: new Set(['agent', 'core', 'task']),
-  voice: new Set(['conversation', 'core', 'shared', 'task', 'voice']),
+  // 资料库刻意不依赖 conversation：它复用的落盘与敏感闸门都在 core，
+  // 让「用户给的手册」去依赖「会话逻辑」是没有道理的耦合。
+  domain: new Set(['core', 'domain', 'shared']),
+  session: new Set(['session', 'shared']),
+  task: new Set(['agent', 'core', 'session', 'task']),
+  transport: new Set(['shared', 'task', 'transport']),
+  voice: new Set([
+    'client',
+    'conversation',
+    'core',
+    'delivery',
+    'frontend',
+    'shared',
+    'task',
+    'transport',
+    'voice',
+  ]),
 }
 
 function sourceFiles(directory) {
@@ -72,6 +107,20 @@ test('generic ACP and process cores do not bind to named backends', () => {
   assert.deepEqual(violations, [])
 })
 
+test('Gateway Work consumers use BackendPort instead of ACP coordinator APIs', () => {
+  const consumers = [
+    resolve(sourceRoot, 'backend/backend-work-runtime.mjs'),
+    resolve(sourceRoot, 'app/gateway-application.mjs'),
+    resolve(sourceRoot, 'voice/realtime-gateway.mjs'),
+    resolve(sourceRoot, 'voice/tools/tool-call-handler.mjs'),
+  ]
+  const privateAcpApi = /\b(?:runCoordinator|cancelWork|queryDelegatedWork|coordinatorUsesMcpInstructions)\b|from\s+['"][^'"]*acp-/
+  const violations = consumers
+    .filter(file => privateAcpApi.test(readFileSync(file, 'utf8')))
+    .map(file => relative(projectRoot, file))
+  assert.deepEqual(violations, [])
+})
+
 test('UI source code does not import Gateway or another client implementation', () => {
   const roots = [
     resolve(projectRoot, 'web/src'),
@@ -106,10 +155,16 @@ test('UI source code does not import Gateway or another client implementation', 
   assert.deepEqual(violations, [])
 })
 
-test('UI clients do not expose the removed background execution control', () => {
-  const fullscreenTui = readFileSync(
-    resolve(projectRoot, 'tui/fullscreen/app.py'),
-    'utf8',
-  )
-  assert.doesNotMatch(fullscreenTui, /task\.background|action_background|\/bg/)
+test('shipped UI clients do not expose the removed background execution control', () => {
+  const roots = [
+    resolve(projectRoot, 'web/src'),
+    resolve(projectRoot, 'tui/src'),
+    resolve(projectRoot, 'desktop/src'),
+  ]
+  const violations = roots.flatMap(root => sourceFiles(root))
+    .filter(file => /task\.background|action_background|\/bg/.test(
+      readFileSync(file, 'utf8'),
+    ))
+    .map(file => relative(projectRoot, file))
+  assert.deepEqual(violations, [])
 })

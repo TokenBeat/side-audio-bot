@@ -21,6 +21,7 @@
 唤醒词“你好千问”即可恢复对话。后台 Agent 和已提交任务不会因休眠停止，任务结果
 会在唤醒后播报。首次启用唤醒词时会自动下载并校验约 33 MB 的
 [`sherpa-onnx`](https://github.com/k2-fsa/sherpa-onnx) 中英文 KWS 模型，之后直接使用本地缓存。
+检测完全在桌面客户端的独立 Worker 中运行；音频不会为了唤醒词发送给 Gateway，检测成功后客户端只发送标准 `wake` 事件。
 
 ## 外观
 
@@ -50,22 +51,24 @@
 桌面端不把所有业务信号混成一个“Agent 状态”。生命周期、运行就绪、语音交互和
 后台工作分别管理；皮肤只消费稳定的表现状态和一次性事件。
 
-| 系统语义 | 皮肤动作 | 播放方式 |
-| --- | --- | --- |
-| 空闲 | `idle` | 持续循环 |
-| 用户已开始说话 | `waiting` | 播放一次，回到基础动作 |
-| 输入已提交、等待首个回复 | `review` | 播放一次，不表示模型内部“思考” |
-| 开始播报 | `waving` | 播放一次，同时保留轻微播报反馈 |
-| 后台任务执行中 | `running` | 作为基础动作持续循环 |
-| 应用启动中 | `waiting` | 持续循环 |
-| 首次就绪或被唤醒 | `waving` | 播放一次 |
-| 运行或任务失败 | `failed` | 播放一次 |
-| 鼠标悬浮 | `jumping` | 播放一次 |
-| 左右拖动 | `running-left` / `running-right` | 拖动期间循环 |
+| 开源标准动画 | 业务含义 | Agent 状态或触发事件 | 播放方式 |
+| --- | --- | --- | --- |
+| `idle` | 待机 | `idle`、`connecting`、`occupied` | 状态持续期间循环 |
+| `running-right` | 向右移动 | 用户向右拖动桌宠 | 拖动期间循环 |
+| `running-left` | 向左移动 | 用户向左拖动桌宠 | 拖动期间循环 |
+| `waving` | 说话 | `speaking` | `speaking` 持续期间循环 |
+| `jumping` | 成功 / 唤醒 | `waking`、首次启动成功、任务成功完成、鼠标移入 | 每次事件单次播放 |
+| `failed` | 失败 | `error`、桌面运行环境失败、任务执行失败 | 每次事件单次播放 |
+| `waiting` | 聆听 | `listening` | `listening` 持续期间循环 |
+| `running` | 工作 / 启动 | `working`、`starting` | 状态持续期间循环 |
+| `review` | 前台轮次处理 | `processing` | 每个处理阶段单次播放 |
 
-权限等待、其他前端占用、具体连接阶段仍是有用的业务状态，但不单独切换精灵动作。
-临时动作结束后恢复待机；如果后台任务仍在执行，则恢复奔跑。仅前台模式会跳过
-后台 Agent 就绪要求。皮肤包只包含静态资源
+持续状态与单次事件分别仲裁：启动、聆听、说话和后台工作保持各自的循环轨道；首次
+就绪、唤醒、任务结果、前台处理和鼠标移入只播放一次。单次动作结束后恢复当前基础
+动作；如果仍有后台任务则恢复 `running`，否则恢复 `idle`。包括后台 thinking 在内的
+所有活跃后台任务都统一使用 `working` → `running`；等待审批不选择 Agent 动画，持续
+由任务界面承载，需要语音询问时自然进入 `speaking`。所有任务类型使用同一套开始、
+完成与失败规则。仅前台模式会跳过后台 Agent 就绪要求。皮肤包只包含静态资源
 （JSON + WebP），导入时会校验格式与尺寸；若选中的
 皮肤包被删除，悬浮球会自动回退到内置外观。
 
@@ -88,12 +91,13 @@ npm run desktop:build:linux      # Linux（AppImage + deb，无需签名）
 
 ## 数据目录与隔离
 
-桌面版使用系统标准应用数据目录（macOS 为
+桌面版与 CLI 共享同一个用户目录（`~/.config/qwaudio`）：设置、身份、
+记忆与共享工作区在两者间一致。只有运行时状态——Gateway 进程、锁、
+日志、任务记录与皮肤——存放在桌面版自己的应用数据目录（macOS 为
 `~/Library/Application Support/Qwen Audio Agent`，Windows 为
 `%APPDATA%/Qwen Audio Agent`，Linux 为
-`~/.config/Qwen Audio Agent`），与 CLI 的 `~/.config/qwaudio` 完全隔离。
-两者的 Gateway、锁、日志与设置互不干扰，可以同时运行。桌面版首次启动时会从
-CLI 目录复制 `config.env` 等用户配置（CLI 保留原件）。
+`~/.config/Qwen Audio Agent`），因此两者可以同时运行。首次启动时，
+旧版桌面版的配置会迁移进共享的 CLI 目录（CLI 保留原件）。
 
 ## 自动更新与日志
 
@@ -101,4 +105,4 @@ CLI 目录复制 `config.env` 等用户配置（CLI 保留原件）。
 
 桌面版可在“设置 → 应用 → 日志”中打开日志目录，与 Gateway 一起记录结构化
 JSONL 日志，凭据自动脱敏并自动轮转。日志配置详见
-[配置说明](../configuration.zh.md#本地日志)。
+[配置说明](../configuration/advanced.zh.md#本地日志)。

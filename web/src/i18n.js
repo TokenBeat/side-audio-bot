@@ -44,15 +44,20 @@ const translations = {
   '取消等待语音': 'Cancel waiting for voice',
   '开启麦克风': 'Enable microphone',
   '设置': 'Settings',
+  '打开对话': 'Open conversation',
+  '收起': 'Collapse',
+  '收起为悬浮球': 'Collapse to orb',
   '退出': 'Quit',
   '后台任务': 'Background tasks',
   '折叠后台任务': 'Collapse background tasks',
   '展开后台任务': 'Expand background tasks',
   '正在提交': 'Submitting',
-  '始终允许': 'Always allow',
+  '本次允许': 'Allow once',
+  '本会话始终允许': 'Always allow in this session',
   '拒绝': 'Deny',
   '你': 'You',
   '已打断': 'Interrupted',
+  '来源': 'Sources',
   '打开 {label}': 'Open {label}',
   '选择前台语音引擎': 'Select voice frontend engine',
   '前台：默认（{label}）': 'Frontend: default ({label})',
@@ -69,6 +74,25 @@ const translations = {
   '画面观察': 'visual observation',
   '原生视频': 'native video',
   '新会话': 'New session',
+  '资料库': 'Library',
+  '把本机的手册、规章、教材交给助手': 'Hand local manuals, policies and textbooks to the assistant',
+  '粘贴本机文件路径，例如 /Users/me/手册.md': 'Paste a local file path, e.g. /Users/me/manual.md',
+  '加入资料库': 'Add to library',
+  '支持 Markdown、txt 等文本；PDF、Word 会先交给后台提取文字。': 'Text files such as Markdown and txt are read directly; PDF and Word are handed to the backend to extract their text first.',
+  '还没有资料。加进来之后，助手就知道该去查哪一份。': 'No documents yet. Once added, the assistant knows which one to consult.',
+  '资料库功能未开启。': 'The document library is not enabled.',
+  '读不到资料列表': 'Cannot read the document list',
+  '正在提取文字…': 'Extracting text…',
+  '正在后台提取文字，完成后会自动收进资料库': 'Extracting text in the background; it will be added to the library automatically',
+  '已收进资料库：{name}': 'Added to the library: {name}',
+  '已移除：{name}': 'Removed: {name}',
+  '“{name}” 已提取并收进资料库': '“{name}” was extracted and added to the library',
+  '“{name}” 提取失败': 'Could not extract “{name}”',
+  '导入失败（{status}）': 'Import failed ({status})',
+  '导入失败，请稍后再试': 'Import failed, please try again later',
+  '移除失败，请稍后再试': 'Could not remove it, please try again later',
+  '待摘要': 'summary pending',
+  '移除': 'Remove',
   '关闭语音': 'Disable voice',
   '取消等待': 'Cancel waiting',
   '开启语音': 'Enable voice',
@@ -77,6 +101,7 @@ const translations = {
   '试着说': 'Try saying',
   '“帮我查一下今天的 AI 新闻，并整理成三点摘要。”': '"Look up today\'s AI news and summarize it in three points."',
   '输入文字，或粘贴、拖入图片和文件': 'Type a message, or paste and drop images and files',
+  '输入文字或图片': 'Type text or add an image',
   '添加图片或文件': 'Add images or files',
   '移除附件': 'Remove attachment',
   '发送': 'Send',
@@ -94,6 +119,9 @@ const translations = {
   '结果已经发送': 'Results delivered',
   '正在等待与后台重新连接': 'Waiting to reconnect to backend',
   '正在连接后台 Agent': 'Connecting to backend agent',
+  '当前模式：{mode}': 'Current mode: {mode}',
+  '会话：{title}': 'Session: {title}',
+  '未知': 'Unknown',
   '正在生成图片': 'Generating image',
   '正在查询相关信息': 'Searching for information',
   '正在读取相关内容': 'Reading content',
@@ -108,6 +136,8 @@ const translations = {
   '语音前台连接异常，正在重试': 'Voice frontend connection error, retrying',
   '实时语音连接中断，正在重连': 'Realtime voice connection lost, reconnecting',
   '无法打开麦克风': 'Could not open the microphone',
+  '正在切换麦克风': 'Switching microphone',
+  '未检测到可用麦克风，连接设备后会自动恢复': 'No microphone detected. Input will recover automatically when a device is connected.',
   '无法初始化实时语音播放': 'Could not initialize realtime voice playback',
   '加载远程图片': 'Load remote image',
   '加载远程音频': 'Load remote audio',
@@ -115,7 +145,17 @@ const translations = {
   '打开链接': 'Open link',
 }
 
+let runtimeLanguage = ''
+
+export function setRuntimeLanguage(language = '') {
+  runtimeLanguage = String(language || '').trim()
+  if (typeof document !== 'undefined' && runtimeLanguage) {
+    document.documentElement.lang = isChinese(runtimeLanguage) ? 'zh-CN' : 'en'
+  }
+}
+
 function currentLanguage() {
+  if (runtimeLanguage) return runtimeLanguage
   try {
     const requested = new URLSearchParams(globalThis.location?.search || '').get('lang')
     if (requested) return requested

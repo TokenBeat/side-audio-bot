@@ -11,12 +11,12 @@ export const codeBuddyBackendDriver = {
     externalMcp: true,
     nativeDelegation: false,
     sessionMcp: true,
+    coordinatorMcpInstructions: false,
   },
 
   createProfile({
     directory,
     cliPath,
-    model,
     modelUrl,
     permissionMode,
   }) {
@@ -26,7 +26,6 @@ export const codeBuddyBackendDriver = {
         command: cliPath || 'codebuddy',
         args: [
           '--acp',
-          ...(clean(model) ? ['--model', clean(model)] : []),
           ...(permissionMode === 'full'
             ? ['--dangerously-skip-permissions']
             : []),

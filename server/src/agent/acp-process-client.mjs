@@ -10,6 +10,8 @@ import {
   assertPromptCapabilities,
   normalizeAcpPrompt,
 } from './acp-content.mjs'
+import { assertMcpServerCapabilities } from './acp-capabilities.mjs'
+import { applySessionMetadataUpdate } from './acp-backend-session-utils.mjs'
 
 const MAX_STDERR_CHARS = 12_000
 // Gateway has a 2s hard shutdown deadline. Leave enough time for adapter and
@@ -24,6 +26,20 @@ function clean(value) {
 function cleanProcessOutput(value, sanitizeProcessOutput) {
   const stripped = stripVTControlCharacters(String(value || '')).trim()
   return clean(sanitizeProcessOutput?.(stripped) ?? stripped)
+}
+
+function requestProcessOutput(before, after) {
+  const previous = String(before || '')
+  const current = String(after || '')
+  if (!current || current === previous) return ''
+  if (!previous) return current
+  if (current.startsWith(previous)) {
+    return current.slice(previous.length).trim()
+  }
+  // The bounded process buffer may roll over during a noisy request. In that
+  // uncommon case the current buffer is still a better request diagnostic
+  // than discarding the backend-owned explanation altogether.
+  return current
 }
 
 function requestErrorDetails(error) {
@@ -53,11 +69,26 @@ function textFromUpdate(update) {
   return String(update.content.text || '')
 }
 
+function contentBlockFromUpdate(update) {
+  if (
+    update?.sessionUpdate !== 'agent_message_chunk'
+    || !update.content
+    || typeof update.content !== 'object'
+  ) return null
+  return update.content
+}
+
 function processError(label, message, stderr = '') {
   return new AgentError(
     `${label} ACP ${message}${stderr ? `：${stderr}` : ''}`,
     { protocol: 'acp' },
   )
+}
+
+function timeoutDuration(timeoutMs) {
+  return timeoutMs >= 1000
+    ? `${Math.round(timeoutMs / 1000)} 秒`
+    : `${timeoutMs} 毫秒`
 }
 
 export class AcpProcessClient {
@@ -74,6 +105,7 @@ export class AcpProcessClient {
     platform = process.platform,
     killImpl = process.kill,
     onPermission,
+    onElicitation,
     onUpdate,
     sanitizeProcessOutput,
     formatRequestError,
@@ -90,6 +122,7 @@ export class AcpProcessClient {
     this.platform = platform
     this.kill = killImpl
     this.onPermission = onPermission
+    this.onElicitation = onElicitation
     this.onUpdate = onUpdate
     this.sanitizeProcessOutput = sanitizeProcessOutput
     this.formatRequestError = formatRequestError
@@ -175,6 +208,10 @@ export class AcpProcessClient {
         acp.methods.client.session.requestPermission,
         context => this.handlePermission(context.params, context.signal),
       )
+      .onRequest(
+        acp.methods.client.elicitation.create,
+        context => this.handleElicitation(context.params, context.signal),
+      )
       .onNotification(
         acp.methods.client.session.update,
         context => this.handleUpdate(context.params),
@@ -214,7 +251,9 @@ export class AcpProcessClient {
           acp.methods.agent.initialize,
           {
             protocolVersion: acp.PROTOCOL_VERSION,
-            clientCapabilities: {},
+            clientCapabilities: {
+              elicitation: { form: {} },
+            },
             clientInfo: {
               name: 'qwen-audio-agent',
               title: 'qwen-audio-agent Gateway',
@@ -286,13 +325,31 @@ export class AcpProcessClient {
     }
   }
 
+  async handleElicitation(params, signal) {
+    if (!this.onElicitation) return { action: 'cancel' }
+    const sessionId = String(params?.sessionId || '')
+    const active = this.activePrompts.get(sessionId)
+    active?.pauseTimeout?.()
+    try {
+      return await this.onElicitation(params, {
+        signal,
+        session: this.sessions.get(sessionId),
+      })
+    } finally {
+      active?.resumeTimeout?.()
+    }
+  }
+
   handleUpdate(notification) {
     const sessionId = String(notification?.sessionId || '')
     const update = notification?.update
     if (!sessionId || !update) return
+    applySessionMetadataUpdate(this.sessions.get(sessionId), update)
     const active = this.activePrompts.get(sessionId)
     const text = textFromUpdate(update)
     if (active && text) active.text.push(text)
+    const contentBlock = contentBlockFromUpdate(update)
+    if (active && contentBlock) active.contentBlocks.push(contentBlock)
     try {
       active?.onUpdate?.(update, notification)
       this.onUpdate?.(update, {
@@ -312,17 +369,30 @@ export class AcpProcessClient {
     signal,
     timeoutMs = this.timeoutMs,
   } = {}) {
+    let processOutputBefore = ''
     try {
       await this.start()
+      processOutputBefore = cleanProcessOutput(
+        this.stderr,
+        this.sanitizeProcessOutput,
+      )
       return await this.context.request(method, params, {
         signal: this.requestSignal(signal, timeoutMs),
       })
     } catch (error) {
       if (signal?.aborted) throw signal.reason
       const isRequestError = error?.name === 'RequestError'
+      const processOutput = cleanProcessOutput(
+        this.stderr,
+        this.sanitizeProcessOutput,
+      )
       const stderr = isRequestError
-        ? ''
-        : cleanProcessOutput(this.stderr, this.sanitizeProcessOutput)
+        ? requestProcessOutput(processOutputBefore, processOutput)
+        : processOutput
+      const details = requestErrorDetails(error)
+      const body = [details, stderr]
+        .filter((value, index, values) => value && values.indexOf(value) === index)
+        .join('\n')
       throw new AgentError(
         `${this.label} ACP ${method} 失败：${
           requestErrorMessage(error, this.formatRequestError)
@@ -330,7 +400,7 @@ export class AcpProcessClient {
           stderr ? `：${stderr}` : ''
         }`,
         {
-          body: stderr || requestErrorDetails(error),
+          body,
           protocol: 'acp',
         },
       )
@@ -361,6 +431,12 @@ export class AcpProcessClient {
     ownerId,
     role = 'project',
   } = {}) {
+    await this.start()
+    assertMcpServerCapabilities({
+      label: this.label,
+      capabilities: this.capabilities,
+      mcpServers,
+    })
     const response = await this.request(acp.methods.agent.session.new, {
       cwd,
       mcpServers,
@@ -384,6 +460,11 @@ export class AcpProcessClient {
     role = 'project',
   } = {}) {
     await this.start()
+    assertMcpServerCapabilities({
+      label: this.label,
+      capabilities: this.capabilities,
+      mcpServers,
+    })
     const params = {
       sessionId: String(sessionId),
       cwd,
@@ -465,6 +546,7 @@ export class AcpProcessClient {
     }
     const active = {
       text: [],
+      contentBlocks: [],
       onUpdate,
       pauseTimeout: () => {
         permissionDepth += 1
@@ -489,19 +571,35 @@ export class AcpProcessClient {
     combined?.addEventListener('abort', cancel, { once: true })
     if (combined?.aborted) cancel()
     try {
-      const response = await this.request(
-        acp.methods.agent.session.prompt,
-        {
-          sessionId: id,
-          prompt: promptBlocks,
-        },
-        { signal: combined, timeoutMs: 0 },
-      )
-      const content = active.text.join('').trim()
-      if (response?.stopReason === 'cancelled') {
-        throw combined?.reason || new Error('ACP Session 已取消')
+      let response
+      try {
+        response = await this.request(
+          acp.methods.agent.session.prompt,
+          {
+            sessionId: id,
+            prompt: promptBlocks,
+          },
+          { signal: combined, timeoutMs: 0 },
+        )
+      } catch (error) {
+        if (!timeoutController.signal.aborted || signal?.aborted) throw error
+        throw new AgentError(
+          `${this.label} ACP 请求超时（${timeoutDuration(timeoutMs)}）`,
+          { status: 504, protocol: 'acp' },
+        )
       }
-      return { content, response }
+      if (timeoutController.signal.aborted && !signal?.aborted) {
+        throw new AgentError(
+          `${this.label} ACP 请求超时（${timeoutDuration(timeoutMs)}）`,
+          { status: 504, protocol: 'acp' },
+        )
+      }
+      const content = active.text.join('').trim()
+      return {
+        content,
+        contentBlocks: active.contentBlocks,
+        response,
+      }
     } finally {
       clearTimeout(timeoutTimer)
       combined?.removeEventListener('abort', cancel)
@@ -524,17 +622,6 @@ export class AcpProcessClient {
         sessionId: String(sessionId),
         configId: String(configId),
         value: String(value),
-      },
-      { timeoutMs: 15_000 },
-    )
-  }
-
-  async setLegacySessionModel(sessionId, modelId) {
-    return this.request(
-      'session/set_model',
-      {
-        sessionId: String(sessionId),
-        modelId: String(modelId),
       },
       { timeoutMs: 15_000 },
     )

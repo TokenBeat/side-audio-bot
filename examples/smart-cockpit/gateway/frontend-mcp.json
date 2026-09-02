@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "servers": {
+    "cockpit": {
+      "enabled": true,
+      "url": "${COCKPIT_FRONTEND_MCP_URL}",
+      "tools": {
+        "weather": {
+          "enabled": true,
+          "description": "查询指定城市的当日天气、温度和出行提示。这是可由前台语音助手直接调用的座舱示例工具。"
+        },
+        "vehicle_location_query": {
+          "enabled": true,
+          "description": "直接查询车辆当前位置。用户问‘我在哪’、‘车在哪’或‘当前位置’时调用；不要通过 spawn_thinking 查询。"
+        },
+        "vehicle_state_query": {
+          "enabled": true,
+          "description": "直接查询车窗、天窗、大灯和空调等车辆当前状态。用户询问是否开启、当前档位或整体车况时使用；不要把状态问题当成控制指令。"
+        },
+        "vehicle_window_control": {
+          "enabled": true,
+          "description": "立即打开或关闭指定车窗；只在用户明确要求控制时调用，该指令即为本次操作授权。不要再通过 spawn_thinking 重复执行同一操作。"
+        },
+        "vehicle_sunroof_control": {
+          "enabled": true,
+          "description": "立即打开或关闭车辆天窗；只在用户明确要求控制时调用，该指令即为本次操作授权。不要再通过 spawn_thinking 重复执行同一操作。"
+        },
+        "vehicle_headlights_control": {
+          "enabled": true,
+          "description": "立即打开或关闭车辆大灯；只在用户明确要求控制时调用，该指令即为本次操作授权。不要再通过 spawn_thinking 重复执行同一操作。"
+        },
+        "vehicle_climate_control": {
+          "enabled": true,
+          "description": "立即打开或关闭空调，或设置用户明确指定的温度、制冷制热模式和风量；不要把状态查询当成控制指令，也不要再通过 spawn_thinking 重复执行同一操作。"
+        },
+        "navigation_set_route_strategy": {
+          "enabled": true,
+          "description": "立即设置路线偏好：有当前路线时重新规划，无路线时作为后续导航的默认偏好。用户说“躲避拥堵”“避开拥堵”“不走高速”“少收费”“高速优先”“时间优先”时直接调用；不要只口头回应，也不要再通过 spawn_thinking 重复执行同一操作。"
+        },
+        "navigation_set_voice": {
+          "enabled": true,
+          "description": "立即设置导航静音或播报模式。用户说“导航静音”“取消静音”“详细播报”“简洁播报”“标准播报”时直接调用；不要只口头回应，也不要再通过 spawn_thinking 重复执行同一操作。"
+        },
+        "navigation_set_view": {
+          "enabled": true,
+          "description": "立即设置地图导航视图。用户说“查看全程”“路线全览”“回到跟车视角”“北向上”时直接调用；不要只口头回应，也不要再通过 spawn_thinking 重复执行同一操作。"
+        },
+        "navigation_stop": {
+          "enabled": true,
+          "description": "立即停止当前导航并清空路线。用户说停止、取消或结束导航时直接调用；不要调用 cancel_agent_task，也不要通过 spawn_thinking 提交。"
+        },
+        "music_pause": {
+          "enabled": true,
+          "description": "立即暂停当前音乐。用户要求暂停时直接调用，不要通过 spawn_thinking 提交。"
+        },
+        "music_next": {
+          "enabled": true,
+          "description": "立即切换到下一首音乐。用户要求切下一首时直接调用，不要通过 spawn_thinking 提交。"
+        },
+        "music_previous": {
+          "enabled": true,
+          "description": "立即切换到上一首音乐。用户要求切上一首时直接调用，不要通过 spawn_thinking 提交。"
+        }
+      }
+    }
+  }
+}

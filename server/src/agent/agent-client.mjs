@@ -1,63 +1,13 @@
 import { config } from '../core/config.mjs'
+import { assertBackendPort } from '../backend/backend-port.mjs'
 import { AgentError } from './backend-adapter.mjs'
-import { AcpBackendAdapter } from './acp-backend-adapter.mjs'
-import {
-  backendDriver,
-  createBackendProfile,
-} from './backends/registry.mjs'
+import { createAcpBackendAdapter } from './acp-backend-factory.mjs'
 
 export { AgentError }
 
 export class AgentClient {
-  constructor({
-    protocol = config.agentProtocol,
-    ownership = config.backendOwnership,
-    permissionMode = config.backendPermissionMode,
-    model,
-    coordinatorAgent,
-    timeoutMs = config.agentTimeoutMs,
-    backends = {},
-    sessionStatePath = config.backendSessionStatePath,
-    acpClient,
-    acpClientFactory,
-    sessionToolServer,
-  } = {}) {
-    const driver = backendDriver(protocol)
-    // The selected backend's option namespace (config defaults merged with
-    // per-construction overrides) plus the two cross-cutting overrides. New
-    // backends only need a config.backends entry; nothing to thread here.
-    const backend = {
-      ...(config.backends?.[driver.id] || {}),
-      ...(backends?.[driver.id] || {}),
-    }
-    const options = {
-      baseUrl: '',
-      ...backend,
-      model: model ?? backend.model,
-      coordinatorAgent: coordinatorAgent ?? backend.coordinatorAgent,
-    }
-    const profile = createBackendProfile(protocol, {
-      protocol,
-      root: config.root,
-      ownership,
-      permissionMode,
-      ...options,
-    })
-    this.adapter = new AcpBackendAdapter({
-      protocol,
-      root: config.root,
-      ownership,
-      permissionMode,
-      timeoutMs,
-      ...options,
-      profile,
-      nativeDelegationAdapter:
-        driver.createNativeDelegationAdapter?.(options) || null,
-      sessionStatePath,
-      ...(acpClient ? { client: acpClient } : {}),
-      ...(acpClientFactory ? { clientFactory: acpClientFactory } : {}),
-      ...(sessionToolServer ? { sessionToolServer } : {}),
-    })
+  constructor({ adapter } = {}) {
+    this.adapter = assertBackendPort(adapter, { name: 'AgentClient adapter' })
   }
 
   get protocol() {
@@ -80,39 +30,37 @@ export class AgentClient {
     }
   }
 
-  status() {
-    return this.adapter.status()
+  status(taskId, options = {}) {
+    return this.adapter.status(taskId, options)
   }
 
-  runCoordinator(message, options = {}) {
-    return this.adapter.runCoordinator(message, options)
+  start(options = {}) {
+    return this.adapter.start(options)
   }
 
-  respondPermission(id, decision, options = {}) {
-    if (!this.adapter.respondPermission) {
-      throw new AgentError('当前后台 Agent 不支持权限确认', {
-        protocol: this.protocol,
-      })
-    }
-    return this.adapter.respondPermission(id, decision, options)
+  submit(work, options = {}) {
+    return this.adapter.submit(work, options)
   }
 
-  cancelDelegatedWork(workId, options = {}) {
-    if (!this.adapter.cancelDelegatedWork) {
-      throw new AgentError('当前后台 Agent 不支持取消第三层 Session', {
-        protocol: this.protocol,
-      })
-    }
-    return this.adapter.cancelDelegatedWork(workId, options)
+  cancel(taskId, options = {}) {
+    return this.adapter.cancel(taskId, options)
   }
 
-  queryDelegatedWork(workId, question, options = {}) {
-    if (!this.adapter.queryDelegatedWork) {
-      throw new AgentError('当前后台 Agent 不支持查询第三层 Session', {
-        protocol: this.protocol,
-      })
-    }
-    return this.adapter.queryDelegatedWork(workId, question, options)
+  respondAuthorization(taskId, authorizationId, decision, options = {}) {
+    return this.adapter.respondAuthorization(
+      taskId,
+      authorizationId,
+      decision,
+      options,
+    )
+  }
+
+  respondInput(taskId, inputRequestId, response, options = {}) {
+    return this.adapter.respondInput(taskId, inputRequestId, response, options)
+  }
+
+  subscribe(listener) {
+    return this.adapter.subscribe(listener)
   }
 
   canRecoverDelegatedWork(task) {
@@ -133,8 +81,14 @@ export class AgentClient {
   }
 
   close() {
-    return this.adapter.close?.() || Promise.resolve()
+    return this.adapter.close()
   }
+}
+
+export function createAgentClient(options = {}) {
+  return new AgentClient({
+    adapter: createAcpBackendAdapter(options),
+  })
 }
 
 let sharedAgent = null
@@ -146,7 +100,7 @@ function requireAgent() {
         protocol: '',
       })
     }
-    sharedAgent = new AgentClient()
+    sharedAgent = createAgentClient()
   }
   return sharedAgent
 }
@@ -180,22 +134,35 @@ export const agent = {
         ok: true,
       status: 'not_configured',
     }),
-  status: () => config.agentProtocol
-    ? requireAgent().status()
+  status: (taskId, options = {}) => config.agentProtocol
+    ? requireAgent().status(taskId, options)
     : {
         enabled: false,
         ok: true,
         status: 'not_configured',
         code: 'NOT_CONFIGURED',
       },
-  runCoordinator: (message, options = {}) =>
-    requireAgent().runCoordinator(message, options),
-  respondPermission: (id, decision, options = {}) =>
-    requireAgent().respondPermission(id, decision, options),
-  cancelDelegatedWork: (workId, options = {}) =>
-    requireAgent().cancelDelegatedWork(workId, options),
-  queryDelegatedWork: (workId, question, options = {}) =>
-    requireAgent().queryDelegatedWork(workId, question, options),
+  start: (options = {}) => requireAgent().start(options),
+  submit: (work, options = {}) => requireAgent().submit(work, options),
+  cancel: (taskId, options = {}) => requireAgent().cancel(taskId, options),
+  respondAuthorization: (
+    taskId,
+    authorizationId,
+    decision,
+    options = {},
+  ) => requireAgent().respondAuthorization(
+    taskId,
+    authorizationId,
+    decision,
+    options,
+  ),
+  respondInput: (
+    taskId,
+    inputRequestId,
+    response,
+    options = {},
+  ) => requireAgent().respondInput(taskId, inputRequestId, response, options),
+  subscribe: listener => requireAgent().subscribe(listener),
   canRecoverDelegatedWork: task => config.agentProtocol
     ? requireAgent().canRecoverDelegatedWork(task)
     : false,

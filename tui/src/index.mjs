@@ -6,12 +6,19 @@ import {
   GatewayServerEvent,
 } from '../../shared/realtime-events.mjs'
 import {
+  createGatewayClientState,
+  reduceGatewayClientState,
+} from '../../shared/gateway-client-state.mjs'
+import {
   displayInputText,
   inputFileParts,
   inputText,
 } from '../../shared/input-parts.mjs'
 import { createLogger } from '../../shared/logger.mjs'
 import { clientInputCapabilities } from '../../shared/client-input-capabilities.mjs'
+import { GatewayClient } from '../../shared/gateway-client-sdk.mjs'
+import { gatewayReferenceClientCapabilities } from '../../shared/gateway-client-profiles.mjs'
+import { formatCitationLines } from '../../shared/citation-display.mjs'
 import { startMacVoiceIO } from './macos-voice-io.mjs'
 import { resamplePcm16 } from './pcm-audio.mjs'
 import { startPortAudioVoiceIO } from './portaudio-voice-io.mjs'
@@ -71,7 +78,6 @@ export function parseArguments(argv, env = process.env) {
     url: env.QWEN_AUDIO_AGENT_URL || 'http://127.0.0.1:3101',
     sessionId: env.QWEN_AUDIO_AGENT_SESSION_ID || 'tui-main',
     audioMode: env.QWEN_AUDIO_AGENT_TUI_AUDIO_MODE || 'half',
-    takeover: false,
   }
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index]
@@ -81,8 +87,6 @@ export function parseArguments(argv, env = process.env) {
       options.sessionId = nextArgumentValue(argv, index++, '--session')
     } else if (argv[index] === '--help' || argv[index] === '-h') {
       options.help = true
-    } else if (argument === '--takeover') {
-      options.takeover = true
     } else if (argument === '--audio-mode') {
       options.audioMode = nextArgumentValue(argv, index++, '--audio-mode')
     } else throw new Error(`未知参数：${argument}`)
@@ -105,7 +109,6 @@ export function connectMessage({
   voiceEnabled,
   inputEnabled,
   outputEnabled,
-  takeover = false,
   workingDirectory = process.cwd(),
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
   locale = Intl.DateTimeFormat().resolvedOptions().locale,
@@ -122,7 +125,6 @@ export function connectMessage({
     clientType: 'cli',
     clientLabel: 'CLI',
     inputCapabilities: clientInputCapabilities('cli'),
-    takeover: takeover === true,
     workingDirectory,
     timeZone,
     locale,
@@ -132,7 +134,7 @@ export function connectMessage({
 export function microphoneControlEvent(muted) {
   return muted
     ? { type: GatewayClientEvent.INPUT_MUTE }
-    : { type: GatewayClientEvent.INPUT_UNMUTE, takeover: false }
+    : { type: GatewayClientEvent.INPUT_UNMUTE }
 }
 
 export function permissionStatusText(task) {
@@ -271,6 +273,23 @@ export function canSendMicrophoneAudio({
   return Boolean(connected && !muted && captureEnabled)
 }
 
+export function canStartTuiCapture({
+  clientState,
+  muted,
+  closed,
+  bridgeExited,
+  socketOpen,
+}) {
+  return Boolean(
+    !muted
+    && clientState?.voiceReady
+    && clientState?.ownership?.state === 'active'
+    && !closed
+    && !bridgeExited
+    && socketOpen,
+  )
+}
+
 export function performManualInterrupt({
   playback,
   transcriptRenderer,
@@ -281,7 +300,7 @@ export function performManualInterrupt({
   playback.clear('user_interruption')
   transcriptRenderer.cancel()
   if (socket?.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({ type: 'interrupt' }))
+    socket.send({ type: 'interrupt' })
   }
   startMicrophone()
   print(style('[已手动打断，麦克风已恢复]', 'yellow'))
@@ -1066,7 +1085,7 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
     process.stdout.write(
       'qwen-audio-agent Voice TUI\n\n'
       + '用法：qwenaudio tui [--url URL] [--session ID] '
-      + '[--audio-mode half|full] [--takeover]\n\n'
+      + '[--audio-mode half|full]\n\n'
       + `${helpText(audioMode)}\n`,
     )
     return
@@ -1083,8 +1102,7 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
   let reconnectTimer = null
   let reconnectDelay = 500
   let connectedOnce = false
-  let frontendReady = false
-  let ownsVoice = false
+  let gatewayClientState = createGatewayClientState()
   let everOwnedVoice = false
   let captureEnabled = false
   let captureStateSent = false
@@ -1092,7 +1110,6 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
   let playback = null
   let handleTerminalLine = async () => {}
   let stagedInputParts = []
-  let publishStagedInputParts = () => {}
   let reconcileStagedInputParts = () => {}
   const typedTranscripts = []
   const pendingPermissionTasks = new Set()
@@ -1114,7 +1131,6 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
         text: inputText(parts),
         apply() {
           stagedInputParts = [...stagedInputParts, ...files]
-          publishStagedInputParts()
         },
       }
     },
@@ -1147,6 +1163,8 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
     onAssistantDelta: content => transcriptRenderer.stream(assistantPrefix, content),
     onAssistant: (content, event) => {
       transcriptRenderer.finish(assistantPrefix, content)
+      const citations = formatCitationLines(event?.citations)
+      if (citations) print(style(citations, 'dim'))
       turnStatusDisplay.assistantFinished(event?.turnId)
     },
     onReset: () => {
@@ -1177,18 +1195,11 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
       muted,
       captureEnabled,
     })) {
-      socket.send(JSON.stringify({
+      socket.send({
         type: 'audio.append',
         audio: chunk.toString('base64'),
-      }))
+      })
     }
-  }
-  publishStagedInputParts = () => {
-    if (socket?.readyState !== WebSocket.OPEN) return
-    socket.send(JSON.stringify({
-      type: GatewayClientEvent.INPUT_PARTS,
-      parts: stagedInputParts,
-    }))
   }
   reconcileStagedInputParts = value => {
     const next = stagedInputParts.filter(part => (
@@ -1196,7 +1207,6 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
     ))
     if (next.length === stagedInputParts.length) return
     stagedInputParts = next
-    publishStagedInputParts()
   }
 
   const startVoiceIO = audioMode.audioBackend === 'coreaudio'
@@ -1260,27 +1270,27 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
     onError: message => print(`${style('[播放错误]', 'red')} ${message}`),
     onStarted: responseId => {
       if (socket?.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
+        socket.send({
           type: GatewayClientEvent.PLAYBACK_STARTED,
           responseId,
-        }))
+        })
       }
     },
     onEnded: responseId => {
       if (socket?.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
+        socket.send({
           type: GatewayClientEvent.PLAYBACK_ENDED,
           responseId,
-        }))
+        })
       }
     },
     onCancelled: (responseId, reason = '') => {
       if (socket?.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
+        socket.send({
           type: GatewayClientEvent.PLAYBACK_CANCELLED,
           responseId,
           ...(reason ? { reason } : {}),
-        }))
+        })
       }
     },
     onIdle: () => {
@@ -1289,14 +1299,13 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
   })
 
   const startMicrophone = () => {
-    if (
-      muted
-      || !frontendReady
-      || !ownsVoice
-      || closed
-      || bridgeExited
-      || socket?.readyState !== WebSocket.OPEN
-    ) return
+    if (!canStartTuiCapture({
+      clientState: gatewayClientState,
+      muted,
+      closed,
+      bridgeExited,
+      socketOpen: socket?.readyState === WebSocket.OPEN,
+    })) return
     if (setCaptureEnabled(true)) {
       setStatus(`已连接 · 麦克风已开启 · ${audioMode.shortLabel}`)
       print(`[麦克风已开启 · ${inputSampleRate} Hz · ${audioMode.shortLabel}]`)
@@ -1312,13 +1321,12 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
     if (socket?.readyState !== WebSocket.OPEN) {
       throw new Error('Gateway 尚未连接')
     }
-    socket.send(JSON.stringify({
+    socket.send({
       type: GatewayClientEvent.INPUT_MESSAGE,
       parts,
-    }))
+    })
     const transcript = displayInputText(parts)
     stagedInputParts = []
-    publishStagedInputParts()
     typedTranscripts.push(transcript)
     transcriptRenderer.finish(userPrefix, transcript)
   }
@@ -1329,7 +1337,7 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
       setCaptureEnabled(false)
       setStatus('麦克风已静音 · 语音回复保持开启')
       if (socket?.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(microphoneControlEvent(true)))
+        socket.send(microphoneControlEvent(true))
       }
       print(style(
         '[麦克风已静音，语音输入不会被识别；输入 /mute 恢复]',
@@ -1340,7 +1348,7 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
       }
     } else {
       if (socket?.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(microphoneControlEvent(false)))
+        socket.send(microphoneControlEvent(false))
       }
       print(style('[麦克风已恢复]', 'green'))
       setStatus('麦克风正在恢复 · 语音回复保持开启')
@@ -1355,8 +1363,8 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
     } catch {
       return
     }
+    gatewayClientState = reduceGatewayClientState(gatewayClientState, event)
     if (event.type === GatewayServerEvent.VOICE_READY) {
-      frontendReady = true
       const nextRate = Number(event.inputSampleRate) || inputSampleRate
       if (nextRate !== inputSampleRate) {
         print(`${style('[音频配置错误]', 'red')} Gateway 要求 ${nextRate} Hz，`
@@ -1364,29 +1372,26 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
         close()
         return
       }
-      if (ownsVoice) startMicrophone()
+      if (gatewayClientState.ownership.state === 'active') startMicrophone()
     }
     if (
       event.type === GatewayServerEvent.VOICE_CONNECTION
       && event.state === 'unavailable'
     ) {
-      frontendReady = false
       setCaptureEnabled(false)
       print(`${style('[语音前台连接失败]', 'red')} ${event.message || '请检查前台服务配置'}`)
     }
     if (event.type === GatewayServerEvent.VOICE_OWNERSHIP) {
       if (event.state === 'active') {
-        ownsVoice = true
         everOwnedVoice = true
         startMicrophone()
       } else if (event.state === 'busy') {
-        ownsVoice = false
         setCaptureEnabled(false)
         playback.clear()
         const holder = frontendLabel(event.holder)
         if (!everOwnedVoice) {
           print(style(
-            `[语音正由${holder}使用；如需接管，请运行 qwenaudio tui --takeover]`,
+            `[语音正由${holder}使用；请先关闭当前连接]`,
             'yellow',
           ))
           close()
@@ -1397,7 +1402,6 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
       }
     }
     if (event.type === GatewayServerEvent.VOICE_DEACTIVATED) {
-      ownsVoice = false
       muted = true
       setCaptureEnabled(false)
       playback.clear()
@@ -1422,10 +1426,6 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
       playback.done(event.responseId)
     }
     transcriptDisplay.handle(event)
-    if (event.type === 'timeline.inline') {
-      const content = event.item?.content || event.item?.markdown || ''
-      if (content) print(`${style('── 执行结果 ──', 'cyan')}\n${content}`)
-    }
     if (event.type === 'task.running') {
       turnStatusDisplay.status(
         event,
@@ -1489,16 +1489,10 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
     }
   }
 
-  const syncActiveTasks = async () => {
-    const url = new URL('/api/tasks', options.url)
-    url.searchParams.set('sessionId', options.sessionId)
-    url.searchParams.set('active', 'true')
-    const response = await fetch(url, { headers })
-    if (!response.ok) {
-      throw new Error(`任务状态恢复失败（${response.status}）`)
-    }
-    const payload = await response.json()
-    for (const task of payload.tasks || []) {
+  const restoreTasks = tasks => {
+    for (const task of tasks || []) {
+      if (!['queued', 'running', 'delegated', 'finalizing', 'cancelling'].includes(task.status)
+        && task.authorization?.status !== 'pending') continue
       const type = task.authorization?.status === 'pending'
         ? 'task.permission.requested'
         : `task.${task.status}`
@@ -1508,62 +1502,68 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
 
   const connectGateway = () => {
     if (closed || bridgeExited) return
-    const nextSocket = new WebSocket(
-      websocketUrl(options.url, options.sessionId),
-      { headers },
-    )
-    socket = nextSocket
-    nextSocket.on('open', () => {
-      if (socket !== nextSocket || closed) return
-      reconnectDelay = 500
-      setStatus('Gateway 已连接 · 语音服务准备中')
-      nextSocket.send(JSON.stringify(connectMessage({
+    const nextClient = new GatewayClient({
+      url: websocketUrl(options.url, options.sessionId),
+      createSocket: url => new WebSocket(url, { headers }),
+      clientType: 'cli',
+      clientLabel: 'CLI',
+      clientInstanceId: `tui-${process.pid}`,
+      capabilities: gatewayReferenceClientCapabilities('cli'),
+      reconnect: false,
+      configure: () => connectMessage({
         voiceEnabled: true,
         inputEnabled: !muted,
         outputEnabled: true,
-        takeover: options.takeover === true,
-      })))
-      publishStagedInputParts()
-      syncActiveTasks().catch(error => {
-        print(style(`[任务状态] ${error.message}`, 'yellow'))
-      })
-      if (connectedOnce) {
-        print(style('[qwen-audio-agent 已重新连接]', 'green'))
-      } else {
-        connectedOnce = true
-        print(
-          `${style('qwen-audio-agent Voice TUI', 'bold')} · ${health.realtimeLabel || health.realtimeModelProfile?.label || health.realtimeModel || 'Realtime'} → ${health.backend?.label || health.backend?.kind || 'Gateway'}\n`
-          + `${realtimeModelStatusText(health)}\n`
-          + `会话：${options.sessionId}\n`
-          + `音频：${audioMode.label}\n`
-          + `${helpText(audioMode)}\n`,
-        )
-      }
+      }),
+      locale: Intl.DateTimeFormat().resolvedOptions().locale,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      onEvent: event => handleGatewayMessage(JSON.stringify(event)),
+      onRecovery: recovery => restoreTasks(recovery.tasks),
+      onStatus: status => {
+        if (socket !== nextClient || closed) return
+        if (status.state === 'connected') {
+          reconnectDelay = 500
+          gatewayClientState = reduceGatewayClientState(gatewayClientState, {
+            type: GatewayServerEvent.GATEWAY_CONNECTED,
+          })
+          setStatus('Gateway 已连接 · 语音服务准备中')
+          if (connectedOnce) {
+            print(style('[qwen-audio-agent 已重新连接]', 'green'))
+          } else {
+            connectedOnce = true
+            print(
+              `${style('qwen-audio-agent Voice TUI', 'bold')} · ${health.realtimeLabel || health.realtimeModelProfile?.label || health.realtimeModel || 'Realtime'} → ${health.backend?.label || health.backend?.kind || 'Gateway'}\n`
+              + `${realtimeModelStatusText(health)}\n`
+              + `会话：${options.sessionId}\n`
+              + `音频：${audioMode.label}\n`
+              + `${helpText(audioMode)}\n`,
+            )
+          }
+        } else if (status.state === 'unavailable') {
+          if (!closed) print(`${style('[连接错误]', 'red')} ${status.error?.message || '连接失败'}`)
+        } else if (status.state === 'recovery_failed') {
+          print(style(`[任务状态] ${status.error.message}`, 'yellow'))
+        } else if (status.state === 'disconnected') {
+          gatewayClientState = reduceGatewayClientState(gatewayClientState, {
+            type: GatewayServerEvent.GATEWAY_DISCONNECTED,
+          })
+          setCaptureEnabled(false)
+          playback.clear()
+          transcriptDisplay.reset()
+          if (closed) {
+            print('qwen-audio-agent 连接已关闭。')
+          } else if (bridgeExited) {
+            cleanup()
+          } else {
+            setStatus('Gateway 已断开 · 正在自动重连 · /exit 或 Ctrl-C 可退出')
+            print(style('[qwen-audio-agent 连接中断，正在重连]', 'yellow'))
+            scheduleReconnect()
+          }
+        }
+      },
     })
-    nextSocket.on('message', handleGatewayMessage)
-    nextSocket.on('error', error => {
-      if (!closed) print(`${style('[连接错误]', 'red')} ${error.message}`)
-    })
-    nextSocket.on('close', () => {
-      if (socket !== nextSocket) return
-      socket = null
-      frontendReady = false
-      ownsVoice = false
-      setCaptureEnabled(false)
-      playback.clear()
-      transcriptDisplay.reset()
-      if (closed) {
-        print('qwen-audio-agent 连接已关闭。')
-        return
-      }
-      if (bridgeExited) {
-        cleanup()
-        return
-      }
-      setStatus('Gateway 已断开 · 正在自动重连 · /exit 或 Ctrl-C 可退出')
-      print(style('[qwen-audio-agent 连接中断，正在重连]', 'yellow'))
-      scheduleReconnect()
-    })
+    socket = nextClient
+    nextClient.start()
   }
 
   const scheduleReconnect = () => {

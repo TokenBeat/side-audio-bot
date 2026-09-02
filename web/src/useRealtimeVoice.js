@@ -1,10 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import {
   GatewayClientEvent,
   GatewayServerEvent,
 } from '../../shared/realtime-events.mjs'
+import {
+  acceptsGatewayVoiceState,
+  createGatewayClientState,
+  reduceGatewayClientState,
+} from '../../shared/gateway-client-state.mjs'
 import { clientInputCapabilities } from '../../shared/client-input-capabilities.mjs'
+import {
+  createGatewayProtocolEventId,
+  GatewayClientProtocolEvent,
+} from '../../shared/gateway-client-protocol.mjs'
+import { GatewayClient } from '../../shared/gateway-client-sdk.mjs'
+import { gatewayReferenceClientCapabilities } from '../../shared/gateway-client-profiles.mjs'
 import { decodePcm, pcmBase64, resample } from './audio.js'
+import { createMicrophoneCaptureLifecycle } from './microphone-capture.js'
 import { confirmTrackedPlaybackStart } from './playback-lifecycle.js'
 import { t } from './i18n.js'
 
@@ -20,11 +32,7 @@ function socketUrl(sessionId) {
 }
 
 export function acceptsVoiceState(event, currentTurnId) {
-  return (
-    !event.turnId
-    || event.turnId === currentTurnId
-    || event.origin !== 'model'
-  )
+  return acceptsGatewayVoiceState(event, currentTurnId)
 }
 
 export function visualVoiceState(state) {
@@ -62,6 +70,10 @@ export function realtimeClientMode({
     // it must not claim voice ownership.
     outputEnabled: textOnly || inputOnlyMute === true || inputEnabled,
   }
+}
+
+export function gatewayClientCapabilities({ clientType = 'web' } = {}) {
+  return gatewayReferenceClientCapabilities(clientType)
 }
 
 // Keeps a persisted front end selection only while the server still offers it.
@@ -169,17 +181,31 @@ export function microphoneControlEvent({
   enabled,
   inputOnlyMute = false,
   wakeWordOnly = false,
-  takeover = false,
 } = {}) {
   if (wakeWordOnly) return { type: GatewayClientEvent.SLEEP }
   if (inputOnlyMute) {
     return enabled
-      ? { type: GatewayClientEvent.INPUT_UNMUTE, takeover }
+      ? { type: GatewayClientEvent.INPUT_UNMUTE }
       : { type: GatewayClientEvent.INPUT_MUTE }
   }
   return enabled
-    ? { type: GatewayClientEvent.UNMUTE, takeover }
+    ? { type: GatewayClientEvent.UNMUTE }
     : { type: GatewayClientEvent.MUTE }
+}
+
+export function microphoneSamplesDuringManualInput(samples, pending = false) {
+  if (pending !== true) return samples
+  // Keep advancing provider-side VAD with silence so an already-open speech
+  // turn can close naturally, without letting ambient sound preempt the new
+  // text/image turn.
+  return new Float32Array(samples.length)
+}
+
+export function releasesManualInputGuard(event, turnId = '') {
+  if (!event || typeof event !== 'object') return false
+  if (event.type === GatewayServerEvent.ERROR) return true
+  if (event.type !== GatewayServerEvent.RESPONSE_STARTED) return false
+  return Boolean(turnId) && event.turnId === turnId
 }
 
 export default function useRealtimeVoice({
@@ -192,25 +218,34 @@ export default function useRealtimeVoice({
   clientType = 'web',
   clientLabel = 'WebUI',
   clientStates = [],
-  takeover = false,
   realtimeProvider = '',
   onEvent,
   onInputError,
+  onClientAction,
+  onWakeWordAudio,
 }) {
-  const [state, setState] = useState('idle')
+  const [clientState, dispatchClientState] = useReducer(
+    reduceGatewayClientState,
+    undefined,
+    createGatewayClientState,
+  )
   const [inputReady, setInputReady] = useState(false)
   const [error, setError] = useState('')
   const [visualError, setVisualError] = useState(false)
-  const [connectionState, setConnectionState] = useState('connecting')
-  const [wakeWordActive, setWakeWordActive] = useState(false)
-  const [ownership, setOwnership] = useState({
-    state: 'available',
-    holder: null,
-  })
+  const {
+    connectionState,
+    ownership,
+    voiceState: state,
+    wakeWordActive,
+  } = clientState
   const eventRef = useRef(onEvent)
   const inputErrorRef = useRef(onInputError)
+  const clientActionRef = useRef(onClientAction)
+  const wakeWordAudioRef = useRef(onWakeWordAudio)
   const wakeWordOnlyRef = useRef(wakeWordOnly)
   const socketRef = useRef(null)
+  const hasConnectedRef = useRef(false)
+  const pendingManualInputsRef = useRef([])
   const audioRef = useRef(null)
   const currentTurnId = useRef('')
   const clientInstanceId = useRef(crypto.randomUUID())
@@ -223,10 +258,15 @@ export default function useRealtimeVoice({
   const inputReadyRef = useRef(false)
   const outputMutedRef = useRef(outputMuted)
   const mutedPlaybackResponses = useRef(new Set())
+  const manualInputPendingRef = useRef(false)
+  const manualInputTurnRef = useRef('')
+  const manualInputTimerRef = useRef(null)
   const playbackRef = useRef({
     cursor: 0,
     sources: [],
     startTimers: new Map(),
+    endTimers: new Map(),
+    responseEnds: new Map(),
     startedResponses: new Set(),
     sourceCounts: new Map(),
     doneResponses: new Set(),
@@ -234,9 +274,25 @@ export default function useRealtimeVoice({
   })
   eventRef.current = onEvent
   inputErrorRef.current = onInputError
+  clientActionRef.current = onClientAction
+  wakeWordAudioRef.current = onWakeWordAudio
   wakeWordOnlyRef.current = wakeWordOnly
   enabledRef.current = enabled
   outputMutedRef.current = outputMuted
+
+  const releaseManualInputGuard = useCallback(() => {
+    manualInputPendingRef.current = false
+    manualInputTurnRef.current = ''
+    clearTimeout(manualInputTimerRef.current)
+    manualInputTimerRef.current = null
+  }, [])
+
+  const holdManualInputGuard = useCallback(() => {
+    manualInputPendingRef.current = true
+    manualInputTurnRef.current = ''
+    clearTimeout(manualInputTimerRef.current)
+    manualInputTimerRef.current = setTimeout(releaseManualInputGuard, 30000)
+  }, [releaseManualInputGuard])
 
   const activateAudio = useCallback(() => {
     const AudioContext = window.AudioContext || window.webkitAudioContext
@@ -258,9 +314,25 @@ export default function useRealtimeVoice({
   const sendSocketEvent = useCallback(event => {
     const socket = socketRef.current
     if (socket?.readyState !== WebSocket.OPEN) return false
-    socket.send(JSON.stringify(event))
-    return true
+    try {
+      // GatewayClient owns the wire envelope and supplies event_id for every
+      // client event. Keeping that responsibility in the SDK prevents audio,
+      // microphone, playback, and lifecycle events from drifting out of GCP.
+      socket.send(event)
+      return true
+    } catch {
+      return false
+    }
   }, [])
+
+  const flushPendingManualInputs = useCallback(() => {
+    const pending = pendingManualInputsRef.current
+    if (pending.length) holdManualInputGuard()
+    while (pending.length) {
+      if (!sendSocketEvent(pending[0])) return
+      pending.shift()
+    }
+  }, [holdManualInputGuard, sendSocketEvent])
 
   const sendPlaybackEvent = useCallback((type, responseId, reason = '') => {
     if (responseId) {
@@ -276,10 +348,14 @@ export default function useRealtimeVoice({
     const playback = playbackRef.current
     const activeResponseIds = new Set([
       ...playback.startTimers.keys(),
+      ...playback.endTimers.keys(),
       ...playback.startedResponses,
       ...playback.sourceCounts.keys(),
     ])
     for (const timer of playback.startTimers.values()) {
+      clearTimeout(timer)
+    }
+    for (const timer of playback.endTimers.values()) {
       clearTimeout(timer)
     }
     for (const responseId of activeResponseIds) {
@@ -296,6 +372,8 @@ export default function useRealtimeVoice({
       cursor: 0,
       sources: [],
       startTimers: new Map(),
+      endTimers: new Map(),
+      responseEnds: new Map(),
       startedResponses: new Set(),
       sourceCounts: new Map(),
       doneResponses: new Set(),
@@ -312,6 +390,10 @@ export default function useRealtimeVoice({
       || (playback.sourceCounts.get(responseId) || 0) > 0
     ) return
     sendPlaybackEvent(GatewayClientEvent.PLAYBACK_ENDED, responseId)
+    const endTimer = playback.endTimers.get(responseId)
+    if (endTimer !== undefined) clearTimeout(endTimer)
+    playback.endTimers.delete(responseId)
+    playback.responseEnds.delete(responseId)
     playback.startedResponses.delete(responseId)
     playback.sourceCounts.delete(responseId)
     playback.doneResponses.delete(responseId)
@@ -323,6 +405,39 @@ export default function useRealtimeVoice({
     if (playback.failedResponses.delete(responseId)) return
     playback.doneResponses.add(responseId)
     finishPlaybackIfReady(responseId)
+    const responseEnd = playback.responseEnds.get(responseId)
+    if (
+      !playback.doneResponses.has(responseId)
+      || playback.endTimers.has(responseId)
+      || !Number.isFinite(responseEnd)
+    ) return
+    const checkTimelineFinished = () => {
+      const current = playbackRef.current
+      if (!current.endTimers.has(responseId)) return
+      const context = audioRef.current
+      const responseEnd = current.responseEnds.get(responseId)
+      if (
+        !context
+        || !Number.isFinite(responseEnd)
+        || context.state !== 'running'
+        || context.currentTime + 0.01 < responseEnd
+      ) {
+        const timer = setTimeout(checkTimelineFinished, 50)
+        current.endTimers.set(responseId, timer)
+        return
+      }
+      // AudioContext time has crossed the last scheduled sample. Treat that
+      // as a reliable fallback when Electron misses AudioBufferSource.onended.
+      current.sourceCounts.set(responseId, 0)
+      finishPlaybackIfReady(responseId)
+    }
+    const delay = Math.max(
+      0,
+      ((responseEnd || audioRef.current?.currentTime || 0)
+        - (audioRef.current?.currentTime || 0)) * 1000,
+    ) + 50
+    const timer = setTimeout(checkTimelineFinished, delay)
+    playback.endTimers.set(responseId, timer)
   }, [finishPlaybackIfReady])
 
   const failPlayback = useCallback((responseId, reason) => {
@@ -331,7 +446,11 @@ export default function useRealtimeVoice({
       playback.failedResponses.add(responseId)
       const timer = playback.startTimers.get(responseId)
       if (timer !== undefined) clearTimeout(timer)
+      const endTimer = playback.endTimers.get(responseId)
+      if (endTimer !== undefined) clearTimeout(endTimer)
       playback.startTimers.delete(responseId)
+      playback.endTimers.delete(responseId)
+      playback.responseEnds.delete(responseId)
       playback.startedResponses.delete(responseId)
       playback.sourceCounts.delete(responseId)
       playback.doneResponses.delete(responseId)
@@ -384,6 +503,10 @@ export default function useRealtimeVoice({
         playback.sourceCounts.set(
           responseId,
           (playback.sourceCounts.get(responseId) || 0) + 1,
+        )
+        playback.responseEnds.set(
+          responseId,
+          Math.max(playback.responseEnds.get(responseId) || 0, playback.cursor),
         )
       }
     } catch (reason) {
@@ -441,35 +564,98 @@ export default function useRealtimeVoice({
   }, [failPlayback, finishPlaybackIfReady, sendPlaybackEvent])
 
   useEffect(() => {
-    if (suspended) {
-      setState('idle')
-      setInputReady(false)
-      setError('')
-      setVisualError(false)
-      setConnectionState('hidden')
-      return undefined
-    }
-    let disposed = false
-    let reconnectTimer
-    let reconnectDelay = 500
+    if (!suspended) return
+    dispatchClientState({
+      type: GatewayServerEvent.VOICE_STATE,
+      state: 'idle',
+    })
+    dispatchClientState({
+      type: GatewayServerEvent.VOICE_CONNECTION,
+      state: 'hidden',
+    })
+    setInputReady(false)
+    setError('')
+    setVisualError(false)
+  }, [suspended])
+
+  useEffect(() => {
     const mutedResponses = mutedPlaybackResponses.current
-    const connect = () => {
-      if (disposed) return
-      const socket = new WebSocket(socketUrl(sessionId))
-      socketRef.current = socket
-      socket.onopen = () => {
-        reconnectDelay = 500
+    const handleEvent = event => {
+      dispatchClientState(event)
+      if (event.type === GatewayServerEvent.VOICE_READY && event.inputSampleRate) {
+        inputSampleRate.current = event.inputSampleRate
+        hasConnectedRef.current = true
         setError('')
         setVisualError(false)
-        setConnectionState('connecting')
-        eventRef.current?.({ type: GatewayServerEvent.GATEWAY_CONNECTED })
+        flushPendingManualInputs()
+      }
+      if (event.type === GatewayServerEvent.VOICE_CONNECTION) {
+        if (event.state === 'connected') {
+          hasConnectedRef.current = true
+          setError('')
+          setVisualError(false)
+          flushPendingManualInputs()
+        } else if (event.state === 'unavailable') {
+          setError(event.message || t('语音前台连接异常，正在重试'))
+          setVisualError(true)
+        }
+      }
+      if (event.type === GatewayServerEvent.TURN_STARTED) {
+        currentTurnId.current = event.turnId || ''
+        if (
+          manualInputPendingRef.current
+          && String(event.turnId || '').startsWith('text_')
+        ) {
+          manualInputTurnRef.current = event.turnId
+        }
+      }
+      if (releasesManualInputGuard(event, manualInputTurnRef.current)) {
+        releaseManualInputGuard()
+      }
+      if (
+        event.type === GatewayServerEvent.VOICE_STATE
+        && acceptsVoiceState(event, currentTurnId.current)
+        && event.state === 'listening'
+      ) {
+        stopPlayback('user_interruption')
+      }
+      if (event.type === GatewayServerEvent.PLAYBACK_CLEAR) {
+        stopPlayback(event.reason || '')
+      }
+      if (event.type === GatewayServerEvent.AUDIO_DELTA) {
+        if (outputMutedRef.current || !audioRef.current) {
+          consumeMutedAudio(event.responseId)
+        } else {
+          play(event.audio, event.sampleRate, event.responseId)
+        }
+      }
+      if (event.type === GatewayServerEvent.AUDIO_DONE) {
+        if (mutedPlaybackResponses.current.has(event.responseId)) {
+          finishMutedAudio(event.responseId)
+        } else {
+          markAudioDone(event.responseId)
+        }
+      }
+      if (event.type === GatewayServerEvent.ERROR) setError(event.message)
+      eventRef.current?.(event)
+    }
+    const client = new GatewayClient({
+      url: socketUrl(sessionId),
+      createSocket: url => new WebSocket(url),
+      clientType,
+      clientLabel,
+      clientInstanceId: clientInstanceId.current,
+      capabilities: gatewayClientCapabilities({ clientType }),
+      locale: navigator.language,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      configure: () => {
         const mode = realtimeClientMode({
           enabled: enabledRef.current,
           inputReady: inputReadyRef.current,
           inputOnlyMute,
           wakeWordOnly: wakeWordOnlyRef.current,
         })
-        socket.send(JSON.stringify({
+        return {
           type: GatewayClientEvent.CONNECT,
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           locale: navigator.language,
@@ -485,115 +671,57 @@ export default function useRealtimeVoice({
             ? clientStatesSignature.split(',')
             : [],
           clientInstanceId: clientInstanceId.current,
-          takeover,
           // Empty means "keep the server default front end".
           ...(realtimeProvider ? { provider: realtimeProvider } : {}),
-        }))
-      }
-      socket.onmessage = message => {
-        let event
-        try {
-          event = JSON.parse(message.data)
-        } catch {
-          return
         }
-        if (event.type === GatewayServerEvent.VOICE_READY && event.inputSampleRate) {
-          inputSampleRate.current = event.inputSampleRate
-          setConnectionState('connected')
+      },
+      onEvent: handleEvent,
+      onAction: event => clientActionRef.current?.(event),
+      onRecovery: recovery => eventRef.current?.({
+        type: 'session.recovered',
+        ...recovery,
+      }),
+      onStatus: status => {
+        if (status.state === 'connected') {
           setError('')
           setVisualError(false)
-        }
-        if (event.type === GatewayServerEvent.VOICE_CONNECTION) {
-          setConnectionState(event.state || 'connecting')
-          if (event.state === 'connected') {
-            setError('')
-            setVisualError(false)
-          } else if (event.state === 'unavailable') {
-            setError(event.message || t('语音前台连接异常，正在重试'))
-            setVisualError(true)
-          }
-        }
-        if (event.type === GatewayServerEvent.VOICE_SLEEP) {
-          if (event.state === 'enabled') {
-            setWakeWordActive(true)
-          } else if (event.state === 'disabled') {
-            setWakeWordActive(false)
-          }
-        }
-        if (event.type === GatewayServerEvent.VOICE_OWNERSHIP) {
-          setOwnership({
-            state: event.state || 'available',
-            holder: event.holder || null,
+          const connectedEvent = { type: GatewayServerEvent.GATEWAY_CONNECTED }
+          dispatchClientState(connectedEvent)
+          eventRef.current?.(connectedEvent)
+        } else if (status.state === 'unavailable') {
+          dispatchClientState({
+            type: GatewayServerEvent.VOICE_CONNECTION,
+            state: 'unavailable',
           })
-        }
-        if (event.type === GatewayServerEvent.VOICE_DEACTIVATED) {
-          setOwnership({
-            state: 'busy',
-            holder: event.holder || null,
-          })
-        }
-        if (event.type === GatewayServerEvent.TURN_STARTED) {
-          currentTurnId.current = event.turnId || ''
-        }
-        if (event.type === GatewayServerEvent.VOICE_STATE) {
-          if (acceptsVoiceState(event, currentTurnId.current)) {
-            setState(event.state)
-            if (event.state === 'listening') {
-              stopPlayback('user_interruption')
-            }
-          }
-        }
-        if (event.type === GatewayServerEvent.PLAYBACK_CLEAR) {
-          stopPlayback(event.reason || '')
-        }
-        if (event.type === GatewayServerEvent.AUDIO_DELTA) {
-          if (outputMutedRef.current || !audioRef.current) {
-            consumeMutedAudio(event.responseId)
-          } else {
-            play(event.audio, event.sampleRate, event.responseId)
-          }
-        }
-        if (event.type === GatewayServerEvent.AUDIO_DONE) {
-          if (mutedPlaybackResponses.current.has(event.responseId)) {
-            finishMutedAudio(event.responseId)
-          } else {
-            markAudioDone(event.responseId)
-          }
-        }
-        if (event.type === GatewayServerEvent.ERROR) setError(event.message)
-        eventRef.current?.(event)
-      }
-      socket.onerror = () => {
-        if (!disposed) {
-          setConnectionState('unavailable')
           setError(t('实时语音连接中断，正在重连'))
           setVisualError(true)
+        } else if (status.state === 'disconnected') {
+          releaseManualInputGuard()
+          stopPlayback()
+          const disconnectedEvent = {
+          type: GatewayServerEvent.GATEWAY_DISCONNECTED,
+        }
+        dispatchClientState(disconnectedEvent)
+          setError(t('实时语音连接中断，正在重连'))
+          setVisualError(true)
+          eventRef.current?.(disconnectedEvent)
         }
       }
-      socket.onclose = () => {
-        if (socketRef.current === socket) socketRef.current = null
-        if (disposed) return
-        stopPlayback()
-        setState('idle')
-        setConnectionState('unavailable')
-        setError(t('实时语音连接中断，正在重连'))
-        setVisualError(true)
-        eventRef.current?.({ type: GatewayServerEvent.GATEWAY_DISCONNECTED })
-        reconnectTimer = setTimeout(connect, reconnectDelay)
-        reconnectDelay = Math.min(5000, reconnectDelay * 2)
-      }
-    }
+    })
+    socketRef.current = client
     setError('')
-    setConnectionState('connecting')
-    connect()
+    dispatchClientState({
+      type: GatewayServerEvent.VOICE_CONNECTION,
+      state: 'connecting',
+    })
+    client.start()
 
     return () => {
-      disposed = true
-      clearTimeout(reconnectTimer)
-      stopPlayback(suspended ? 'desktop_hidden' : 'connection_closed')
-      socketRef.current?.close()
+      stopPlayback('connection_closed')
+      client.stop()
       socketRef.current = null
       mutedResponses.clear()
+      releaseManualInputGuard()
     }
   }, [
     clientLabel,
@@ -605,15 +733,19 @@ export default function useRealtimeVoice({
     markAudioDone,
     play,
     realtimeProvider,
+    releaseManualInputGuard,
+    flushPendingManualInputs,
     sessionId,
     stopPlayback,
-    suspended,
-    takeover,
   ])
 
   useEffect(() => {
     if (outputMuted) stopPlayback()
   }, [outputMuted, stopPlayback])
+
+  useEffect(() => {
+    pendingManualInputsRef.current = []
+  }, [sessionId])
 
   useEffect(() => {
     if (!enabled || suspended) {
@@ -628,10 +760,19 @@ export default function useRealtimeVoice({
     }
 
     let disposed = false
-    let media
-    let source
-    let processor
     inputReadyRef.current = false
+    const setCaptureReady = ready => {
+      if (disposed) return
+      const changed = inputReadyRef.current !== ready
+      inputReadyRef.current = ready
+      setInputReady(ready)
+      if (!changed) return
+      sendSocketEvent(microphoneControlEvent({
+        enabled: ready,
+        inputOnlyMute,
+        wakeWordOnly: ready && wakeWordOnlyRef.current,
+      }))
+    }
     const failInput = reason => {
       const message = reason?.message || String(reason || t('无法打开麦克风'))
       inputReadyRef.current = false
@@ -641,79 +782,118 @@ export default function useRealtimeVoice({
         inputOnlyMute,
         wakeWordOnly: false,
       }))
-      media?.getTracks().forEach(track => track.stop())
-      processor?.disconnect()
-      source?.disconnect()
       setError(message)
       setVisualError(true)
       inputErrorRef.current?.(message)
     }
-    const startAudio = async () => {
-      try {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      failInput(t('无法打开麦克风'))
+      return undefined
+    }
+    const unsupportedInput = message => {
+      const error = new Error(message)
+      error.name = 'NotSupportedError'
+      return error
+    }
+    const capture = createMicrophoneCaptureLifecycle({
+      mediaDevices: navigator.mediaDevices,
+      acquire: async () => {
         if (!activateAudio()) {
-          failInput(t('当前浏览器不支持实时语音播放'))
-          return
+          throw unsupportedInput(t('当前浏览器不支持实时语音播放'))
         }
         const context = audioRef.current
-        if (!context) {
-          failInput(t('无法初始化实时语音播放'))
-          return
-        }
+        if (!context) throw unsupportedInput(t('无法初始化实时语音播放'))
         if (context.state === 'suspended') await context.resume()
-        media = await navigator.mediaDevices.getUserMedia({
+        const media = await navigator.mediaDevices.getUserMedia({
           audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
         })
-        if (disposed) return media.getTracks().forEach(track => track.stop())
-        setVisualError(false)
-        source = context.createMediaStreamSource(media)
-        processor = context.createScriptProcessor(2048, 1, 1)
-        processor.onaudioprocess = event => {
-          const socket = socketRef.current
-          if (socket?.readyState !== WebSocket.OPEN) return
-          const audio = resample(
-            event.inputBuffer.getChannelData(0),
-            context.sampleRate,
-            inputSampleRate.current,
-          )
-          socket.send(JSON.stringify({
-            type: GatewayClientEvent.AUDIO_APPEND,
-            audio: pcmBase64(audio),
-          }))
+        let source
+        let processor
+        try {
+          source = context.createMediaStreamSource(media)
+          processor = context.createScriptProcessor(2048, 1, 1)
+          processor.onaudioprocess = event => {
+            const samples = microphoneSamplesDuringManualInput(
+              event.inputBuffer.getChannelData(0),
+              manualInputPendingRef.current,
+            )
+            if (wakeWordOnlyRef.current) {
+              const wakeAudio = resample(samples, context.sampleRate, 16_000)
+              wakeWordAudioRef.current?.(pcmBase64(wakeAudio), 16_000)
+              return
+            }
+            const socket = socketRef.current
+            if (socket?.readyState !== WebSocket.OPEN) return
+            const audio = resample(
+              samples,
+              context.sampleRate,
+              inputSampleRate.current,
+            )
+            socket.send({
+              type: GatewayClientEvent.AUDIO_APPEND,
+              audio: pcmBase64(audio),
+            })
+          }
+          source.connect(processor)
+          processor.connect(context.destination)
+          return {
+            media,
+            track: media.getAudioTracks()[0],
+            close() {
+              media.getTracks().forEach(track => track.stop())
+              processor?.disconnect()
+              source?.disconnect()
+            },
+          }
+        } catch (error) {
+          media.getTracks().forEach(track => track.stop())
+          processor?.disconnect()
+          source?.disconnect()
+          throw error
         }
-        source.connect(processor)
-        processor.connect(context.destination)
-        inputReadyRef.current = true
-        setInputReady(true)
-        sendSocketEvent(microphoneControlEvent({
-          enabled: true,
-          inputOnlyMute,
-          wakeWordOnly,
-          takeover,
-        }))
-      } catch (reason) {
-        if (!disposed) failInput(reason)
-      }
-    }
-    startAudio()
+      },
+      onState: captureState => {
+        if (captureState.state === 'ready') {
+          setError('')
+          setVisualError(false)
+          setCaptureReady(true)
+          return
+        }
+        setCaptureReady(false)
+        if (captureState.error && captureState.recoverable) {
+          setError(captureState.state === 'unavailable'
+            ? t('未检测到可用麦克风，连接设备后会自动恢复')
+            : t('正在切换麦克风'))
+          setVisualError(true)
+        }
+      },
+      onFatalError: failInput,
+    })
+    capture.start()
 
     return () => {
       disposed = true
       inputReadyRef.current = false
       setInputReady(false)
-      media?.getTracks().forEach(track => track.stop())
-      processor?.disconnect()
-      source?.disconnect()
+      capture.stop()
     }
   }, [
     activateAudio,
     enabled,
     inputOnlyMute,
-    wakeWordOnly,
     sendSocketEvent,
     sessionId,
     suspended,
-    takeover,
   ])
+
+  useEffect(() => {
+    if (!enabled || suspended || !inputReadyRef.current) return
+    sendSocketEvent(microphoneControlEvent({
+      enabled: true,
+      inputOnlyMute,
+      wakeWordOnly,
+    }))
+  }, [enabled, inputOnlyMute, sendSocketEvent, suspended, wakeWordOnly])
 
   useEffect(() => {
     if (!suspended) return
@@ -738,15 +918,63 @@ export default function useRealtimeVoice({
     sendSocketEvent({ type: GatewayClientEvent.WAKE })
   ), [sendSocketEvent])
 
-  const sendInput = useCallback(parts => sendSocketEvent({
-    type: GatewayClientEvent.INPUT_MESSAGE,
-    parts,
-  }), [sendSocketEvent])
+  const publishClientEvent = useCallback((name, data = {}, deliveryHint) => (
+    sendSocketEvent({
+      type: GatewayClientProtocolEvent.CLIENT_EVENT_PUBLISH,
+      event_id: createGatewayProtocolEventId('client'),
+      name,
+      data,
+      ...(deliveryHint ? { delivery_hint: deliveryHint } : {}),
+    })
+  ), [sendSocketEvent])
 
-  const stageInputParts = useCallback(parts => sendSocketEvent({
-    type: GatewayClientEvent.INPUT_PARTS,
-    parts,
-  }), [sendSocketEvent])
+  const requestGateway = useCallback((type, payload = {}) => {
+    const client = socketRef.current
+    if (!client?.request) {
+      return Promise.reject(Object.assign(new Error('Gateway 尚未连接'), {
+        code: 'client_not_ready',
+      }))
+    }
+    return client.request(type, payload)
+  }, [])
+  const listTasks = useCallback(options => requestGateway(
+    GatewayClientProtocolEvent.TASK_LIST,
+    options,
+  ).then(result => result.tasks), [requestGateway])
+  const getTask = useCallback(taskId => requestGateway(
+    GatewayClientProtocolEvent.TASK_GET,
+    { task_id: taskId },
+  ).then(result => result.task), [requestGateway])
+  const cancelTask = useCallback(taskId => requestGateway(
+    GatewayClientProtocolEvent.TASK_CANCEL,
+    { task_id: taskId },
+  ).then(result => result.task), [requestGateway])
+  const respondPermission = useCallback((permissionId, decision) => requestGateway(
+    GatewayClientProtocolEvent.PERMISSION_RESPOND,
+    { permission_id: permissionId, decision },
+  ).then(result => result.permission), [requestGateway])
+  const conversationHistory = useCallback(() => requestGateway(
+    GatewayClientProtocolEvent.CONVERSATION_HISTORY,
+  ).then(result => result.messages), [requestGateway])
+
+  const sendInput = useCallback(parts => {
+    holdManualInputGuard()
+    const event = {
+      type: GatewayClientEvent.INPUT_MESSAGE,
+      parts,
+    }
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      if (sendSocketEvent(event)) return true
+      releaseManualInputGuard()
+      return false
+    }
+    if (hasConnectedRef.current) {
+      pendingManualInputsRef.current.push(event)
+      return true
+    }
+    releaseManualInputGuard()
+    return false
+  }, [holdManualInputGuard, releaseManualInputGuard, sendSocketEvent])
 
   return {
     state,
@@ -760,7 +988,12 @@ export default function useRealtimeVoice({
     activateAudio,
     interrupt,
     wake,
+    publishClientEvent,
     sendInput,
-    stageInputParts,
+    listTasks,
+    getTask,
+    cancelTask,
+    respondPermission,
+    conversationHistory,
   }
 }
