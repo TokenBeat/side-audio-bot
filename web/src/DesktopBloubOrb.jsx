@@ -31,7 +31,6 @@ export default function DesktopBloubOrb({
   const dragDirectionRef = useRef(dragDirection)
   useEffect(() => { dragDirectionRef.current = dragDirection })
   const [hexCue, setHexCue] = useState(null)
-  const hexTimerRef = useRef(null)
 
   const shapeEntry = SHAPE_BY_ID.get(shape)
   const colorEntry = COLOR_BY_ID.get(color)

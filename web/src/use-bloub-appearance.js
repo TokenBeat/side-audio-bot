@@ -4,12 +4,11 @@ import {
   bloubExpressionRotationMs,
   bloubStateForOrbState,
 } from './bloub-orb.js'
-
-// 从 URL 读取 bloub 外观与开关参数。非法值回退默认，不向外泄漏。
-function urlParam(key, fallback = '') {
-  if (typeof window === 'undefined') return fallback
-  return new URLSearchParams(window.location.search).get(key) || fallback
-}
+import {
+  DEFAULT_BLOUB_SHAPE,
+  DEFAULT_BLOUB_COLOR,
+  DEFAULT_BLOUB_EXPRESSION,
+} from '../../shared/bloub-catalog.mjs'
 
 const CONVERSATION_STATES = new Set(['listening', 'processing', 'speaking'])
 const HIGH_PRIORITY_STATES = new Set(['error', 'attention', 'occupied', 'working'])
@@ -18,12 +17,16 @@ const HIGH_PRIORITY_STATES = new Set(['error', 'attention', 'occupied', 'working
 const BLOUB_SETTLING_MAX_MS = 2500
 const BLOUB_CONVERSATION_HOLD_MS = 600
 
-export function useBloubAppearance({ orbSkinId, orbVisualState }) {
-  const autoState = urlParam('orbBloubAutoState', 'true') !== 'false'
-  const fixedShape = urlParam('orbBloubFixedShape') === 'true'
-  const urlShape = urlParam('orbBloubShape')
-  const urlColor = urlParam('orbBloubColor')
-  const urlExpression = urlParam('orbBloubExpression')
+// bloub 外观来源：从父组件传入的 bloubSettings 读取（与 orbSkin/autoHide/language
+// 同链路，由 desktop-client-settings 的 IPC 热应用驱动，不再直接读 URL）。
+export function useBloubAppearance({ orbSkinId, orbVisualState, bloubSettings = {} }) {
+  const {
+    autoState = true,
+    fixedShape = false,
+    urlShape = '',
+    urlColor = '',
+    urlExpression = '',
+  } = bloubSettings
 
   const [variant, setVariant] = useState(0)
   const [displayState, setDisplayState] = useState(orbVisualState)
@@ -112,19 +115,24 @@ export function useBloubAppearance({ orbSkinId, orbVisualState }) {
     variant,
   })
 
-  const shape = fixedShape
+  // 用户改过的 url* 字段（不等于默认值）始终优先，让设置界面改完立即生效。
+  // autoState 只控制"未改过"的字段是否由状态机自动驱动。
+  // autoState=false 时所有字段都固定为 url*（保留原语义）。
+  const userSetShape = urlShape && urlShape !== DEFAULT_BLOUB_SHAPE
+  const userSetColor = urlColor && urlColor !== DEFAULT_BLOUB_COLOR
+  const userSetExpression = urlExpression && urlExpression !== DEFAULT_BLOUB_EXPRESSION
+
+  const shape = (fixedShape || userSetShape || !autoState)
     ? (urlShape || appearance.shape)
-    : autoState
-      ? appearance.shape
-      : (urlShape || appearance.shape)
+    : appearance.shape
 
-  const color = autoState
-    ? appearance.color
-    : (urlColor || appearance.color)
+  const color = (userSetColor || !autoState)
+    ? (urlColor || appearance.color)
+    : appearance.color
 
-  const expression = autoState
-    ? appearance.expression
-    : (urlExpression || appearance.expression)
+  const expression = (userSetExpression || !autoState)
+    ? (urlExpression || appearance.expression)
+    : appearance.expression
 
   return {
     // 防抖后的展示状态：外观（形状/颜色/表情）与引擎动画共用它，

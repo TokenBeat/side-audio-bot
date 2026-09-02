@@ -89,3 +89,18 @@ test('carries one validated persistent conversation session across renderer orig
     'http://127.0.0.1:3101/?desktop=orb',
   )
 })
+
+test('carries orbBloub appearance fields into the renderer URL on first load', () => {
+  // orbBloub 字段在首次加载时仍通过 URL searchParams 传递给渲染器，
+  // 让 initialDesktopClientSettings 能从中读取初始值。后续热应用改走 IPC。
+  assert.equal(
+    desktopOrbUrl('http://127.0.0.1:3101/', {
+      orbBloubShape: 'blob',
+      orbBloubColor: 'blue',
+      orbBloubExpression: 'happy',
+      orbBloubAutoState: false,
+      orbBloubFixedShape: true,
+    }),
+    'http://127.0.0.1:3101/?desktop=orb&orbBloubShape=blob&orbBloubColor=blue&orbBloubExpression=happy&orbBloubAutoState=false&orbBloubFixedShape=true',
+  )
+})

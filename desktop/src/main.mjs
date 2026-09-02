@@ -529,6 +529,13 @@ function sendDesktopClientSettings(window, settings) {
     autoHideSeconds: settings.autoHideSeconds,
     wakeWordEnabled: settings.wakeWordEnabled,
     language: effectiveDesktopLanguage(settings.language, app.getLocale()),
+    // orbBloub 外观走热应用路径，与 orbSkin/autoHide/language 对齐，
+    // 避免改 bloub 外观时整个 webview 重载打断 Realtime Session。
+    orbBloubShape: settings.orbBloubShape,
+    orbBloubColor: settings.orbBloubColor,
+    orbBloubExpression: settings.orbBloubExpression,
+    orbBloubAutoState: settings.orbBloubAutoState,
+    orbBloubFixedShape: settings.orbBloubFixedShape,
   })
 }
 
@@ -1225,13 +1232,6 @@ ipcMain.handle('qwen-audio-agent:settings-save', async (event, settings) => {
     || previous.backendCredential !== normalized.backendCredential
   )
   const orbSkinChanged = previous.orbSkin !== normalized.orbSkin
-  const orbBloubAppearanceChanged = (
-    previous.orbBloubShape !== normalized.orbBloubShape
-    || previous.orbBloubColor !== normalized.orbBloubColor
-    || previous.orbBloubExpression !== normalized.orbBloubExpression
-    || previous.orbBloubAutoState !== normalized.orbBloubAutoState
-    || previous.orbBloubFixedShape !== normalized.orbBloubFixedShape
-  )
   const autoHideChanged = (
     previous.autoHideSeconds !== normalized.autoHideSeconds
   )
@@ -1348,10 +1348,9 @@ ipcMain.handle('qwen-audio-agent:settings-save', async (event, settings) => {
   process.env.QWEN_AUDIO_ORB_SKIN = normalized.orbSkin
   await ensureDesktopUi()
   const desktopRendererChanged = (
-    // orbBloubAppearanceChanged 必须走重载：sendDesktopClientSettings 不处理 orbBloub 字段，
-    // 只有 loadQwenAudioAgent 才能把 orbBloub* 通过 URL searchParams 传给渲染器。
-    // 其余字段(orbSkin/autoHide/language) 已能通过 sendDesktopClientSettings 热应用，无需重载。
-    (restarted || gatewayChanged || orbBloubAppearanceChanged)
+    // orbBloub 外观现已走 sendDesktopClientSettings 热应用，与 orbSkin/autoHide/language 一致，
+    // 无需触发 loadQwenAudioAgent 重载。仅 gateway 切换/重启才重载渲染器。
+    gatewayChanged
     && mainWindow
     && !mainWindow.isDestroyed()
   )

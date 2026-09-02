@@ -832,6 +832,13 @@ export default function App() {
   const bloubAppearance = useBloubAppearance({
     orbSkinId,
     orbVisualState,
+    bloubSettings: {
+      autoState: desktopClientSettings.orbBloubAutoState,
+      fixedShape: desktopClientSettings.orbBloubFixedShape,
+      urlShape: desktopClientSettings.orbBloubShape,
+      urlColor: desktopClientSettings.orbBloubColor,
+      urlExpression: desktopClientSettings.orbBloubExpression,
+    },
   })
 
   useEffect(() => {
