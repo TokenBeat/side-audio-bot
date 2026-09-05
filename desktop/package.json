@@ -1,5 +1,5 @@
 {
-  "name": "@qwen-audio-agent/desktop",
+  "name": "@side-audio-bot/desktop",
   "private": true,
   "version": "1.11.0",
   "type": "module",

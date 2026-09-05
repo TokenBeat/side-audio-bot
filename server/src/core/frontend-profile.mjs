@@ -138,7 +138,7 @@ export function normalizeFrontendProfile(value, {
 }
 
 export function loadFrontendProfile({
-  filePath = process.env.QWEN_AUDIO_FRONTEND_PROFILE,
+  filePath = process.env.SIDE_AUDIO_FRONTEND_PROFILE,
 } = {}) {
   const configuredPath = clean(filePath, 2_048)
   if (!configuredPath) return emptyFrontendProfile()
@@ -161,7 +161,7 @@ export function resolveFrontendProfileConfiguration({
   baseDirectory = process.cwd(),
 } = {}) {
   const explicit = name => clean(env[name], 2_048)
-  const explicitAssistant = explicit('QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH')
+  const explicitAssistant = explicit('SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH')
   return {
     frontendProfile: {
       configured: profile.configured === true,
@@ -173,10 +173,10 @@ export function resolveFrontendProfileConfiguration({
       : '')
       || profile.assistantProfilePath
       || defaultAssistantProfilePath,
-    frontendMcpConfigPath: explicit('QWEN_AUDIO_FRONTEND_MCP_CONFIG')
+    frontendMcpConfigPath: explicit('SIDE_AUDIO_FRONTEND_MCP_CONFIG')
       || profile.frontendMcpConfigPath
       || '',
-    frontendOpenApiConfigPath: explicit('QWEN_AUDIO_FRONTEND_OPENAPI_CONFIG')
+    frontendOpenApiConfigPath: explicit('SIDE_AUDIO_FRONTEND_OPENAPI_CONFIG')
       || profile.frontendOpenApiConfigPath
       || '',
   }

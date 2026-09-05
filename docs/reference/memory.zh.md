@@ -12,9 +12,9 @@
 - **自动整理**：会话结束后，一个轻量文本模型会查漏补缺，把用户明确提出的长期交互
   指令写入 `USER.md`，把稳定事实与决定写入 `MEMORY.md`。自动整理默认使用
   DashScope 的 `qwen-flash` 模型（复用 `DASHSCOPE_API_KEY`）；没有可用 API Key
-  时自动关闭，明确要求的记忆不受影响。设置 `QWEN_AUDIO_MEMORY_AUTO=off`
-  可全局关闭；`QWEN_AUDIO_MEMORY_MODEL`、`QWEN_AUDIO_MEMORY_BASE_URL`、
-  `QWEN_AUDIO_MEMORY_API_KEY` 可指向任意 OpenAI 兼容端点（含本地 Ollama）。
+  时自动关闭，明确要求的记忆不受影响。设置 `SIDE_AUDIO_MEMORY_AUTO=off`
+  可全局关闭；`SIDE_AUDIO_MEMORY_MODEL`、`SIDE_AUDIO_MEMORY_BASE_URL`、
+  `SIDE_AUDIO_MEMORY_API_KEY` 可指向任意 OpenAI 兼容端点（含本地 Ollama）。
 
 Realtime 与自动整理都通过同一个记忆服务提交受限 Markdown 变更，不能直接写文件。
 自动整理可以补记用户明确说出的称呼或回复偏好，但不会推测这些设定，也永远不能修改
@@ -42,7 +42,7 @@ Realtime 与自动整理都通过同一个记忆服务提交受限 Markdown 变�
 
 ## 会话摘要与回溯（默认关闭）
 
-设 `QWEN_AUDIO_SESSION_DIGEST=on` 后，会话结束时记下这一场的话题与一句不超过 50 字的
+设 `SIDE_AUDIO_SESSION_DIGEST=on` 后，会话结束时记下这一场的话题与一句不超过 50 字的
 要点，保留 90 天，供 `recall` 工具回答「前几天我们聊的那个」。
 
 摘要**不注入** `instructions`：它每场都在变，注入会让 prompt 前缀每场都变、前缀缓存
@@ -61,8 +61,8 @@ Realtime 与自动整理都通过同一个记忆服务提交受限 Markdown 变�
 可以从公开入口实现版本化的 `MemoryProvider`，并在 Composition Root 注入：
 
 ```js
-import { MEMORY_PROVIDER_PROTOCOL_VERSION } from 'qwen-audio-agent/memory-provider'
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { MEMORY_PROVIDER_PROTOCOL_VERSION } from 'side-audio-bot/memory-provider'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 
 const memoryProvider = {
   describe: () => ({

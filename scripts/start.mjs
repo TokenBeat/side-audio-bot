@@ -12,7 +12,7 @@ const port = process.env.PORT || '3101'
 const probeHost = ['0.0.0.0', '::', '[::]'].includes(listenHost)
   ? '127.0.0.1'
   : listenHost
-const url = process.env.QWEN_AUDIO_AGENT_URL
+const url = process.env.SIDE_AUDIO_BOT_URL
   || `http://${probeHost}:${port}`
 
 try {
@@ -22,9 +22,9 @@ try {
     listenPort: port,
   }, { root })
   if (!runtime.ownsProcesses) {
-    process.stdout.write(`qwen-audio-agent 已在运行：${url}\n`)
+    process.stdout.write(`side-audio-bot 已在运行：${url}\n`)
   } else {
-    process.stdout.write(`qwen-audio-agent 已就绪：${url}\n`)
+    process.stdout.write(`side-audio-bot 已就绪：${url}\n`)
     const onSigint = () => runtime.close('SIGINT')
     const onSigterm = () => runtime.close('SIGTERM')
     process.once('SIGINT', onSigint)
@@ -38,6 +38,6 @@ try {
     }
   }
 } catch (error) {
-  process.stderr.write(`qwen-audio-agent 启动失败：${error.message}\n`)
+  process.stderr.write(`side-audio-bot 启动失败：${error.message}\n`)
   process.exitCode = 1
 }

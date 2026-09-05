@@ -112,7 +112,7 @@ function normalizeResult(result, maxBytes) {
 
 function defaultClientFactory(server) {
   return new Client({
-    name: `qwen-audio-agent-frontend-${server.key}`,
+    name: `side-audio-bot-frontend-${server.key}`,
     version: PACKAGE_VERSION,
   })
 }

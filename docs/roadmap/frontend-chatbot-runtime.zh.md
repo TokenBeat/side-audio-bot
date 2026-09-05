@@ -2,15 +2,15 @@
 
 > 状态：提案
 >
-> GitHub 跟踪：[#185](https://github.com/QwenAudio/qwen-audio-agent/issues/185)
+> GitHub 跟踪：[#185](https://github.com/TokenBeat/side-audio-bot/issues/185)
 >
-> 范围：在保持单一后台 Agent 的前提下，将 qwen-audio-agent 重构为边界清晰、
+> 范围：在保持单一后台 Agent 的前提下，将 side-audio-bot 重构为边界清晰、
 > 可扩展、相对标准化的实时语音 Chatbot Runtime，并通过异步 Work Bridge 接入
 > 用户自己的办事 Agent。
 
 ## 1. 产品定义
 
-qwen-audio-agent 由两个彼此解耦、对用户表现为一个助手的运行时组成：
+side-audio-bot 由两个彼此解耦、对用户表现为一个助手的运行时组成：
 
 1. **Realtime Voice Chatbot** 始终拥有用户对话。它负责语音、文本、图片、附件、
    对话上下文、记忆、Search、Knowledge/RAG、低延迟前台工具和结果表达。

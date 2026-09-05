@@ -1,12 +1,12 @@
-# Qwen Audio Agent
+# Side Audio Bot
 
-[中文](README_ZH.md) | [English](README.md) | [User Guide](https://qwenaudio.github.io/qwen-audio-agent/) | [Quickstart](https://qwenaudio.github.io/qwen-audio-agent/getting-started/quickstart)
+[中文](README_ZH.md) | [English](README.md)
 
-[![CI](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/qwen-audio-agent)](https://www.npmjs.com/package/qwen-audio-agent)
+[![CI](https://github.com/TokenBeat/side-audio-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/TokenBeat/side-audio-bot/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/side-audio-bot)](https://www.npmjs.com/package/side-audio-bot)
 [![node](https://img.shields.io/badge/node-%E2%89%A522.22.2-brightgreen)](https://nodejs.org/)
-[![license](https://img.shields.io/github/license/QwenAudio/qwen-audio-agent)](LICENSE)
-[![WeChat](https://img.shields.io/badge/WeChat-join_chat-07C160?logo=wechat&logoColor=white)](#community)
+[![license](https://img.shields.io/github/license/TokenBeat/side-audio-bot)](LICENSE)
+<!-- [![WeChat](https://img.shields.io/badge/WeChat-join_chat-07C160?logo=wechat&logoColor=white)](#community) -->
 
 ## Agent Presence
 
@@ -16,7 +16,7 @@ calling a tool, or working on a task.
 
 Conversation should keep flowing, and the Agent should always be present.
 
-That is why we built **qwen-audio-agent**—a realtime voice runtime that keeps
+That is why we built **side-audio-bot**—a realtime voice runtime that keeps
 Agents talking, working, and present. Whether chatting with you, thinking
 through a problem, or working on a task, your Agent remains in the
 conversation. It listens, responds, and when the task is complete, naturally
@@ -26,41 +26,15 @@ tells you:
 
 ## News
 
-- **2026-08-27 · v2.0.0 (In development)**
-  🚧 The next major version is under active development, with ongoing work on the Agent architecture, task lifecycle, multimodal input, memory, and extensibility.
-- **2026-08-20 · [v1.11.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.11.0)**
-  🧩 Adds embeddable Gateway and Realtime Provider extensions; 🛠️ supports installing and managing Agent Skills; 📎 adds multimodal input to the TUI; 🎨 links pet animations to runtime states.
-- **2026-08-13 · [v1.10.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.10.0)**
-  🐋 Added experimental DeepSeek Harness backend support with one-click installation.
-- **2026-08-13 · [v1.9.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.9.0)**
-  🧩 Desktop task cards show live Agent progress; 🔎 backend Agent selection is clearer and searchable; 🎙️ supports Qwen3.5-Omni Realtime frontend integration.
-- **2026-08-09 · [v1.8.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.8.0)**
-  🆕 Adds Qwen Code backend; 🔧 fixes known issues.
-- **2026-08-07 · [v1.7.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.7.0)**
-  🎨 The orb opens up custom skins — import your own look, compatible with pet packs from the [Awesome Codex Pet](https://codexpet.top/) community gallery; 🪟 improved Windows backend Agent startup.
-- **2026-08-06 · [v1.6.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.6.0)**
-  🪟 Desktop app now officially supports Windows; 🧠 adds invisible memory with automatic extraction after each session.
-- **2026-08-05 · [v1.5.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.5.0)**
-  ⏰ Adds scheduled reminders and progress reporting; 🗣️ adds the voice wake word ("你好千问"); 🐧 desktop build support for Linux; the desktop app now uses a data directory isolated from the CLI.
-- **2026-08-04 · [v1.4.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.4.0)**
-  🧠 Adds personalized rules and checklist management; desktop app supports auto-sleep and shortcut wake.
-- **2026-08-03 · [v1.3.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.3.0)**
-  🎙️ Adds [🤗 speech-to-speech](https://github.com/huggingface/speech-to-speech) frontend integration, supporting fully local VAD, STT, LLM, and TTS.
-- **2026-08-01 · [v1.2.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.2.0)**
-  ⚡ Desktop app adds auto-update, faster startup, and improved backend Agent detection.
-- **2026-07-31 · [v1.1.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.1.0)**
-  🤝 Adds Kimi Code CLI backend with native ACP integration.
-- **2026-07-30 · [v1.0.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.0.0)**
-  🚀 First stable release, introducing a macOS desktop app with a built-in Gateway.
-- **2026-07-28 · [v0.9.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v0.9.0)**
-  🌍 Project officially open-sourced; backend Agents unified under the ACP architecture.
+- **2026-08-25 · [v1.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.11.0)**
+  Initial release of side-audio-bot with realtime voice runtime, desktop app, and backend Agent support.
 
 ## Conversation Continues, Tasks Too
 
 Conversation doesn't stop for background tasks; when a task completes, the
 result naturally returns to the current conversation:
 
-https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
+<!-- https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05 -->
 
 ### Core Features
 
@@ -76,7 +50,7 @@ https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05
 
 ## Architecture
 
-![qwen-audio-agent architecture](docs/architecture-overview-en.png)
+![side-audio-bot architecture](docs/architecture-overview-en.png)
 
 Questions that can be answered directly are answered immediately; when tools
 or sustained processing are needed, the task is delegated to the backend Agent.
@@ -85,9 +59,9 @@ Throughout, the user always faces the same assistant.
 <details open>
 <summary>View detailed architecture</summary>
 
-![qwen-audio-agent reference architecture](docs/qwen-audio-agent-three-layer-architecture-en.png)
+![side-audio-bot reference architecture](docs/side-audio-bot-architecture-en.png)
 
-For the full design and module breakdown, see the [architecture document](docs/architecture/deep-dive.md).
+For the full design and module breakdown, see the [architecture document](docs/architecture.md).
 
 </details>
 
@@ -96,10 +70,10 @@ For the full design and module breakdown, see the [architecture document](docs/a
 | Backend Agent | Integration | Setup | Rating |
 | --- | --- | --- | --- |
 | None | N/A | Frontend-only mode, no config needed | ★★★★★ |
-| Qwen Code | Native ACP | One-click install, user config required | ★★★★★ |
 | OpenCode | Native ACP | One-click install + Bailian config | ★★★★★ |
 | OpenClaw | Built-in ACP bridge | One-click install + Bailian config | ★★★★★ |
 | Qoder | Native ACP | One-click install, user config required | ★★★★★ |
+| Qwen Code | Native ACP | One-click install, user config required | ★★★★☆ |
 | Kimi Code | Native ACP | One-click install, user config required | ★★★★★ |
 | Hermes | Native ACP | One-click install, user config required | ★★★★☆ |
 | CodeBuddy | Native ACP | One-click install, user config required | ★★★★☆ |
@@ -118,7 +92,7 @@ For detailed configuration and capability boundaries, see the [configuration gui
 Requires Node.js 22.22.2+ or 24.15.0+, npm 10+. One-click install (recommended):
 
 ```bash
-npm install -g qwen-audio-agent
+npm install -g side-audio-bot
 ```
 
 For building from source, installing from GitHub, and obtaining a DashScope
@@ -129,26 +103,34 @@ API Key, see the [installation guide](docs/getting-started/install.md).
 1. Create your config and fill in the API Key:
 
 ```bash
-qwenaudio config
+sideaudio config
 ```
 
 ```dotenv
 DASHSCOPE_API_KEY=your-key
-# Voice frontend model: Audio Flash/Plus or Omni Flash/Plus (Audio Plus is default)
+# Voice frontend model: Omni Flash/Plus or Audio Flash/Plus (Audio Plus is default)
 QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-plus
 # Backend Agent: optional, leave empty or set to none for frontend-only mode
 AGENT_PROTOCOL=openclaw
-# Backend model: optional; explicit values use standard ACP, empty reuses Agent config
-QWEN_AUDIO_AGENT_BACKEND_MODEL=qwen3.7-max
+# Backend model: can be empty; if empty, uses the Agent's own user config
+SIDE_AUDIO_BOT_BACKEND_MODEL=qwen3.7-max
 ```
 
 > Uses DashScope realtime voice frontend by default; alternatively, switch to a local [speech-to-speech frontend](docs/voice-frontends/speech-to-speech.md), no cloud API Key needed.
+> `qwen3.5-omni-flash-realtime` and `qwen3.5-omni-plus-realtime`
+> accept text, audio, and image at the model level. This release transports text and
+> audio only; image/frame and native-video transport remain disabled until their client and
+> Gateway paths are implemented.
 
-2. Start the Gateway, then open another terminal to start the TUI (or use `qwenaudio webui` for the browser UI):
+The Desktop app or `sideaudio config set --realtime-model <id>` configures the single
+Gateway-wide model. Restart the Gateway after a CLI change. WebUI and TUI display the active
+model but do not override it.
+
+2. Start the Gateway, then open another terminal to start the TUI (or use `sideaudio webui` for the browser UI):
 
 ```bash
-qwenaudio        # Terminal 1: Gateway
-qwenaudio tui    # Terminal 2: TUI
+sideaudio        # Terminal 1: Gateway
+sideaudio tui    # Terminal 2: TUI
 ```
 
 For full configuration options, speech-to-speech frontend setup, and TUI
@@ -156,38 +138,21 @@ platform notes, see [quick start](docs/getting-started/quickstart.md),
 [voice frontends](docs/voice-frontends/speech-to-speech.md), and
 [TUI notes](docs/getting-started/tui.md).
 
-## Examples and Scenario Expansion
+## Examples
 
-The current qwen-audio-agent framework focuses on desktop productivity: users
-can keep talking with the Agent in realtime while delegating tool use, file
-work, code changes, and long-running tasks to the backend Agent.
-
-This "foreground conversation + background task" design is not limited to
-desktop use. It can also expand to more scenarios where the Agent can both
-chat naturally and get real work done.
-
-| Scenario | Description | Link | Status |
-| --- | --- | --- | --- |
-| Desktop | Voice chat, progress follow-up, tools, and background tasks. | [Docs][desktop-docs] | Available |
-| Smart cockpit | Vehicle control, navigation, music, weather, and services. | [Example][smart-cockpit-example] | Available |
-| Customer support | Issue clarification, order lookup, tickets, and human handoff. | TBD | Planned |
-| Embodied intelligence | Voice commands, action execution, inspection, and exception feedback. | TBD | Planned |
-| Livestream assistant | Audience interaction, product explanation, coupons, and risk reminders. | TBD | Exploratory |
-
-This repository includes a smart-cockpit reference scenario built on the
-foreground-conversation and backend-execution boundary. Its cockpit UI, small
-A2A Agent, and cockpit service are customer-replaceable examples:
+This repository includes a smart cockpit voice Agent example with vehicle
+control, navigation, music, weather, web search, flash-buy workflows, and a
+car UI:
 
 ```bash
-cp examples/smart-cockpit/.env.example examples/smart-cockpit/.env.local
-npm run example:smart-cockpit:install
-npm run example:smart-cockpit          # service + agent + gateway + client
+cp examples/car/.env.example examples/car/.env.local
+npm install --prefix examples/car/server
+npm install --prefix examples/car/react-app
+npm run example:car:server   # Terminal 1: car Agent server
+npm run example:car:web      # Terminal 2: car UI
 ```
 
-See [examples/smart-cockpit](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/smart-cockpit) for details.
-
-[desktop-docs]: docs/desktop/overview.md
-[smart-cockpit-example]: examples/smart-cockpit
+See [examples/car](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/car) for details.
 
 ## Desktop App
 
@@ -220,7 +185,7 @@ the desktop app opens the Agent's native setup entry instead of copying or
 rewriting its credentials.
 
 ```bash
-qwenaudio setup   # View available backend Agents
+sideaudio setup   # View available backend Agents
 ```
 
 For Agent selection, persistent background service, generic ACP entry, and
@@ -228,7 +193,7 @@ permission modes, see the [backend Agent documentation](docs/backends/overview.m
 
 ## Personalization and Memory
 
-User data is stored in `~/.config/qwaudio/` (`ASSISTANT.md`, `USER.md`,
+User data is stored in `~/.config/sideaudio/` (`ASSISTANT.md`, `USER.md`,
 `MEMORY.md`, `tasks.json`, `logs/`), kept local only, never
 committed to the repository. See [assistant profile, user preferences, and memory](docs/reference/memory.md).
 
@@ -261,15 +226,15 @@ For more build, test, and release instructions, see [CONTRIBUTING.md](CONTRIBUTI
 
 ## Community
 
-You can start discussions directly in [GitHub Issues](https://github.com/QwenAudio/qwen-audio-agent/issues).
+You can start discussions directly in [GitHub Issues](https://github.com/TokenBeat/side-audio-bot/issues).
 
-For users in China, scan the QR codes below to join the WeChat group. If the
+<!-- For users in China, scan the QR codes below to join the WeChat group. If the
 group QR code is full or expired, scan either maintainer's personal QR code
 to be invited.
 
 | WeChat Group | Personal | Personal |
 | :---: | :---: | :---: |
-| <img src="docs/wechat-group-qr.png" width="240" alt="WeChat group QR code"> | <img src="docs/wechat-contact-qr.png" width="240" alt="Li Xu personal WeChat QR code"> | <img src="docs/wechat-pigeon-dan-qr.png" width="240" alt="Pigeon.Dan personal WeChat QR code"> |
+| <img src="docs/wechat-group-qr.png" width="240" alt="WeChat group QR code"> | <img src="docs/wechat-contact-qr.png" width="240" alt="Li Xu personal WeChat QR code"> | <img src="docs/wechat-pigeon-dan-qr.png" width="240" alt="Pigeon.Dan personal WeChat QR code"> | -->
 
 ## Contributing and Security
 

@@ -17,8 +17,8 @@ const RUNTIME = process.env.OPENCODE_RUNTIME || 'auto'
 const PKG = process.env.OPENCODE_PACKAGE || 'opencode-ai@1.18.5'
 const MIN_VERSION = process.env.OPENCODE_MIN_VERSION || '1.18.0'
 const COMMAND = MODE === 'acp' ? 'acp' : MODE === 'gateway' ? 'gateway' : 'serve'
-const BACKEND_MODEL = process.env.QWEN_AUDIO_AGENT_BACKEND_MODEL || ''
-const DESKTOP_INSTALLED_ONLY = process.env.QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY
+const BACKEND_MODEL = process.env.SIDE_AUDIO_BOT_BACKEND_MODEL || ''
+const DESKTOP_INSTALLED_ONLY = process.env.SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -52,10 +52,10 @@ if (!process.env.OPENCODE_MODEL && BACKEND_MODEL && BACKEND_MODEL.toLowerCase() 
   process.env.OPENCODE_MODEL = `alibaba-cn/${modelId}`
 }
 
-if (process.env.QWEN_AUDIO_AGENT_OPENCODE_XDG_CONFIG_HOME) {
-  process.env.XDG_CONFIG_HOME = process.env.QWEN_AUDIO_AGENT_OPENCODE_XDG_CONFIG_HOME
-} else if (process.env.QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG === 'true') {
-  process.env.XDG_CONFIG_HOME = `${process.env.QWEN_AUDIO_AGENT_ROOT || ROOT}/runtime/opencode-xdg`
+if (process.env.SIDE_AUDIO_BOT_OPENCODE_XDG_CONFIG_HOME) {
+  process.env.XDG_CONFIG_HOME = process.env.SIDE_AUDIO_BOT_OPENCODE_XDG_CONFIG_HOME
+} else if (process.env.SIDE_AUDIO_BOT_OPENCODE_ISOLATE_USER_CONFIG === 'true') {
+  process.env.XDG_CONFIG_HOME = `${process.env.SIDE_AUDIO_BOT_ROOT || ROOT}/runtime/opencode-xdg`
 }
 
 // ── runtime runners ──────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ async function runPackage() {
 async function runManagedPackage() {
   if (!process.env.DASHSCOPE_API_KEY) fatal('Automatic OpenCode setup requires DASHSCOPE_API_KEY.')
   if (!BACKEND_MODEL || BACKEND_MODEL.toLowerCase() === 'auto') {
-    fatal('Automatic OpenCode setup requires QWEN_AUDIO_AGENT_BACKEND_MODEL.')
+    fatal('Automatic OpenCode setup requires SIDE_AUDIO_BOT_BACKEND_MODEL.')
   }
   await runPackage()
 }

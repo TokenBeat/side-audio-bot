@@ -2,7 +2,7 @@
 
 > 一个月内接入 9 个后台 Agent（OpenCode、OpenClaw、Qoder、Kimi Code、
 > Hermes、CodeBuddy、Codex、Claude Code、通用 ACP），语音层零改动。
-> 本文讲 qwen-audio-agent 是怎么做到的。
+> 本文讲 side-audio-bot 是怎么做到的。
 
 ## 背景：Agent 生态快得离谱
 
@@ -111,5 +111,5 @@ const drivers = new Map([
 
 ---
 
-qwen-audio-agent 是开源项目（Apache-2.0）。如果你维护的 Agent
-支持 ACP，欢迎来接入：https://github.com/QwenAudio/qwen-audio-agent
+side-audio-bot 是开源项目（Apache-2.0）。如果你维护的 Agent
+支持 ACP，欢迎来接入：https://github.com/TokenBeat/side-audio-bot

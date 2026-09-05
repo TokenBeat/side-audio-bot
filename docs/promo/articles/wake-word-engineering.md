@@ -1,7 +1,7 @@
 # 本地语音唤醒词的工程实现：让 Agent 睡着也能被叫醒
 
 > 桌面语音助手休眠后，麦克风保持开启，说出唤醒词即可唤醒。
-> 本文讲 qwen-audio-agent 中这套唤醒词链路的工程实现与踩坑。
+> 本文讲 side-audio-bot 中这套唤醒词链路的工程实现与踩坑。
 
 ## 需求：休眠不是关机
 
@@ -88,5 +88,5 @@ sherpa-onnx 的 WASM 构建无法把宿主机文件路径透传给原生的
 
 ---
 
-qwen-audio-agent 是开源项目（Apache-2.0），唤醒词功能已在桌面版上线。
-仓库：https://github.com/QwenAudio/qwen-audio-agent
+side-audio-bot 是开源项目（Apache-2.0），唤醒词功能已在桌面版上线。
+仓库：https://github.com/TokenBeat/side-audio-bot

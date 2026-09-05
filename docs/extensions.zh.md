@@ -1,4 +1,4 @@
-# 扩展 qwen-audio-agent
+# 扩展 side-audio-bot
 
 运行时是通用的；一切场景相关的行为都通过声明好的接缝进入。本页列出全部
 接缝，并指向对应的指南。
@@ -51,7 +51,7 @@ Provider 注册表。
 网关在单条 WebSocket 上讲类型化事件。按客户端协议构建自定义客户端，
 或通过稳定性契约把助手嵌入宿主页面——桌面悬浮球、TUI、WebUI 用的都是
 同一条通道。
-[`examples/custom-conversation-client/`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/custom-conversation-client)
+[`examples/custom-conversation-client/`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/custom-conversation-client)
 是最小起点。
 
 → [Gateway 客户端协议](gateway-protocol.zh.md) ·

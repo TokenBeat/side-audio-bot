@@ -7,11 +7,11 @@
 
 ## Resource name
 
-qwen-audio-agent
+side-audio-bot
 
 ## Resource link
 
-https://github.com/QwenAudio/qwen-audio-agent
+https://github.com/TokenBeat/side-audio-bot
 
 ## Recommended section
 

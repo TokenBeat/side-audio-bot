@@ -34,7 +34,7 @@ export class CockpitMcpTools {
     if (this.connecting) return this.connecting
     this.connecting = (async () => {
       const client = new Client({
-        name: 'qwen-audio-agent-cockpit-agent',
+        name: 'side-audio-bot-cockpit-agent',
         version: '1.0.0',
       })
       await client.connect(new StreamableHTTPClientTransport(this.url))

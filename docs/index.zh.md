@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: Qwen Audio Agent
+  name: Side Audio Bot
   text: Agent，始终在场
   tagline: 让 Agent 留在当前对话中持续交流，同时在后台继续工作。
   actions:
@@ -14,7 +14,7 @@ hero:
       link: /zh/architecture/overview
     - theme: alt
       text: GitHub
-      link: https://github.com/QwenAudio/qwen-audio-agent
+      link: https://github.com/TokenBeat/side-audio-bot
 
 features:
   - title: 对话始终流畅

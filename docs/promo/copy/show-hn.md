@@ -2,7 +2,7 @@
 
 ## Title（二选一）
 
-- Show HN: qwen-audio-agent – Full-duplex voice runtime for AI agents
+- Show HN: side-audio-bot – Full-duplex voice runtime for AI agents
 - Show HN: Talk to Claude Code/Codex hands-free, with tasks running in parallel
 
 ## Body

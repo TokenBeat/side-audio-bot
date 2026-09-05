@@ -83,7 +83,7 @@ const OCCUPATION_REPLY = JSON.stringify({
 })
 
 test('observation accumulates across a restart and only then reaches USER.md', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-pipeline-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-pipeline-'))
   try {
     const messages = transcript([
       '我在学校教语文，最近在备课',
@@ -134,7 +134,7 @@ test('observation accumulates across a restart and only then reaches USER.md', a
 })
 
 test('a fabricated quote is dropped before it can reach the pool', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-pipeline-fake-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-pipeline-fake-'))
   try {
     const { observer, pool, audit } = boot(directory, {
       messages: transcript(['帮我看看这段代码', '再改改', '可以了', '谢谢']),
@@ -161,7 +161,7 @@ test('a fabricated quote is dropped before it can reach the pool', async () => {
 })
 
 test('a value already promoted cannot be re-confirmed from the injected profile', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-pipeline-loop-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-pipeline-loop-'))
   try {
     // 这一场用户完全没提职业，只有 instructions 里注入过「中学语文老师」。
     // 若观察器把注入内容当新证据，就会形成自我强化循环。

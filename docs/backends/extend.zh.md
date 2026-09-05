@@ -12,7 +12,7 @@
 AGENT_PROTOCOL=acp
 ACP_COMMAND=your-agent --acp
 # 可选：逗号分隔、需要透传给 Agent 进程的环境变量名
-QWEN_AUDIO_AGENT_ACP_FORWARD_ENV=MY_AGENT_API_KEY
+SIDE_AUDIO_BOT_ACP_FORWARD_ENV=MY_AGENT_API_KEY
 ```
 
 对很多 Agent 来说这就是全部接入工作。
@@ -29,9 +29,9 @@ Task、取消与 Artifact 都由适配器内的官方 A2A SDK 处理。这是面
 ## 路径三：自定义 BackendPort 适配器
 
 电话 Agent、硬件 Agent、HTTP 服务或任何非 ACP 的任务运行时，都可以用
-Backend Adapter SDK（`qwen-audio-agent/backend-adapter-sdk`）直接实现
+Backend Adapter SDK（`side-audio-bot/backend-adapter-sdk`）直接实现
 `BackendPort`。SDK 附带与内置适配器共用的公共一致性测试套件；
-[`examples/backend-adapter/`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/backend-adapter)
+[`examples/backend-adapter/`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/backend-adapter)
 是一个最小可运行实现。
 
 → [Backend Adapter SDK](../reference/backend-adapter-sdk.zh.md)

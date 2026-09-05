@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="1200" height="680" role="img" aria-labelledby="title desc">
-  <title id="title">Qwen Audio Agent 智能座舱框架图</title>
+  <title id="title">Side Audio Bot 智能座舱框架图</title>
   <desc id="desc">可替换的座舱客户端通过 GCP 连接框架 Gateway，可替换的后台 Agent 通过 A2A 接入，两者分别通过 MCP 调用座舱环境与工具。</desc>
   <style>
     text { font-family: 'Alibaba PuHuiTi', 'Heiti SC', 'PingFang SC', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
@@ -34,7 +34,7 @@
   </defs>
 
   <rect width="1200" height="680" fill="#ffffff"/>
-  <text x="40" y="43" class="title">Qwen Audio Agent · 智能座舱示例架构</text>
+  <text x="40" y="43" class="title">Side Audio Bot · 智能座舱示例架构</text>
   <text x="40" y="66" class="subtitle">前台实时对话是框架核心；客户端、后台 Agent 和场景 Service 均可按客户环境替换</text>
 
   <rect x="40" y="100" width="260" height="270" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="7 5"/>

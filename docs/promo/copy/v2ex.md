@@ -6,7 +6,7 @@
 
 ## 正文
 
-各位好，分享一个开源项目 qwen-audio-agent：全双工实时语音运行时，让 AI Agent 持续在场。
+各位好，分享一个开源项目 side-audio-bot：全双工实时语音运行时，让 AI Agent 持续在场。
 
 做这个东西的原因：用语音驱动 Claude Code 时，它一开始读文件、调工具，
 对话就死了，只能干等。我想要的是"它在干活，我们还能继续聊"。
@@ -26,8 +26,8 @@
 技术栈 Node.js，语音默认走 DashScope 实时接口，也接了 speech-to-speech
 支持全本地部署。测试覆盖比较全（600+ 用例）。
 
-仓库：https://github.com/QwenAudio/qwen-audio-agent
-npm 一行安装：npm install -g qwen-audio-agent
+仓库：https://github.com/TokenBeat/side-audio-bot
+npm 一行安装：npm install -g side-audio-bot
 
 欢迎拍砖，特别是语音播报的啰嗦程度问题，我们还在调。
 

@@ -7,9 +7,9 @@ import { startCockpitAgentServer } from '../../agent/server.mjs'
 import { startCockpitServiceServer } from '../../service/server.mjs'
 
 test('composes the public Gateway API with the replaceable A2A Agent', async t => {
-  const runtimeDirectory = await mkdtemp(join(tmpdir(), 'qwaudio-cockpit-'))
-  process.env.QWAUDIO_CONFIG_DIR = runtimeDirectory
-  process.env.QWAUDIO_DATA_DIR = runtimeDirectory
+  const runtimeDirectory = await mkdtemp(join(tmpdir(), 'sideaudio-cockpit-'))
+  process.env.SIDEAUDIO_CONFIG_DIR = runtimeDirectory
+  process.env.SIDEAUDIO_DATA_DIR = runtimeDirectory
   process.env.DASHSCOPE_API_KEY ||= 'test-only-placeholder'
   t.after(() => rm(runtimeDirectory, { recursive: true, force: true }))
 

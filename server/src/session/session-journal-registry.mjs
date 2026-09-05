@@ -91,7 +91,7 @@ export class SessionJournalRegistry {
     for (const journalFile of this.readAllSync()) {
       for (const event of journalFile.records || []) {
         const task = event?.payload?.task
-        if (event?.type !== 'qwaudio/task/event' || !task?.id) continue
+        if (event?.type !== 'sideaudio/task/event' || !task?.id) continue
         const previous = snapshots.get(task.id)
         if (!previous || Number(event.seq || 0) > Number(previous.journalSeq || 0)) {
           snapshots.set(task.id, { ...task, journalSeq: event.seq })

@@ -49,7 +49,7 @@ if (!apiKey) {
 if (!commandAvailable(binary)) {
   console.error(
     'DeepSeek ACP runtime is not installed. Run: '
-    + 'qwenaudio install deepseek',
+    + 'sideaudio install deepseek',
   )
   process.exit(1)
 }

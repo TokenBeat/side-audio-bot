@@ -2,16 +2,16 @@
 
 > Status: Proposal
 >
-> GitHub tracking: [#185](https://github.com/QwenAudio/qwen-audio-agent/issues/185)
+> GitHub tracking: [#185](https://github.com/TokenBeat/side-audio-bot/issues/185)
 >
-> Scope: while retaining one active backend agent, refactor qwen-audio-agent
+> Scope: while retaining one active backend agent, refactor side-audio-bot
 > into a clearly bounded, extensible, standards-oriented realtime voice
 > chatbot runtime that connects to the user's own action agent through an
 > asynchronous work bridge.
 
 ## 1. Product definition
 
-qwen-audio-agent contains two decoupled runtimes that appear to the user as one
+side-audio-bot contains two decoupled runtimes that appear to the user as one
 assistant:
 
 1. The **Realtime Voice Chatbot** owns the conversation. It handles voice,

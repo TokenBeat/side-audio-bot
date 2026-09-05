@@ -15,7 +15,7 @@ const NOW = Date.parse('2026-08-26T09:00:00Z')
 
 // 每个用例一套独立目录：source 放用户原始文件，docs 是资料库落盘目录
 function withDirs(run) {
-  const root = mkdtempSync(join(tmpdir(), 'qwaudio-domain-'))
+  const root = mkdtempSync(join(tmpdir(), 'sideaudio-domain-'))
   try {
     const source = join(root, 'source')
     const docs = join(root, 'workspace', 'domain')

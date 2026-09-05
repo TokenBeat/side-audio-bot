@@ -6,8 +6,8 @@
 //
 //   node scripts/test/memory-gateway-smoke.mjs
 //
-// Requires a DASHSCOPE_API_KEY (environment or ~/.config/qwaudio/config.env,
-// never printed). All state lives in a temporary QWAUDIO_CONFIG_DIR; the real
+// Requires a DASHSCOPE_API_KEY (environment or ~/.config/sideaudio/config.env,
+// never printed). All state lives in a temporary SIDEAUDIO_CONFIG_DIR; the real
 // user data directory is untouched.
 import { spawn } from 'node:child_process'
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
@@ -16,9 +16,9 @@ import { join, resolve } from 'node:path'
 import WebSocket from 'ws'
 
 function resolveApiKey() {
-  if (process.env.QWEN_AUDIO_MEMORY_API_KEY) return process.env.QWEN_AUDIO_MEMORY_API_KEY
+  if (process.env.SIDE_AUDIO_MEMORY_API_KEY) return process.env.SIDE_AUDIO_MEMORY_API_KEY
   if (process.env.DASHSCOPE_API_KEY) return process.env.DASHSCOPE_API_KEY
-  const configPath = join(homedir(), '.config/qwaudio/config.env')
+  const configPath = join(homedir(), '.config/sideaudio/config.env')
   if (!existsSync(configPath)) return ''
   return readFileSync(configPath, 'utf8')
     .match(/^DASHSCOPE_API_KEY=(.+)$/m)?.[1]?.trim() || ''
@@ -30,14 +30,14 @@ if (!apiKey) {
   process.exit(1)
 }
 
-const configDir = mkdtempSync(join(tmpdir(), 'qwenaudio-smoke-'))
+const configDir = mkdtempSync(join(tmpdir(), 'sideaudio-smoke-'))
 const port = 31000 + Math.floor(Math.random() * 4000)
 const root = resolve(import.meta.dirname, '../..')
 const child = spawn(process.execPath, ['server/src/index.mjs'], {
   cwd: root,
   env: {
     ...process.env,
-    QWAUDIO_CONFIG_DIR: configDir,
+    SIDEAUDIO_CONFIG_DIR: configDir,
     DASHSCOPE_API_KEY: apiKey,
     PORT: String(port),
     HOST: '127.0.0.1',

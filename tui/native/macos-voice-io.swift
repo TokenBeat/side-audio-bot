@@ -28,7 +28,7 @@ private func pcmFormat(sampleRate: Double) -> AudioStreamBasicDescription {
 private func check(_ status: OSStatus, _ operation: String) throws {
     guard status == noErr else {
         throw NSError(
-            domain: "QwenAudioAgentVoiceIO",
+            domain: "SideAudioBotVoiceIO",
             code: Int(status),
             userInfo: [
                 NSLocalizedDescriptionKey:
@@ -204,7 +204,7 @@ private final class SampleQueue {
 }
 
 private final class VoiceIO {
-    private let outputQueue = DispatchQueue(label: "qwen-audio-agent.voice-io.output")
+    private let outputQueue = DispatchQueue(label: "side-audio-bot.voice-io.output")
     private let captureLock = NSLock()
     private let playback = SampleQueue()
     private let captureSampleRate: Double
@@ -228,7 +228,7 @@ private final class VoiceIO {
         )
         guard let component = AudioComponentFindNext(nil, &description) else {
             throw NSError(
-                domain: "QwenAudioAgentVoiceIO",
+                domain: "SideAudioBotVoiceIO",
                 code: 1,
                 userInfo: [NSLocalizedDescriptionKey: "找不到 VoiceProcessingIO"]
             )
@@ -241,7 +241,7 @@ private final class VoiceIO {
         )
         guard let unit else {
             throw NSError(
-                domain: "QwenAudioAgentVoiceIO",
+                domain: "SideAudioBotVoiceIO",
                 code: 2,
                 userInfo: [NSLocalizedDescriptionKey: "VoiceProcessingIO 创建为空"]
             )

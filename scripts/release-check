@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 
-QWEN_AUDIO_AGENT_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-cd "$QWEN_AUDIO_AGENT_ROOT"
+SIDE_AUDIO_BOT_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$SIDE_AUDIO_BOT_ROOT"
 
 node <<'NODE'
 const { readFileSync } = require('node:fs')
@@ -54,7 +54,7 @@ for (const workspace of [
 }
 
 const manifest = JSON.parse(readFileSync('package.json', 'utf8'))
-const publicRepository = 'git+https://github.com/QwenAudio/qwen-audio-agent.git'
+const publicRepository = 'git+https://github.com/TokenBeat/side-audio-bot.git'
 const publicRegistry = 'https://registry.npmjs.org/'
 if (manifest.repository?.url !== publicRepository) {
   throw new Error('package.json does not point to the public GitHub repository')
@@ -191,8 +191,8 @@ npm test
 npm run build
 node scripts/verify-package.mjs
 
-QWEN_AUDIO_AGENT_RELEASE_VERSION=$(
+SIDE_AUDIO_BOT_RELEASE_VERSION=$(
   node -p "require('./package.json').version"
 )
 printf '%s\n' \
-  "qwen-audio-agent ${QWEN_AUDIO_AGENT_RELEASE_VERSION} release checks passed."
+  "side-audio-bot ${SIDE_AUDIO_BOT_RELEASE_VERSION} release checks passed."

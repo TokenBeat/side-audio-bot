@@ -4,14 +4,14 @@
 
 ## 它是什么？
 
-**Qwen Audio Agent** 是一个住在 Mac 桌面上的小球应用。你直接对它说话，它听懂后交给 AI 去办，办完了再用语音告诉你结果——全程不用打字。
+**Side Audio Bot** 是一个住在 Mac 桌面上的小球应用。你直接对它说话，它听懂后交给 AI 去办，办完了再用语音告诉你结果——全程不用打字。
 
 和常见语音助手最大的不同是：**你可以随时插话打断它**，就像真人对话一样；它干重活的时候你还可以继续聊别的，活干完了它会自己回来汇报"已经好了"。
 
 ## 第 1 步：下载并安装
 
-1. 打开 [发布页](https://github.com/QwenAudio/qwen-audio-agent/releases/latest)，下载文件名带 `mac-universal.dmg` 的安装包
-2. 双击打开，把 **Qwen Audio Agent** 图标拖进"应用程序"文件夹
+1. 打开 [发布页](https://github.com/TokenBeat/side-audio-bot/releases/latest)，下载文件名带 `mac-universal.dmg` 的安装包
+2. 双击打开，把 **Side Audio Bot** 图标拖进"应用程序"文件夹
 3. 在启动台里打开它
 
 > 首次打开如果 macOS 提示"来自身份不明的开发者"，在「系统设置 → 隐私与安全性」里点"仍要打开"即可。
@@ -46,4 +46,4 @@
 
 ## 遇到问题？
 
-先看 [常见问题](faq.md)；还没有答案，欢迎到 [讨论区](https://github.com/QwenAudio/qwen-audio-agent/discussions) 提问，或扫 [README](../../../README.md) 里的微信群二维码进群。
+先看 [常见问题](faq.md)；还没有答案，欢迎到 [讨论区](https://github.com/TokenBeat/side-audio-bot/discussions) 提问，或扫 [README](../../../README.md) 里的微信群二维码进群。

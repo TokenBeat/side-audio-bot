@@ -75,9 +75,9 @@ function normalizeGatewayUrl(value) {
 
 export function parseArguments(argv, env = process.env) {
   const options = {
-    url: env.QWEN_AUDIO_AGENT_URL || 'http://127.0.0.1:3101',
-    sessionId: env.QWEN_AUDIO_AGENT_SESSION_ID || 'tui-main',
-    audioMode: env.QWEN_AUDIO_AGENT_TUI_AUDIO_MODE || 'half',
+    url: env.SIDE_AUDIO_BOT_URL || 'http://127.0.0.1:3101',
+    sessionId: env.SIDE_AUDIO_BOT_SESSION_ID || 'tui-main',
+    audioMode: env.SIDE_AUDIO_BOT_TUI_AUDIO_MODE || 'half',
   }
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index]
@@ -250,7 +250,7 @@ export function helpText(mode = audioModeForPlatform()) {
 export function fullDuplexFallbackHint(mode) {
   if (mode.audioBackend !== 'portaudio' || !mode.fullDuplex) return ''
   return 'PortAudio 全双工出现异常；请重新运行 '
-    + 'qwenaudio tui --audio-mode half 使用半双工。'
+    + 'sideaudio tui --audio-mode half 使用半双工。'
 }
 
 function requestLabel(task) {
@@ -1083,8 +1083,8 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
   const audioMode = audioModeForPlatform(process.platform, options.audioMode)
   if (options.help) {
     process.stdout.write(
-      'qwen-audio-agent Voice TUI\n\n'
-      + '用法：qwenaudio tui [--url URL] [--session ID] '
+      'side-audio-bot Voice TUI\n\n'
+      + '用法：sideaudio tui [--url URL] [--session ID] '
       + '[--audio-mode half|full]\n\n'
       + `${helpText(audioMode)}\n`,
     )
@@ -1140,7 +1140,7 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
   const print = text => transcriptRenderer.print(text)
   const setStatus = text => transcriptRenderer.setStatus(text)
   const userPrefix = style('你 >', 'cyan')
-  const assistantPrefix = style('qwen-audio >', 'bold')
+  const assistantPrefix = style('side-audio >', 'bold')
   const turnStatusDisplay = createTurnStatusDisplay({ print })
   const transcriptDisplay = createTranscriptDisplay({
     onUserDelta: content => transcriptRenderer.update(userPrefix, content),
@@ -1528,11 +1528,11 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
           })
           setStatus('Gateway 已连接 · 语音服务准备中')
           if (connectedOnce) {
-            print(style('[qwen-audio-agent 已重新连接]', 'green'))
+            print(style('[side-audio-bot 已重新连接]', 'green'))
           } else {
             connectedOnce = true
             print(
-              `${style('qwen-audio-agent Voice TUI', 'bold')} · ${health.realtimeLabel || health.realtimeModelProfile?.label || health.realtimeModel || 'Realtime'} → ${health.backend?.label || health.backend?.kind || 'Gateway'}\n`
+              `${style('side-audio-bot Voice TUI', 'bold')} · ${health.realtimeLabel || health.realtimeModelProfile?.label || health.realtimeModel || 'Realtime'} → ${health.backend?.label || health.backend?.kind || 'Gateway'}\n`
               + `${realtimeModelStatusText(health)}\n`
               + `会话：${options.sessionId}\n`
               + `音频：${audioMode.label}\n`
@@ -1551,12 +1551,12 @@ export async function runTui(options = parseArguments(process.argv.slice(2))) {
           playback.clear()
           transcriptDisplay.reset()
           if (closed) {
-            print('qwen-audio-agent 连接已关闭。')
+            print('side-audio-bot 连接已关闭。')
           } else if (bridgeExited) {
             cleanup()
           } else {
             setStatus('Gateway 已断开 · 正在自动重连 · /exit 或 Ctrl-C 可退出')
-            print(style('[qwen-audio-agent 连接中断，正在重连]', 'yellow'))
+            print(style('[side-audio-bot 连接中断，正在重连]', 'yellow'))
             scheduleReconnect()
           }
         }
@@ -1644,7 +1644,7 @@ if (isMain) {
     .then(() => logger.info('tui.stopped'))
     .catch(error => {
       logger.error('tui.failed', { error })
-      process.stderr.write(`qwen-audio-agent TUI 启动失败：${error.message}\n`)
+      process.stderr.write(`side-audio-bot TUI 启动失败：${error.message}\n`)
       process.exitCode = 1
     })
 }

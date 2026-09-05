@@ -8,7 +8,7 @@ WebUI 是浏览器里的对话客户端。Gateway 在自己的源上静态托管
 Gateway 运行中，在另一个终端执行：
 
 ```bash
-qwenaudio webui
+sideaudio webui
 ```
 
 命令会打印页面地址（默认 `http://127.0.0.1:3101`）并用默认浏览器打开。

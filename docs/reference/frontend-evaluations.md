@@ -1,7 +1,7 @@
 # Frontend Runtime Evaluations
 
 The deterministic frontend evaluation suite protects the runtime boundaries
-that qwen-audio-agent can guarantee independently from a Realtime model or
+that side-audio-bot can guarantee independently from a Realtime model or
 provider:
 
 | Dimension | Invariant |

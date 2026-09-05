@@ -2,10 +2,10 @@
 
 > Status: **Stable 6.0**<br>
 > Wire version: **6.0.0**<br>
-> Roadmap: [GitHub issue #251](https://github.com/QwenAudio/qwen-audio-agent/issues/251)<br>
+> Roadmap: [GitHub issue #251](https://github.com/TokenBeat/side-audio-bot/issues/251)<br>
 > Current implementation sources of truth: `shared/gateway-client-protocol.mjs`, `server/src/client/client-event-router.mjs`, `server/src/client/client-command-runtime.mjs`, `shared/realtime-events.mjs`, `shared/protocol/gateway-events.mjs`, and `server/src/core/gateway-protocol.mjs`
 
-This specification defines the implemented northbound boundary between qwen-audio-agent's Gateway and one active Client Environment. Current first-party clients use the 6.0 wire protocol; health-contract 5.x aliases remain temporarily available for compatibility.
+This specification defines the implemented northbound boundary between side-audio-bot's Gateway and one active Client Environment. Current first-party clients use the 6.0 wire protocol; health-contract 5.x aliases remain temporarily available for compatibility.
 
 ## 1. Product boundary
 

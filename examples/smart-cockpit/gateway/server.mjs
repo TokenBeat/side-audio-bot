@@ -1,5 +1,5 @@
 // Foreground composition root for the cockpit showcase. Keep scenario choices
-// here and consume only public qwen-audio-agent exports; do not copy framework
+// here and consume only public side-audio-bot exports; do not copy framework
 // runtime logic or move cockpit business state into the Gateway.
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { cockpitAssistantProfileEventDefinition } from './assistant/event.mjs'
@@ -7,8 +7,8 @@ import { loadCockpitEnvironment } from '../bootstrap/environment.mjs'
 import { COCKPIT_SPAWN_THINKING_DESCRIPTION } from './spawn-thinking-tool.mjs'
 
 loadCockpitEnvironment()
-process.env.QWAUDIO_CONFIG_DIR ||= fileURLToPath(new URL('../.runtime', import.meta.url))
-process.env.QWAUDIO_DATA_DIR ||= process.env.QWAUDIO_CONFIG_DIR
+process.env.SIDEAUDIO_CONFIG_DIR ||= fileURLToPath(new URL('../.runtime', import.meta.url))
+process.env.SIDEAUDIO_DATA_DIR ||= process.env.SIDEAUDIO_CONFIG_DIR
 if (!process.env.COCKPIT_FRONTEND_MCP_URL) {
   const frontendMcpUrl = new URL(
     '/mcp/frontend',
@@ -17,7 +17,7 @@ if (!process.env.COCKPIT_FRONTEND_MCP_URL) {
   frontendMcpUrl.searchParams.set('cockpitId', process.env.COCKPIT_ID || 'default')
   process.env.COCKPIT_FRONTEND_MCP_URL = frontendMcpUrl.toString()
 }
-process.env.QWEN_AUDIO_FRONTEND_PROFILE ||= fileURLToPath(
+process.env.SIDE_AUDIO_FRONTEND_PROFILE ||= fileURLToPath(
   new URL('./frontend-profile.json', import.meta.url),
 )
 
@@ -26,9 +26,9 @@ const [
   { createBackendAgentHost },
   { createA2ABackendAdapter },
 ] = await Promise.all([
-  import('qwen-audio-agent/gateway-application'),
-  import('qwen-audio-agent/backend-adapter-sdk'),
-  import('qwen-audio-agent/a2a-backend-adapter'),
+  import('side-audio-bot/gateway-application'),
+  import('side-audio-bot/backend-adapter-sdk'),
+  import('side-audio-bot/a2a-backend-adapter'),
 ])
 
 function port(value, fallback) {

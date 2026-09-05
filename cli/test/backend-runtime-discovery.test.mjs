@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
 function fixture() {
-  const directory = mkdtempSync(resolve(tmpdir(), 'qwen-backend-runtime-'))
+  const directory = mkdtempSync(resolve(tmpdir(), 'sideaudio-backend-runtime-'))
   const bin = resolve(directory, 'bin')
   const capture = resolve(directory, 'capture.txt')
   mkdirSync(bin)
@@ -48,8 +48,8 @@ function command(path, {
     'printf "%s\\n" "$(basename "$0")" "$@" > "$CAPTURE"',
     ...(captureModels ? [
       'printf "%s\\n" "OPENCODE_MODEL=${OPENCODE_MODEL:-}" >> "$CAPTURE"',
-      'printf "%s\\n" "OPENCLAW_MODEL=${QWEN_AUDIO_AGENT_OPENCLAW_MODEL:-}" >> "$CAPTURE"',
-      'printf "%s\\n" "OPENCLAW_MODEL_ID=${QWEN_AUDIO_AGENT_OPENCLAW_MODEL_ID:-}" >> "$CAPTURE"',
+      'printf "%s\\n" "OPENCLAW_MODEL=${SIDE_AUDIO_BOT_OPENCLAW_MODEL:-}" >> "$CAPTURE"',
+      'printf "%s\\n" "OPENCLAW_MODEL_ID=${SIDE_AUDIO_BOT_OPENCLAW_MODEL_ID:-}" >> "$CAPTURE"',
       'printf "%s\\n" "OPENCLAW_CONFIG_PATH=${OPENCLAW_CONFIG_PATH:-}" >> "$CAPTURE"',
       'printf "%s\\n" "OPENCLAW_STATE_DIR=${OPENCLAW_STATE_DIR:-}" >> "$CAPTURE"',
     ] : []),
@@ -76,9 +76,9 @@ function execute(script, target, env = {}, args = []) {
       HOME: target.directory,
       PATH: `${target.bin}:/usr/bin:/bin`,
       CAPTURE: target.capture,
-      QWEN_AUDIO_AGENT_ENV_LOADED: '1',
-      QWEN_AUDIO_AGENT_NODE: process.execPath,
-      QWAUDIO_CONFIG_DIR: resolve(target.directory, 'config'),
+      SIDE_AUDIO_BOT_ENV_LOADED: '1',
+      SIDE_AUDIO_BOT_NODE: process.execPath,
+      SIDEAUDIO_CONFIG_DIR: resolve(target.directory, 'config'),
       OPENCLAW_BUNDLE_BIN: '',
       ...env,
     },
@@ -124,7 +124,7 @@ test('OpenCode auto mode downloads a pinned package when missing', {
       OPENCODE_RUNTIME: 'auto',
       OPENCODE_PORT: '4321',
       DASHSCOPE_API_KEY: 'test-key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
     }), [
       'npx',
       '--yes',
@@ -151,7 +151,7 @@ test('OpenCode auto mode replaces an incompatible version with the pinned packag
       OPENCODE_RUNTIME: 'auto',
       OPENCODE_PORT: '4321',
       DASHSCOPE_API_KEY: 'test-key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
     }), [
       'npx',
       '--yes',
@@ -264,9 +264,9 @@ test('OpenClaw auto mode preserves the user-installed version', {
       OPENCLAW_RUNTIME: 'auto',
       FAKE_OPENCLAW_PACKAGE_BIN: packageBinary,
       DASHSCOPE_API_KEY: 'test-key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
       DASHSCOPE_API_KEY: 'test-key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
     }, ['acp']), [
       'openclaw',
       'acp',
@@ -318,7 +318,7 @@ test('OpenClaw auto mode downloads a pinned package when missing', {
       OPENCLAW_RUNTIME: 'auto',
       FAKE_OPENCLAW_PACKAGE_BIN: packageBinary,
       DASHSCOPE_API_KEY: 'test-key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
     }, ['acp']), [
       'openclaw-package',
       'acp',
@@ -586,13 +586,13 @@ test('automatically configures explicit Bailian models for OpenCode and OpenClaw
     })
     const openCodeOutput = run('scripts/opencode-server.mjs', openCode, {
       DASHSCOPE_API_KEY: 'test-key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen-custom',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen-custom',
     })
     assert.equal(openCodeOutput.at(-5), 'OPENCODE_MODEL=alibaba-cn/qwen-custom')
 
     const openClawOutput = run('scripts/openclaw.mjs', openClaw, {
       DASHSCOPE_API_KEY: 'test-key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen-custom',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen-custom',
     }, ['gateway', 'run'])
     assert.deepEqual(openClawOutput.slice(-5), [
       'OPENCODE_MODEL=',

@@ -1,7 +1,7 @@
 # Cockpit tool groups
 
 This directory is scenario-owned business code for the smart-cockpit showcase.
-It is neither Gateway core nor a third qwen-audio-agent layer.
+It is neither Gateway core nor a third side-audio-bot layer.
 
 Each directory is one scenario capability group rather than one file per MCP
 function. A group keeps its MCP manifest next to its executor and receives the

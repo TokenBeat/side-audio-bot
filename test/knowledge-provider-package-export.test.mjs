@@ -5,7 +5,7 @@ import {
   assertKnowledgeRetrievalProvider,
   knowledgeProviderHealth,
   normalizeKnowledgeRetrievalResponse,
-} from 'qwen-audio-agent/knowledge-provider'
+} from 'side-audio-bot/knowledge-provider'
 
 test('exports one stable optional Knowledge Provider contract', () => {
   assert.equal(KNOWLEDGE_PROVIDER_PROTOCOL_VERSION, 1)

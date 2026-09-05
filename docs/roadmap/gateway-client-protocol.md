@@ -2,13 +2,13 @@
 
 > Status: proposal
 >
-> Tracking: [GitHub issue #251](https://github.com/QwenAudio/qwen-audio-agent/issues/251)
+> Tracking: [GitHub issue #251](https://github.com/TokenBeat/side-audio-bot/issues/251)
 >
 > Spec: [Gateway Client Protocol](../gateway-protocol.md)
 
 ## Goal
 
-Complete qwen-audio-agent's remaining public architecture boundary. `BackendPort` already isolates Gateway from ACP, A2A, and custom Backend Agents. This roadmap isolates Gateway Core from TUI, WebUI, Desktop Orb, and future Client Environments.
+Complete side-audio-bot's remaining public architecture boundary. `BackendPort` already isolates Gateway from ACP, A2A, and custom Backend Agents. This roadmap isolates Gateway Core from TUI, WebUI, Desktop Orb, and future Client Environments.
 
 The resulting framework has three replaceable edges:
 

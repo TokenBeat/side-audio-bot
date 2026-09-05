@@ -163,7 +163,7 @@ function callArguments(tool, query, limit) {
 }
 
 function defaultClientFactory() {
-  return new Client({ name: 'qwen-audio-agent', version: PACKAGE_VERSION })
+  return new Client({ name: 'side-audio-bot', version: PACKAGE_VERSION })
 }
 
 function defaultTransportFactory(url, options) {

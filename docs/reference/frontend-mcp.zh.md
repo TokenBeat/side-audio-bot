@@ -9,10 +9,10 @@ Gateway 在启动时发现显式启用的工具，为其分配稳定名称，并
 
 ## 配置
 
-用 `QWEN_AUDIO_FRONTEND_MCP_CONFIG` 指定一个带版本的 JSON 文件：
+用 `SIDE_AUDIO_FRONTEND_MCP_CONFIG` 指定一个带版本的 JSON 文件：
 
 ```dotenv
-QWEN_AUDIO_FRONTEND_MCP_CONFIG=/absolute/path/to/frontend-mcp.json
+SIDE_AUDIO_FRONTEND_MCP_CONFIG=/absolute/path/to/frontend-mcp.json
 DOCUMENT_MCP_AUTHORIZATION=Bearer replace-me
 ```
 

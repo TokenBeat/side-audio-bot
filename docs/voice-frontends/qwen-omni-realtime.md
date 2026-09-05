@@ -24,7 +24,7 @@ QWEN_AUDIO_REALTIME_MODEL=qwen3.5-omni-flash-realtime
 Same credential and endpoint settings as
 [Qwen Audio 3.0 Realtime](qwen-audio-realtime.md) — one Gateway owns one
 active model regardless of family; switch via Desktop settings or
-`qwenaudio config set --realtime-model <id>`, then restart the Gateway.
+`sideaudio config set --realtime-model <id>`, then restart the Gateway.
 
 ## Voice and turn detection
 
@@ -40,7 +40,7 @@ This family is where the model/transport distinction matters:
 | Input | text, audio, **image** | text, audio |
 | Output | text, audio | text, audio |
 
-The models accept images; this release of qwen-audio-agent does not ship
+The models accept images; this release of side-audio-bot does not ship
 the client and Gateway paths for them yet. JPEG observation frames and
 native video transport stay disabled until those paths land — clients
 show the image capability as unavailable rather than pretending to send
@@ -49,7 +49,7 @@ to clients over the health endpoint, so UIs render the same boundary.
 
 ## Which family should I pick?
 
-- **Audio** (`qwen-audio-3.0-realtime-*`) — the default; voice-first
+- **Audio** (`side-audio-3.0-realtime-*`) — the default; voice-first
   conversation, nothing else needed.
 - **Omni** (`qwen3.5-omni-*-realtime`) — pick when you want the
   image-ready model family today, knowing image transport is still

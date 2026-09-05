@@ -1,5 +1,5 @@
 {
-  "name": "qwen-audio-agent-smart-cockpit-service",
+  "name": "side-audio-bot-smart-cockpit-service",
   "private": true,
   "version": "1.0.0",
   "type": "module",

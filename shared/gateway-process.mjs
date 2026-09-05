@@ -14,7 +14,7 @@ import { gatewayOptionsEnvironment } from './gateway-options.mjs'
 const here = dirname(fileURLToPath(import.meta.url))
 
 export const DEFAULT_GATEWAY_ENTRY = resolve(here, '../server/src/index.mjs')
-export const GATEWAY_READY_MESSAGE = 'qwen-audio-agent:gateway-ready'
+export const GATEWAY_READY_MESSAGE = 'side-audio-bot:gateway-ready'
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'])
 

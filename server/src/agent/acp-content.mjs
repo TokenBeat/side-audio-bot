@@ -74,7 +74,7 @@ function artifactPartFromAcpBlock(block, index) {
         uri,
         ...(block.description ? { description: clean(block.description) } : {}),
       },
-      mediaType: 'application/vnd.qwen-audio-agent.resource-link+json',
+      mediaType: 'application/vnd.side-audio-bot.resource-link+json',
       filename,
     }
   }
@@ -98,7 +98,7 @@ export function artifactsFromAcpContentBlocks(blocks = [], { startIndex = 0 } = 
 
 function resourceUri(part, index) {
   const filename = String(part.filename || `attachment-${index + 1}`)
-  return `qwen-audio-agent://input/${encodeURIComponent(filename)}`
+  return `side-audio-bot://input/${encodeURIComponent(filename)}`
 }
 
 function isTextMime(mime) {

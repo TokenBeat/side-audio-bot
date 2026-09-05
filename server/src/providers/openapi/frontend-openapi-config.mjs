@@ -168,7 +168,7 @@ export function normalizeFrontendOpenApiConfiguration(value, {
 }
 
 export function loadFrontendOpenApiConfiguration({
-  filePath = process.env.QWEN_AUDIO_FRONTEND_OPENAPI_CONFIG,
+  filePath = process.env.SIDE_AUDIO_FRONTEND_OPENAPI_CONFIG,
   env = process.env,
 } = {}) {
   const configuredPath = clean(filePath, 2_048)

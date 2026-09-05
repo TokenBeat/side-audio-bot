@@ -71,7 +71,7 @@ test('normalizes local documents, secrets, and per-operation policy', () => {
 })
 
 test('resolves document paths relative to the versioned config file', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwen-audio-openapi-config-'))
+  const directory = mkdtempSync(join(tmpdir(), 'side-audio-openapi-config-'))
   const filePath = join(directory, 'openapi-tools.json')
   try {
     writeFileSync(filePath, JSON.stringify(configuration()), 'utf8')

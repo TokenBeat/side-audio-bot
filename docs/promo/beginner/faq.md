@@ -43,5 +43,5 @@
 ## 出问题找谁？
 
 - 先看这份 FAQ 和 [上手指南](quickstart.md)
-- [GitHub 讨论区](https://github.com/QwenAudio/qwen-audio-agent/discussions) 发问
+- [GitHub 讨论区](https://github.com/TokenBeat/side-audio-bot/discussions) 发问
 - [README](../../../README.md) 底部有微信群二维码，进群直接问

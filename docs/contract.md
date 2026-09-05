@@ -1,7 +1,7 @@
 # Gateway contract
 
 This file is the single index of what an external client — the desktop app,
-the CLI, the WebUI, or a platform integrating qwen-audio-agent — may rely on.
+the CLI, the WebUI, or a platform integrating side-audio-bot — may rely on.
 Everything not listed here (internal module paths, file layouts inside the
 config directory other than what is named below, database and state file
 formats) is not contract and may change in any release.
@@ -19,9 +19,9 @@ Versioning follows SemVer: the minor rises for an additive capability, the
 major for a breaking change to any endpoint or event named below.
 
 The stable 6.0 northbound boundary is documented in the
-[Gateway Client Protocol](https://github.com/QwenAudio/qwen-audio-agent/blob/main/docs/gateway-protocol.md) and its
-[completed roadmap](https://github.com/QwenAudio/qwen-audio-agent/blob/main/docs/roadmap/gateway-client-protocol.md), tracked by the closed
-[GitHub issue #251](https://github.com/QwenAudio/qwen-audio-agent/issues/251).
+[Gateway Client Protocol](https://github.com/TokenBeat/side-audio-bot/blob/main/docs/gateway-protocol.md) and its
+[completed roadmap](https://github.com/TokenBeat/side-audio-bot/blob/main/docs/roadmap/gateway-client-protocol.md), tracked by the closed
+[GitHub issue #251](https://github.com/TokenBeat/side-audio-bot/issues/251).
 GCP1–GCP5 are complete: the 6.0 handshake, Client Event ingress,
 runtime-command plane, Agent Delivery, Client Actions, reference Client SDK,
 and bounded replay all share the same WebSocket.
@@ -66,9 +66,9 @@ below instead of assuming the old list.
 | `web.same-origin-ui` | The Gateway statically hosts the web UI at its own origin; a webview pointed at the Gateway URL needs no extra configuration | `test/consumer-install.test.mjs` |
 | `web.skin-assets` | Imported orb skins are served at `/skins/<id>/` on the Gateway origin, so the orb page's same-origin asset fetches work without a separate static server | `test/consumer-install.test.mjs` |
 | `gateway.instance-lease` | A lease in the config directory names the running instance; `/api/health` echoes `gatewayInstanceId` so a foreign process on the same port is never mistaken for this Gateway | `test/consumer-install.test.mjs` |
-| `gateway.setup-gate` | An unconfigured start is refused with `QWAUDIO_GATEWAY_SETUP_REQUIRED` and a `missing` list instead of serving an instance whose voice cannot work | `test/gateway-setup.test.mjs` |
+| `gateway.setup-gate` | An unconfigured start is refused with `SIDEAUDIO_GATEWAY_SETUP_REQUIRED` and a `missing` list instead of serving an instance whose voice cannot work | `test/gateway-setup.test.mjs` |
 | `gateway.settings-store` | Configuration persistence is owned by this package: `createSettingsStore({ configDir })` — a host names no setting and no file of its own | `desktop/test/settings-store.test.mjs` |
-| `host.electron-entry` | `qwen-audio-agent/electron`: a CommonJS entry an Electron main process can `require`, loading every ESM contract through one `load()` | `test/consumer-install.test.mjs` |
+| `host.electron-entry` | `side-audio-bot/electron`: a CommonJS entry an Electron main process can `require`, loading every ESM contract through one `load()` | `test/consumer-install.test.mjs` |
 | `host.gateway-process` | `GatewayProcess` ships: forking, port fallback, the readiness handshake, restart, and telling a planned exit from a crash — the desktop app runs the same implementation | `desktop/test/gateway-process.test.mjs` |
 | `input.suspend-protocol` | `POST /api/input/suspend\|resume`, `GET /api/input`; the Gateway relays the suspension to clients through `input.suspend` / `input.resume` | `server/test/input-suspend-protocol.test.mjs` |
 | `input.suspend-clears-playback` | Suspending also clears playback so host recording stays clean | `server/test/input-suspend-protocol.test.mjs` |
@@ -102,39 +102,39 @@ is unsupported and breaks without notice.
 
 | Entry | Exports |
 | --- | --- |
-| `qwen-audio-agent/electron` | **CJS**: `load()` (every contract in one namespace), `PRELOAD_PATH` |
-| `qwen-audio-agent/gateway-protocol` | `GATEWAY_PROTOCOL_VERSION`, `GATEWAY_CAPABILITIES` |
-| `qwen-audio-agent/gateway-client-protocol` | GCP 6.0 envelope, handshake and runtime-command schemas, parsers, capability constants, and reference Client helpers |
-| `qwen-audio-agent/gateway-client-sdk` | `GatewayClient`: WebSocket lifecycle, 6.0 handshake, request correlation, Client Actions, bounded replay, and reconnect recovery |
-| `qwen-audio-agent/gateway-client-profiles` | Reference capability profiles for WebUI, Desktop, and TUI |
-| `qwen-audio-agent/client-events` | Client Event definition registry, built-in definitions, routing policies, and `GatewayEventRouter` for Gateway extensions |
-| `qwen-audio-agent/client-actions` | `ClientActionPort`, built-in action names, capability mapping, request/result correlation, deadlines, and in-flight deduplication |
-| `qwen-audio-agent/agent-delivery` | Provider-neutral `AgentDelivery` values and routing modes |
-| `qwen-audio-agent/gateway-setup` | `gatewaySetupStatus`, `assertGatewaySetup` |
-| `qwen-audio-agent/gateway-process` | `GatewayProcess`, `createGatewayProcess`, `GATEWAY_READY_MESSAGE`, `DEFAULT_GATEWAY_ENTRY`, `validateGatewayOrigin`, `portInUse` |
-| `qwen-audio-agent/gateway-lease` | `readGatewayLease`, `findRunningGateway`, `acquireGatewayLease` |
-| `qwen-audio-agent/realtime-events` | `GatewayClientEvent`, `GatewayServerEvent`, `GatewayTaskEvent` |
-| `qwen-audio-agent/gateway-events` | Gateway event Zod schemas and parsers |
-| `qwen-audio-agent/ag-ui-events` | Zod schema and parser for the supported AG-UI compatibility surface |
-| `qwen-audio-agent/gateway-client-state` | `createGatewayClientState`, `reduceGatewayClientState`, `acceptsGatewayVoiceState` |
-| `qwen-audio-agent/settings` | `createSettingsStore` |
-| `qwen-audio-agent/skin-store` | `importSkin`, `listSkins`, `removeSkin`, `effectiveOrbSkin`, `skinsDirectory`, `validateSkinPackage` |
-| `qwen-audio-agent/orb/main` | `bindOrbShell`, `configureOrbWindow`, `ORB_CHANNELS` |
-| `qwen-audio-agent/orb/window` | `createOrbWindow`, `orbWindowOptions`, `ORB_PRELOAD_PATH`, `ORB_WINDOW_SIZE` |
-| `qwen-audio-agent/orb/placement` | `createOrbPlacement`, `ORB_PLACEMENT_MARGIN` |
-| `qwen-audio-agent/orb/presence` | `DesktopPresence` |
-| `qwen-audio-agent/orb/preload` | The renderer preload both orb and settings pages use |
-| `qwen-audio-agent/orb/url` | `desktopOrbUrl` |
-| `qwen-audio-agent/web-dist/*` | The prebuilt web assets |
+| `side-audio-bot/electron` | **CJS**: `load()` (every contract in one namespace), `PRELOAD_PATH` |
+| `side-audio-bot/gateway-protocol` | `GATEWAY_PROTOCOL_VERSION`, `GATEWAY_CAPABILITIES` |
+| `side-audio-bot/gateway-client-protocol` | GCP 6.0 envelope, handshake and runtime-command schemas, parsers, capability constants, and reference Client helpers |
+| `side-audio-bot/gateway-client-sdk` | `GatewayClient`: WebSocket lifecycle, 6.0 handshake, request correlation, Client Actions, bounded replay, and reconnect recovery |
+| `side-audio-bot/gateway-client-profiles` | Reference capability profiles for WebUI, Desktop, and TUI |
+| `side-audio-bot/client-events` | Client Event definition registry, built-in definitions, routing policies, and `GatewayEventRouter` for Gateway extensions |
+| `side-audio-bot/client-actions` | `ClientActionPort`, built-in action names, capability mapping, request/result correlation, deadlines, and in-flight deduplication |
+| `side-audio-bot/agent-delivery` | Provider-neutral `AgentDelivery` values and routing modes |
+| `side-audio-bot/gateway-setup` | `gatewaySetupStatus`, `assertGatewaySetup` |
+| `side-audio-bot/gateway-process` | `GatewayProcess`, `createGatewayProcess`, `GATEWAY_READY_MESSAGE`, `DEFAULT_GATEWAY_ENTRY`, `validateGatewayOrigin`, `portInUse` |
+| `side-audio-bot/gateway-lease` | `readGatewayLease`, `findRunningGateway`, `acquireGatewayLease` |
+| `side-audio-bot/realtime-events` | `GatewayClientEvent`, `GatewayServerEvent`, `GatewayTaskEvent` |
+| `side-audio-bot/gateway-events` | Gateway event Zod schemas and parsers |
+| `side-audio-bot/ag-ui-events` | Zod schema and parser for the supported AG-UI compatibility surface |
+| `side-audio-bot/gateway-client-state` | `createGatewayClientState`, `reduceGatewayClientState`, `acceptsGatewayVoiceState` |
+| `side-audio-bot/settings` | `createSettingsStore` |
+| `side-audio-bot/skin-store` | `importSkin`, `listSkins`, `removeSkin`, `effectiveOrbSkin`, `skinsDirectory`, `validateSkinPackage` |
+| `side-audio-bot/orb/main` | `bindOrbShell`, `configureOrbWindow`, `ORB_CHANNELS` |
+| `side-audio-bot/orb/window` | `createOrbWindow`, `orbWindowOptions`, `ORB_PRELOAD_PATH`, `ORB_WINDOW_SIZE` |
+| `side-audio-bot/orb/placement` | `createOrbPlacement`, `ORB_PLACEMENT_MARGIN` |
+| `side-audio-bot/orb/presence` | `DesktopPresence` |
+| `side-audio-bot/orb/preload` | The renderer preload both orb and settings pages use |
+| `side-audio-bot/orb/url` | `desktopOrbUrl` |
+| `side-audio-bot/web-dist/*` | The prebuilt web assets |
 
-All entries are ESM except `qwen-audio-agent/electron` and
-`qwen-audio-agent/orb/preload`, which are CommonJS because their boundaries
+All entries are ESM except `side-audio-bot/electron` and
+`side-audio-bot/orb/preload`, which are CommonJS because their boundaries
 demand it.
 
 ## The embedding flow
 
 ```js
-const audioAgent = require('qwen-audio-agent/electron')
+const audioAgent = require('side-audio-bot/electron')
 const api = await audioAgent.load()
 
 const settings = api.createSettingsStore({ configDir })
@@ -204,8 +204,8 @@ the default and existing clients receive no additional events.
 ## Realtime events
 
 `WS /api/realtime?sessionId=<id>` is the public Conversation Client boundary.
-Event names ship through `qwen-audio-agent/realtime-events`, and message
-schemas/parsers through `qwen-audio-agent/gateway-events`; clients should use
+Event names ship through `side-audio-bot/realtime-events`, and message
+schemas/parsers through `side-audio-bot/gateway-events`; clients should use
 those package entries rather than internal module paths.
 `gateway.connected` and `gateway.disconnected` are client-side lifecycle
 helpers used by the shared state reducer; they are not WebSocket wire events.
@@ -249,7 +249,7 @@ conversation surface.
 
 ### Shared client state
 
-`qwen-audio-agent/gateway-client-state` folds public Gateway events into the
+`side-audio-bot/gateway-client-state` folds public Gateway events into the
 side-effect-free client state fields `connectionState`, `voiceReady`,
 `voiceState`, `wakeWordActive`, `ownership`, and `currentTurnId`.
 `reduceGatewayClientState(state, event)` preserves object identity for unknown
@@ -267,7 +267,7 @@ client may show its Task card, and any spoken request naturally appears as
 ## Instance lease
 
 A running Gateway writes `gateway.lock` into its config directory:
-`{ schema: "qwaudio.gateway-lock/v1", instanceId, pid, owner, state, origin,
+`{ schema: "sideaudio.gateway-lock/v1", instanceId, pid, owner, state, origin,
 startedAt, heartbeatAt }`. Locate an instance by reading the lease, probing
 `origin`, and checking that `/api/health` echoes the same
 `gatewayInstanceId` — a port reused by another process then reads as "not
@@ -280,7 +280,7 @@ the lease. Locked by `test/consumer-install.test.mjs` and
 Starting `server/src/index.mjs` without the required realtime credential is
 refused before the lease is touched: the process exits non-zero and the error
 names every missing key (`DASHSCOPE_API_KEY`, or the Speech-to-Speech service
-address when that provider is selected). `QWEN_AUDIO_ALLOW_UNCONFIGURED=1`
+address when that provider is selected). `SIDE_AUDIO_ALLOW_UNCONFIGURED=1`
 opts out for harnesses that never open a voice connection. Locked by
 `test/gateway-setup.test.mjs` and `test/consumer-install.test.mjs`.
 

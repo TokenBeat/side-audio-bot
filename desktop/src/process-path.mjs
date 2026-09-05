@@ -10,7 +10,7 @@ import { dirname, resolve, win32 } from 'node:path'
 
 import { userConfigDirectory } from '../../shared/runtime-environment.mjs'
 
-const PATH_MARK = 'QWEN_AUDIO_AGENT_PATH'
+const PATH_MARK = 'SIDE_AUDIO_BOT_PATH'
 
 export function loginShellPath({
   shell,
@@ -90,7 +90,7 @@ function applyMissingPath(
 export function windowsPathDirectories(env = process.env) {
   const home = env.USERPROFILE || env.HOME
   const directories = [
-    env.QWEN_AUDIO_AGENT_NODE_PATH,
+    env.SIDE_AUDIO_BOT_NODE_PATH,
     win32.join(env.ProgramFiles || 'C:\\Program Files', 'nodejs'),
     win32.join(env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', 'nodejs'),
     ...(env.LOCALAPPDATA

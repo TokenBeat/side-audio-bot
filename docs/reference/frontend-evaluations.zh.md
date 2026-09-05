@@ -1,6 +1,6 @@
 # 前台 Runtime 评测
 
-确定性前台评测保护 qwen-audio-agent 不依赖 Realtime 模型或供应商也能保证的运行时边界：
+确定性前台评测保护 side-audio-bot 不依赖 Realtime 模型或供应商也能保证的运行时边界：
 
 | 维度 | 不变量 |
 | --- | --- |

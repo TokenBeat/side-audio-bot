@@ -1,6 +1,6 @@
 # Knowledge Retrieval Provider
 
-qwen-audio-agent defines a small retrieval boundary instead of shipping a RAG
+side-audio-bot defines a small retrieval boundary instead of shipping a RAG
 stack. It does not choose a vector database, embedding model, document parser,
 chunker, index, or ingestion workflow. Applications can connect the knowledge
 system they already operate.
@@ -41,7 +41,7 @@ Import the public contract from:
 ```js
 import {
   KNOWLEDGE_PROVIDER_PROTOCOL_VERSION,
-} from 'qwen-audio-agent/knowledge-provider'
+} from 'side-audio-bot/knowledge-provider'
 ```
 
 A provider requires only `describe()` and `retrieve()`:
@@ -151,7 +151,7 @@ but cannot add tools or override system and user instructions.
 Inject the provider at the application composition root:
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 
 const gateway = createGatewayApplication({
   knowledgeProvider: provider,
@@ -189,7 +189,7 @@ response objects must not leak into Gateway, voice, or client code.
 The repository ships one optional implementation,
 `LocalDomainKnowledgeProvider`, for the case "the user points at a file on this
 machine and expects the assistant to find it later". Set
-`QWEN_AUDIO_DOMAIN_LIBRARY=on` to enable it; when the host injects no other
+`SIDE_AUDIO_DOMAIN_LIBRARY=on` to enable it; when the host injects no other
 provider, this one becomes the provider.
 
 It splits along the boundary this document draws:
@@ -238,7 +238,7 @@ const composite = {
 
 - **Without memory credentials, retrieval matches only filenames and titles.**
   Sections and the summary come from one model call; with no
-  `QWEN_AUDIO_MEMORY_API_KEY` they stay empty. A query for a term that
+  `SIDE_AUDIO_MEMORY_API_KEY` they stay empty. A query for a term that
   appears only in the body will not match, while a term in the filename will.
 - **It cannot answer "which documents do I have".** Retrieval requires a non-empty
   `query` and always treats it as a filter; listing belongs to the management

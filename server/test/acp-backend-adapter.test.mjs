@@ -766,7 +766,7 @@ test('uses one ACP profile family while preserving backend differences', () => {
   const codexConfig = JSON.parse(connection(codex).env.CODEX_CONFIG)
   assert.equal(codexConfig.model, undefined)
   assert.equal(
-    codexConfig.model_providers['qwen-audio-agent'].base_url,
+    codexConfig.model_providers['side-audio-bot'].base_url,
     'https://example.com/compatible-mode/v1',
   )
   const nativeCodex = acpBackendProfile({
@@ -1097,9 +1097,9 @@ test('moves stable coordinator rules into MCP instructions for verified backends
 
   assert.equal(adapter.coordinatorUsesMcpInstructions(), true)
   assert.match(tools.registerOptions[0].instructions, /Session routing:/)
-  assert.match(tools.registerOptions[0].instructions, /qwen-audio-agent's backend/)
+  assert.match(tools.registerOptions[0].instructions, /side-audio-bot's backend/)
   assert.doesNotMatch(prompts[0], /Session routing:/)
-  assert.doesNotMatch(prompts[0], /qwen-audio-agent's backend/)
+  assert.doesNotMatch(prompts[0], /side-audio-bot's backend/)
   assert.match(prompts[0], /dynamic/)
   await adapter.close()
 })
@@ -1469,7 +1469,7 @@ test('automatically allows only the Gateway-owned Session MCP tools', async () =
   const result = await adapter.handlePermission({
     toolCall: {
       toolCallId: 'session-tool',
-      title: 'qwen_audio_agent_session_start (qwen_audio_agent)',
+      title: 'side_audio_bot_session_start (side_audio_bot)',
     },
     options: [
       { optionId: 'once', name: 'Allow', kind: 'allow_once' },
@@ -1633,7 +1633,7 @@ test('ordinary coordinator cancellation terminates the old request before the ne
 })
 
 test('delivers persisted cancellation reconciliation after a Gateway restart', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-acp-restart-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-acp-restart-'))
   const sessionStatePath = join(directory, 'acp-sessions.json')
   try {
     const firstClient = {
@@ -1922,7 +1922,7 @@ test('replaces a restored OpenCode coordinator with a stale mode', async () => {
       configOptions: [{
         id: 'mode',
         type: 'select',
-        currentValue: 'qwen-audio-agent-backend',
+        currentValue: 'side-audio-bot-backend',
         options: [{ value: 'build' }, { value: 'plan' }],
       }],
     },
@@ -2197,7 +2197,7 @@ test('OpenClaw routes each owner to the configured coordinator Agent through ACP
     client: fakeAcpClient(),
   })
   assert.deepEqual(adapter.coordinatorMeta('Owner One'), {
-    sessionKey: 'agent:voice-coordinator:qwen-audio-agent:owner%20one:backend',
+    sessionKey: 'agent:voice-coordinator:side-audio-bot:owner%20one:backend',
   })
 })
 

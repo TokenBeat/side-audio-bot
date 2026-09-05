@@ -125,7 +125,7 @@ export class BingWebSearchProvider {
         method: 'GET',
         headers: {
           accept,
-          'user-agent': 'qwen-audio-agent web-search',
+          'user-agent': 'side-audio-bot web-search',
         },
         redirect: 'error',
         signal,

@@ -373,7 +373,7 @@ test('resets cockpit state and publishes a full state update', async () => {
 })
 
 test('stores custom skills outside transient cockpit state and publishes catalog changes', async t => {
-  const root = await mkdtemp(resolve(tmpdir(), 'qwen-cockpit-service-skills-'))
+  const root = await mkdtemp(resolve(tmpdir(), 'sideaudio-cockpit-service-skills-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const customSkills = new CustomSkillStore({ root })
   const { service, options } = fixture()

@@ -1,5 +1,5 @@
-appId: ai.qwenaudio.agent
-productName: Qwen Audio Agent
+appId: ai.sideaudio.agent
+productName: Side Audio Bot
 electronVersion: 43.2.0
 asar: true
 npmRebuild: false
@@ -18,8 +18,8 @@ directories:
 # 在运行时发现新版本；CI 发布时随 dmg 与 blockmap 一并上传。
 publish:
   - provider: github
-    owner: QwenAudio
-    repo: qwen-audio-agent
+    owner: SideAudio
+    repo: side-audio-bot
 
 files:
   - desktop/src/**/*
@@ -52,11 +52,11 @@ mac:
   notarize: true
   extendInfo:
     LSUIElement: true
-    NSMicrophoneUsageDescription: Qwen Audio Agent 需要使用麦克风进行实时语音对话。
+    NSMicrophoneUsageDescription: Side Audio Bot 需要使用麦克风进行实时语音对话。
   target:
     - dmg
     - zip
-  artifactName: qwen-audio-agent-${version}-mac-${arch}.${ext}
+  artifactName: side-audio-bot-${version}-mac-${arch}.${ext}
 
 linux:
   # 官方 Release 只发布 macOS 产物；Linux 用户可用 npm run desktop:build:linux
@@ -67,13 +67,13 @@ linux:
   target:
     - AppImage
     - deb
-  artifactName: qwen-audio-agent-${version}-linux-${arch}.${ext}
+  artifactName: side-audio-bot-${version}-linux-${arch}.${ext}
 
 win:
   icon: desktop/build/icon.png
   target:
     - nsis
-  artifactName: qwen-audio-agent-${version}-win-${arch}.${ext}
+  artifactName: side-audio-bot-${version}-win-${arch}.${ext}
 
 nsis:
   oneClick: false
@@ -81,7 +81,7 @@ nsis:
   perMachine: false
 
 dmg:
-  title: Qwen Audio Agent
+  title: Side Audio Bot
   backgroundColor: "#f5f6f7"
   window:
     width: 540

@@ -1,18 +1,18 @@
 {
-  "name": "qwen-audio-agent",
-  "desktopName": "qwen-audio-agent.desktop",
+  "name": "side-audio-bot",
+  "desktopName": "side-audio-bot.desktop",
   "version": "1.11.0",
   "description": "A realtime voice runtime that keeps AI agents talking, working, and present.",
-  "author": "qwen-audio-agent contributors",
+  "author": "side-audio-bot contributors",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/QwenAudio/qwen-audio-agent.git"
+    "url": "git+https://github.com/TokenBeat/side-audio-bot.git"
   },
   "bugs": {
-    "url": "https://github.com/QwenAudio/qwen-audio-agent/issues"
+    "url": "https://github.com/TokenBeat/side-audio-bot/issues"
   },
-  "homepage": "https://github.com/QwenAudio/qwen-audio-agent#readme",
+  "homepage": "https://github.com/TokenBeat/side-audio-bot#readme",
   "keywords": [
     "qwen",
     "audio",
@@ -64,7 +64,7 @@
     "./web-dist/*": "./web/dist/*"
   },
   "bin": {
-    "qwenaudio": "cli/bin/qwenaudio.mjs"
+    "sideaudio": "cli/bin/sideaudio.mjs"
   },
   "files": [
     "cli/bin/",
@@ -83,10 +83,10 @@
     "docs/architecture-overview-en.png",
     "docs/desktop-fluid-orb-thinking.gif",
     "docs/desktop-goo-orb-thinking.gif",
-    "docs/qwen-audio-agent-three-layer-architecture.png",
-    "docs/qwen-audio-agent-three-layer-architecture-en.png",
-    "docs/qwen-audio-agent-three-layer-architecture.svg",
-    "docs/qwen-audio-agent-two-layer-architecture.png",
+    "docs/architecture-overview.html",
+    "docs/architecture-overview-en.html",
+    "docs/side-audio-bot-architecture-en.svg",
+    "docs/side-audio-bot-architecture-en.png",
     "docs/voice-agent-architecture-presentation.zh.md",
     "docs/configuration.md",
     "docs/configuration.zh.md",
@@ -221,7 +221,7 @@
     "desktop:build:local": "npm run build && electron-builder --config desktop/electron-builder.yml --config.mac.identity=- --config.mac.hardenedRuntime=false --config.mac.notarize=false --mac dmg",
     "desktop:build:linux": "npm run build && electron-builder --config desktop/electron-builder.yml --linux AppImage deb",
     "desktop:build:win": "npm run build && electron-builder --config desktop/electron-builder.yml --win --x64 --publish never",
-    "cli": "npm run start --workspace @qwen-audio-agent/cli --",
+    "cli": "npm run start --workspace @side-audio-bot/cli --",
     "tui": "npm run start --workspace tui --",
     "backend": "node scripts/start.mjs",
     "openclaw": "node scripts/openclaw-gateway.mjs",
@@ -243,7 +243,7 @@
     "predocs:preview": "node scripts/sync-docs-site.mjs",
     "docs:preview": "vitepress preview docs",
     "eval:frontend": "node server/eval/run-frontend-evaluations.mjs",
-    "test": "node --test test/*.test.mjs && npm run test --workspace server && npm run test --workspace web && npm run test --workspace tui && npm run test --workspace desktop && npm run test --workspace @qwen-audio-agent/cli && npm run test:smart-cockpit",
+    "test": "node --test test/*.test.mjs && npm run test --workspace server && npm run test --workspace web && npm run test --workspace tui && npm run test --workspace desktop && npm run test --workspace @side-audio-bot/cli && npm run test:smart-cockpit",
     "pretest:smart-cockpit": "npm ci --prefix examples/smart-cockpit/service --ignore-scripts && npm ci --prefix examples/smart-cockpit/agent --ignore-scripts",
     "test:smart-cockpit": "npm test --prefix examples/smart-cockpit/service && npm test --prefix examples/smart-cockpit/agent && node --test examples/smart-cockpit/bootstrap/test/*.test.mjs examples/smart-cockpit/client/test/*.test.mjs examples/smart-cockpit/gateway/test/*.test.mjs examples/smart-cockpit/test/*.test.mjs",
     "audit:release": "node scripts/audit-dependencies.mjs",

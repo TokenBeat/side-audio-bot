@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { GatewayClient } from 'qwen-audio-agent/gateway-client-sdk'
+import { GatewayClient } from 'side-audio-bot/gateway-client-sdk'
 import {
   GatewayClientCapability,
   GatewayClientProtocolEvent,
-} from 'qwen-audio-agent/gateway-client-protocol'
+} from 'side-audio-bot/gateway-client-protocol'
 import {
   GatewayClientEvent,
   GatewayServerEvent,
-} from 'qwen-audio-agent/realtime-events'
+} from 'side-audio-bot/realtime-events'
 import {
   cockpitConnectionError,
   cockpitVoiceConnectionMode,

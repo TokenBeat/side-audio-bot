@@ -1,10 +1,10 @@
 # Architecture Overview
 
-qwen-audio-agent is a realtime voice runtime that keeps AI agents talking,
+side-audio-bot is a realtime voice runtime that keeps AI agents talking,
 working, and present. It is organized as three layers with exactly two
 protocol surfaces between them.
 
-![Three-layer architecture](../qwen-audio-agent-three-layer-architecture-en.png)
+![Three-layer architecture](../side-audio-bot-three-layer-architecture-en.png)
 
 ## The three layers
 

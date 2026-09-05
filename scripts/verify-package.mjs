@@ -108,7 +108,7 @@ if (isMain) {
   if (packages.length !== 1) throw new Error('npm pack 返回了意外的包数量')
   const files = new Set(packages[0].files.map(file => file.path))
   const required = [
-    'cli/bin/qwenaudio.mjs',
+    'cli/bin/sideaudio.mjs',
     'examples/backend-adapter/README.md',
     'examples/backend-adapter/in-memory-backend.mjs',
     'examples/custom-conversation-client/README.md',
