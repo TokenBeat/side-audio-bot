@@ -83,6 +83,17 @@ test('a consumer with only the declared dependencies can run the CLI and Gateway
   assert.equal(help.status, 0, `sideaudio --help failed: ${help.stderr}`)
   assert.match(help.stdout, /sideaudio/)
 
+  const sdk = spawnSync(process.execPath, [
+    '--input-type=module',
+    '--eval',
+    [
+      "import { BACKEND_ADAPTER_SDK_VERSION, defineBackendAdapter } from 'side-audio-bot/backend-adapter-sdk'",
+      "if (BACKEND_ADAPTER_SDK_VERSION !== '3.0.0') process.exit(2)",
+      "if (typeof defineBackendAdapter !== 'function') process.exit(3)",
+    ].join(';'),
+  ], { cwd: consumer, encoding: 'utf8' })
+  assert.equal(sdk.status, 0, `Backend Adapter SDK import failed: ${sdk.stderr}`)
+
   // 2. The setup gate: an unconfigured Gateway start must refuse with an
   //    actionable error instead of listening with a dead voice.
   const gateEnvironment = {
@@ -230,7 +241,6 @@ async function main() {
   const gateway = api.createGatewayProcess({
     configDir,
     backend: 'none',
-    wakeWord: false,
     preferredPort: 0,
     forkImpl: (entry, args, options) => fork(entry, args, {
       ...options,

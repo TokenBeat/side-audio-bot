@@ -2,12 +2,12 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { config } from '../core/config.mjs'
 import { canonicalScope, isDirectiveScope } from '../core/memory-scopes.mjs'
+import { recentConversationMessages } from '../../../shared/conversation-history.mjs'
 
 const PROMPT_FILE = 'PROMPT.md'
 const ASSISTANT_FILE = 'ASSISTANT.md'
 const MAX_PROMPT_CHARS = 16000
 const MAX_ASSISTANT_CHARS = 4000
-const MAX_RECENT_MESSAGES = 10
 const MAX_RECENT_CHARS = 3500
 
 function clean(value) {
@@ -80,6 +80,15 @@ export function loadAssistantProfile() {
   return [...content].slice(0, MAX_ASSISTANT_CHARS).join('')
 }
 
+export function resolveAssistantProfile(agentContext = {}) {
+  // A trusted host may select a complete profile for one live Session. Client
+  // payloads never enter this field directly; the packaged/local file remains
+  // the deployment-wide fallback.
+  const sessionProfile = String(agentContext.assistantProfile || '').trim()
+  if (!sessionProfile) return loadAssistantProfile()
+  return [...sessionProfile].slice(0, MAX_ASSISTANT_CHARS).join('')
+}
+
 function userPreferencesSection(memories = []) {
   const document = memories.find(memory => (
     isDirectiveScope(clean(memory.scope))
@@ -111,7 +120,7 @@ function memorySection(memories = []) {
 }
 
 export function buildRecentConversationContext(messages = []) {
-  const candidates = messages.slice(-MAX_RECENT_MESSAGES)
+  const candidates = recentConversationMessages(messages)
   const selected = []
   let used = 0
   for (const message of candidates.toReversed()) {

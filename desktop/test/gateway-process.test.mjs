@@ -464,6 +464,8 @@ test('desktop gateway environment applies saved settings and packaged roots', ()
     configured: {
       DASHSCOPE_API_KEY: 'saved',
       AGENT_PROTOCOL: 'none',
+      SIDE_AUDIO_WAKE_WORD_ENABLED: 'true',
+      SIDE_AUDIO_WAKE_WORD_MODEL_DIR: '/client/models',
     },
     runtimeRoot: '/Applications/Qwen.app/Contents/Resources/runtime',
     sourceRoot: '/Applications/Qwen.app/Contents/Resources/app.asar',
@@ -474,6 +476,8 @@ test('desktop gateway environment applies saved settings and packaged roots', ()
   assert.equal(environment.AGENT_PROTOCOL, 'none')
   assert.equal(environment.SIDE_AUDIO_BOT_DESKTOP, '1')
   assert.equal(environment.SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY, '1')
+  assert.equal('SIDE_AUDIO_WAKE_WORD_ENABLED' in environment, false)
+  assert.equal('SIDE_AUDIO_WAKE_WORD_MODEL_DIR' in environment, false)
   assert.equal(
     environment.SIDE_AUDIO_BOT_RUNTIME_ROOT,
     '/Applications/Qwen.app/Contents/Resources/runtime',

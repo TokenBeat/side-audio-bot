@@ -30,7 +30,7 @@ function promptRetryDelay({ error, attempt }) {
   if (
     !/reply session initialization conflicted for \S+/i.test(diagnostic)
   ) return null
-  return [150, 500, 1000][attempt] ?? null
+  return [150, 500, 1000, 2000, 3000][attempt] ?? null
 }
 
 export const openClawBackendDriver = {
@@ -44,6 +44,7 @@ export const openClawBackendDriver = {
     externalMcp: false,
     nativeDelegation: true,
     sessionMcp: false,
+    coordinatorMcpInstructions: false,
   },
 
   createProfile({
@@ -94,6 +95,9 @@ export const openClawBackendDriver = {
       externalMcp: false,
       sessionMcp: false,
       nativeDelegation: true,
+      // Owned instances are provisioned before ACP starts. External instances
+      // must advertise the standard ACP model option for Session overrides.
+      sessionModelConfiguration: ownership !== 'owned',
       backendUi: true,
       sanitizeProcessOutput,
       formatRequestError,
@@ -118,22 +122,11 @@ export const openClawBackendDriver = {
       },
       defaultDelegationTitle: 'OpenClaw 项目任务',
       sessionInstructions: [
-        'For a separate or previous project, use OpenClaw native session tools:',
+        'When the current request explicitly requires a new or previous',
+        'project Session, use OpenClaw native Session tools:',
         'sessions_spawn to create work, sessions_list to locate prior Sessions,',
         'sessions_send to continue one, and sessions_history for status.',
-        'These are third-layer tasks. After spawn/send is accepted, return the',
-        'delegated response required by the request envelope and stop this turn.',
       ].join(' '),
-      cancelInstruction(record) {
-        return `请用 OpenClaw 原生 Session 工具立即停止 sessionKey=${
-          record.sessionId
-        } 对应的第三层任务。`
-      },
-      statusInstruction(record) {
-        return `请调用 OpenClaw 原生 sessions_history 查询 sessionKey=${
-          record.sessionId
-        } 的真实状态和阶段结果。`
-      },
       uiUrl({ baseUrl }) {
         if (!baseUrl) return null
         const dashboard = new URL(baseUrl)

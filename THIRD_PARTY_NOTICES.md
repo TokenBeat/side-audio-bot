@@ -17,6 +17,7 @@ side-audio-bot is based on qwen-audio-agent, Copyright 2026 qwen-audio-agent con
 | react-markdown | MIT | https://github.com/remarkjs/react-markdown |
 | remark-gfm | MIT | https://github.com/remarkjs/remark-gfm |
 | electron-builder | MIT | https://github.com/electron-userland/electron-builder |
+| Agent2Agent Protocol JavaScript SDK | Apache-2.0 | https://github.com/a2aproject/a2a-js |
 | Agent Client Protocol TypeScript SDK | Apache-2.0 | https://github.com/agentclientprotocol/typescript-sdk |
 | Codex ACP adapter | Apache-2.0 | https://github.com/agentclientprotocol/codex-acp |
 | Claude Code ACP adapter | Apache-2.0 | https://github.com/zed-industries/claude-code-acp |

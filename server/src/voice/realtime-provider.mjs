@@ -23,9 +23,10 @@ export {
   GET_CURRENT_TIME_TOOL_NAME,
   MEMORY_TOOL_NAME,
   NOTES_TOOL_NAME,
-  RESPOND_AGENT_PERMISSION_TOOL_NAME,
+  RESPOND_PERMISSION_TOOL_NAME,
   ENTER_SLEEP_TOOL_NAME,
   TOOLS,
+  frontendToolRegistry,
   frontendTools,
   buildFrontendInstructions,
 } from './frontend-tools.mjs'
@@ -73,11 +74,14 @@ const DEFAULT_CAPABILITIES = Object.freeze({
   // Applies instructions supplied on one response.create without requiring a
   // persistent conversation item.
   perResponseInstructions: false,
+  // Applies a client-selected output voice when creating a fresh Session.
+  sessionOutputVoice: false,
   // Echoes a client-assigned item id in conversation.item.created. Some
   // providers acknowledge the item but replace its id, so those providers
   // must opt out and use the single pending item waiter instead.
   conversationItemIdEcho: true,
 })
+const DEFAULT_RESPONSE_CANCEL_GRACE_MS = 1_000
 
 export class RealtimeFrontend {
   constructor({
@@ -87,9 +91,11 @@ export class RealtimeFrontend {
     onClose,
     onDiagnostic,
     agentContext = {},
+    sessionOptions = {},
     responseStartTimeoutMs,
     responseInactivityTimeoutMs,
     responseCompletionTimeoutMs,
+    responseCancelGraceMs = DEFAULT_RESPONSE_CANCEL_GRACE_MS,
   } = {}) {
     this.provider = validateRealtimeProvider(provider)
     this.connectionId = randomUUID()
@@ -109,6 +115,7 @@ export class RealtimeFrontend {
     this.onClose = onClose
     this.onDiagnostic = onDiagnostic
     this.agentContext = agentContext
+    this.sessionOptions = sessionOptions
     this.ws = null
     this.ready = false
     this.sessionConfigured = false
@@ -129,6 +136,10 @@ export class RealtimeFrontend {
     this.responseInactivityTimeoutMs = responseInactivityTimeoutMs
       ?? responseCompletionTimeoutMs
       ?? 120000
+    this.responseCancelGraceMs = Math.max(
+      0,
+      Number(responseCancelGraceMs) || 0,
+    )
   }
 
   connect() {
@@ -243,6 +254,7 @@ export class RealtimeFrontend {
     const session = this.provider.buildSession({
       configured: this.sessionConfigured,
       agentContext: this.agentContext,
+      sessionOptions: this.sessionOptions,
     })
     this.send(this.protocol.sessionUpdate(session))
   }
@@ -264,8 +276,13 @@ export class RealtimeFrontend {
     this.send(this.protocol.conversationItemCreate({ id, ...item }))
   }
 
-  updateAgentContext(patch = {}) {
+  // refreshSession 为 false 时只更新 agentContext 缓存，不重发 session.update。
+  // instructions 是 prompt 前缀的一部分，重发等于换前缀，会让整场会话已经建立的
+  // 前缀缓存失效。所以「更新了上下文但不需要本轮就生效」的调用方（例如后台写入
+  // 长期记忆）应当传 false，让新内容在下一次自然的 session.update 时带上去。
+  updateAgentContext(patch = {}, { refreshSession = true } = {}) {
     this.agentContext = { ...this.agentContext, ...patch }
+    if (!refreshSession) return
     if (!this.ready) return
     const refresh = async () => {
       await this.whenIdle()
@@ -394,14 +411,65 @@ export class RealtimeFrontend {
     text,
     origin = 'announcement',
     context = {},
-    { injectContext = true } = {},
+    { injectContext = true, instructions = '' } = {},
+  ) {
+    const outcome = await this.injectDelivery(text, origin, context, {
+      route: 'respond',
+      injectContext,
+      instructions,
+    })
+    if (!outcome) return outcome
+    const { route: _route, ...legacyOutcome } = outcome
+    return legacyOutcome
+  }
+
+  async injectDelivery(
+    text,
+    origin = 'gateway',
+    context = {},
+    {
+      route = 'respond',
+      injectContext = true,
+      instructions = '',
+      allowTools = false,
+      contextTiming = 'response',
+      shouldRespond,
+    } = {},
   ) {
     const content = String(text || '').trim()
     if (!content) return
-    const injection = this.provider.buildResultInjection(content)
+    if (route === 'handle') {
+      return { completed: true, handled: true, route }
+    }
+    if (!['context', 'respond', 'interrupt'].includes(route)) {
+      throw new TypeError(`unsupported AgentDelivery route: ${route}`)
+    }
+    if (route === 'interrupt') this.cancel()
+    const injection = this.provider.buildResultInjection(content, { allowTools })
+    if (instructions && injection?.response) {
+      injection.response.instructions = String(instructions)
+    }
     let contextInjected = false
-    const outcome = await this.enqueueResponse(origin, context, async () => {
+    if (route === 'context') {
       if (injectContext) {
+        await this.enqueueAction(async () => {
+          await this.createConversationItem(injection.item)
+          contextInjected = true
+        })
+      }
+      return {
+        completed: true,
+        contextInjected,
+        route,
+      }
+    }
+    if (contextTiming === 'immediate' && injectContext) {
+      await this.createConversationItem(injection.item)
+      contextInjected = true
+    }
+    const outcome = await this.enqueueResponse(origin, context, async () => {
+      if (shouldRespond && !shouldRespond()) return false
+      if (injectContext && !contextInjected) {
         await this.createConversationItem(injection.item)
         contextInjected = true
       }
@@ -410,6 +478,7 @@ export class RealtimeFrontend {
     return {
       ...(outcome || {}),
       contextInjected,
+      route,
     }
   }
 
@@ -430,13 +499,29 @@ export class RealtimeFrontend {
 
   cancel() {
     this.responseQueueGeneration += 1
-    const hasResponse = this.activeResponses.size || this.pendingResponses.length
+    const cancelledResponseIds = [...this.activeResponses]
+    const hasResponse = cancelledResponseIds.length || this.pendingResponses.length
     this.pendingResponses.forEach(item => {
       this.settlePending(item, { cancelled: true, phase: 'start' })
     })
     this.pendingResponses = []
+    this.responseWaiters.forEach(item => {
+      this.settlePending(item, { cancelled: true, phase: 'completion' })
+    })
     this.rejectConversationItemWaiters(new Error('Realtime 请求已取消'))
     if (hasResponse) this.send(this.protocol.responseCancel())
+    if (!cancelledResponseIds.length) {
+      this.resolveIdle()
+      return
+    }
+    const recoveryTimer = setTimeout(() => {
+      for (const responseId of cancelledResponseIds) {
+        this.activeResponses.delete(responseId)
+        this.responseWaiters.delete(responseId)
+      }
+      this.resolveIdle()
+    }, this.responseCancelGraceMs)
+    recoveryTimer.unref?.()
   }
 
   cancelResponses(predicate) {
@@ -623,6 +708,18 @@ export class RealtimeFrontend {
         const first = this.responseWaiters.entries().next().value
         id = first[0]
         pending = first[1]
+      }
+      // Automatic VAD responses are not represented in responseWaiters. Some
+      // providers also omit response_id from a terminal error (notably content
+      // safety failures), so associate it with the sole active response. If we
+      // leave that id behind, whenIdle() never resolves and every later output
+      // remains blocked behind a response that has already failed.
+      if (
+        event.type === 'error'
+        && !id && this.activeResponses.size === 1
+      ) {
+        id = this.activeResponses.values().next().value
+        event.response_id = id
       }
       // A response.create can race either another response or the tail of a
       // Smart Turn input. Both are transient: retry the exact refused payload

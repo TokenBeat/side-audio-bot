@@ -36,7 +36,8 @@ test('builds a StepFun session with the standard frontend contract', t => {
   assert.equal(session.input_audio_format, 'pcm16')
   assert.equal(session.output_audio_format, 'pcm16')
   assert.equal(session.voice, 'qingchunshaonv')
-  // 与 DashScope 前台完全一致的标准指令与全量工具，无任何裁剪或别名。
+  // 与 DashScope 前台一致的标准指令与默认工具集；
+  // capability-gated 工具（如 respond_permission）不在默认会话中。
   assert.equal(session.instructions, stepfun.buildSession({
     configured: false,
     agentContext: { client: { timeZone: 'Asia/Shanghai', locale: 'zh-CN' } },
@@ -51,7 +52,6 @@ test('builds a StepFun session with the standard frontend contract', t => {
       'get_current_time',
       'memory',
       'notes',
-      'respond_agent_permission',
     ],
   )
   assert.equal(stepfun.inputSampleRate, 16000)

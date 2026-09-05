@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
-import { resolve } from 'node:path'
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 import test from 'node:test'
 import {
   AcpBackendAdapter,
@@ -7,23 +9,11 @@ import {
 } from '../src/agent/acp-backend-adapter.mjs'
 
 function completed(speech = '完成') {
-  return JSON.stringify({
-    work_id: 'work-one',
-    state: 'completed',
-    mode: 'respond',
-    presentation: { speech, inline: null },
-  })
+  return speech
 }
 
-function delegated(result) {
-  return JSON.stringify({
-    work_id: 'work-one',
-    state: 'delegated',
-    mode: 'delegate',
-    delegation_id: result.delegation_id,
-    target_session_id: result.session_id,
-    presentation: { speech: '已经交给独立项目处理。', inline: null },
-  })
+function delegated() {
+  return '已经交给独立项目处理。'
 }
 
 function fakeToolServer() {
@@ -33,9 +23,11 @@ function fakeToolServer() {
     updateCalls: 0,
     releaseCalls: 0,
     registrations: [],
-    async register(context) {
+    registerOptions: [],
+    async register(context, options = {}) {
       this.context = context
       this.registerCalls += 1
+      this.registerOptions.push(options)
       const registration = {
         context,
         released: false,
@@ -76,6 +68,7 @@ function fakeAcpClient({
   action = 'start',
   holdTarget = false,
   scopeListsByCwd = false,
+  targetUpdates = [],
 } = {}) {
   const calls = []
   const sessions = new Map([
@@ -138,9 +131,10 @@ function fakeAcpClient({
       return values.filter(session => session.cwd === cwd)
     },
     async prompt(sessionId, prompt, options = {}) {
-      calls.push(['prompt', sessionId, prompt])
+      calls.push(['prompt', sessionId, prompt, options])
       if (sessionId !== 'coordinator-session') {
         if (options.signal?.aborted) throw options.signal.reason
+        for (const update of targetUpdates) options.onUpdate?.(update)
         return new Promise((resolve, reject) => {
           const abort = () => reject(options.signal.reason)
           options.signal?.addEventListener('abort', abort, { once: true })
@@ -182,23 +176,25 @@ function fakeAcpClient({
           response: { stopReason: 'end_turn' },
         }
       }
-      if (prompt.includes('side_audio_bot_delegation_result')) {
+      if (prompt.includes('刚才交给独立任务处理的工作已经完成')) {
         return {
           content: completed('第三层结果已整理'),
           response: { stopReason: 'end_turn' },
         }
       }
-      const result = action === 'send'
-        ? await toolServer.context.sendSession({
-            session_id: 'previous-session',
-            prompt: 'continue previous work',
-          })
-        : await toolServer.context.startSession({
-            prompt: 'build project',
-            title: 'Project',
-          })
+      if (action === 'send') {
+        await toolServer.context.sendSession({
+          session_id: 'previous-session',
+          prompt: 'continue previous work',
+        })
+      } else {
+        await toolServer.context.startSession({
+          prompt: 'build project',
+          title: 'Project',
+        })
+      }
       return {
-        content: delegated(result),
+        content: delegated(),
         response: { stopReason: 'end_turn' },
       }
     },
@@ -302,6 +298,27 @@ test('backs off repeated health spawns after any local ACP startup failure', asy
   assert.equal(starts, 2)
 })
 
+test('reports an incompatible coordinator MCP transport during health check', async () => {
+  const adapter = new AcpBackendAdapter({
+    protocol: 'qwen',
+    client: {
+      ready: true,
+      stderr: '',
+      async start() {
+        return {
+          agentCapabilities: { mcpCapabilities: { http: false } },
+        }
+      },
+      async close() {},
+    },
+  })
+
+  const health = await adapter.health()
+
+  assert.equal(health.ok, false)
+  assert.match(health.error, /未声明支持 HTTP MCP/)
+})
+
 test('reports backend status without starting the ACP process', () => {
   let starts = 0
   const adapter = new AcpBackendAdapter({
@@ -358,7 +375,7 @@ test('retries an empty ACP coordinator response in a fresh Session', async () =>
 
   assert.deepEqual(prompts, ['coordinator-1', 'coordinator-2'])
   assert.equal(
-    JSON.parse(result.content).presentation.speech,
+    result.content,
     '新 Session 已恢复',
   )
   await adapter.close()
@@ -406,7 +423,7 @@ test('retries an OpenClaw reply initialization conflict in the same Session', as
   assert.deepEqual(prompts, ['coordinator-1', 'coordinator-1'])
   assert.equal(nextSession, 1)
   assert.equal(
-    JSON.parse(result.content).presentation.speech,
+    result.content,
     '同一 Session 重试成功',
   )
   await adapter.close()
@@ -512,7 +529,7 @@ test('continues a remembered project Session using only its Session ID', async (
     coordinationRunId: 'work-one',
   })
   assert.equal(
-    JSON.parse(result.content).presentation.speech,
+    result.content,
     '第三层结果已整理',
   )
   assert.ok(client.calls.some(call => (
@@ -636,6 +653,16 @@ test('uses one ACP profile family while preserving backend differences', () => {
   assert.equal(connection(qwen).command, '/opt/qwen')
   assert.deepEqual(connection(qwen).args, ['--acp'])
   assert.deepEqual(qwen.sessionConfigOptions, [])
+  assert.deepEqual(qwen.capabilities, {
+    delegation: true,
+    permissions: true,
+    backendUi: false,
+    nativeSessionHistory: true,
+    externalMcp: true,
+    nativeDelegation: false,
+    sessionMcp: true,
+    coordinatorMcpInstructions: true,
+  })
   const openClaw = acpBackendProfile({
     protocol: 'openclaw',
     root,
@@ -711,8 +738,6 @@ test('uses one ACP profile family while preserving backend differences', () => {
   })
   assert.deepEqual(connection(codeBuddy).args, [
     '--acp',
-    '--model',
-    'qwen3.7-max',
     '--dangerously-skip-permissions',
   ])
   assert.equal(
@@ -739,7 +764,7 @@ test('uses one ACP profile family while preserving backend differences', () => {
   assert.equal(connection(codex).args[0], resolve(root, 'scripts/codex-acp.mjs'))
   assert.equal(connection(codex).env.INITIAL_AGENT_MODE, 'agent-full-access')
   const codexConfig = JSON.parse(connection(codex).env.CODEX_CONFIG)
-  assert.equal(codexConfig.model, 'qwen3.7-max')
+  assert.equal(codexConfig.model, undefined)
   assert.equal(
     codexConfig.model_providers['side-audio-bot'].base_url,
     'https://example.com/compatible-mode/v1',
@@ -800,6 +825,7 @@ test('lets the official OpenClaw bridge diagnose external Gateway failures', () 
     permissionMode: 'native',
   })
   assert.equal(external.readinessMessage, '')
+  assert.equal(external.sessionModelConfiguration, true)
   assert.ok(external.acpConnection.args.includes('wss://agent.example.com'))
 
   const owned = acpBackendProfile({
@@ -811,6 +837,7 @@ test('lets the official OpenClaw bridge diagnose external Gateway failures', () 
     permissionMode: 'native',
   })
   assert.match(owned.readinessMessage, /正在启动/)
+  assert.equal(owned.sessionModelConfiguration, false)
 })
 
 test('can launch a trusted OpenClaw ACP bridge executable directly', () => {
@@ -1030,11 +1057,108 @@ test('keeps a cached coordinator MCP connection valid across turns', async () =>
   assert.equal(tools.updateCalls, 1)
   assert.equal(tools.releaseCalls, 0)
   assert.equal(resumedDescriptors[0].url, cachedDescriptor.url)
-  assert.equal(second.run.delegation.workId, 'work-two')
+  assert.equal(second.run.delegation.taskId, 'work-two')
   assert.equal(second.run.delegation.ownerId, 'owner-one')
   await second.run.delegation.promise
   await adapter.close()
   assert.equal(tools.releaseCalls, 1)
+})
+
+test('moves stable coordinator rules into MCP instructions for verified backends', async () => {
+  const tools = fakeToolServer()
+  const prompts = []
+  const client = {
+    async newSession(options) {
+      return {
+        sessionId: 'coordinator-session',
+        cwd: options.cwd,
+        response: {},
+      }
+    },
+    async prompt(_sessionId, prompt) {
+      prompts.push(prompt)
+      return {
+        content: completed('done'),
+        response: { stopReason: 'end_turn' },
+      }
+    },
+    async close() {},
+  }
+  const adapter = new AcpBackendAdapter({
+    protocol: 'qwen',
+    directory: '/coordinator',
+    client,
+    sessionToolServer: tools,
+  })
+  await adapter.runCoordinator('dynamic task instruction', {
+    ownerId: 'owner-one',
+    coordinationRunId: 'work-one',
+  })
+
+  assert.equal(adapter.coordinatorUsesMcpInstructions(), true)
+  assert.match(tools.registerOptions[0].instructions, /Session routing:/)
+  assert.match(tools.registerOptions[0].instructions, /side-audio-bot's backend/)
+  assert.doesNotMatch(prompts[0], /Session routing:/)
+  assert.doesNotMatch(prompts[0], /side-audio-bot's backend/)
+  assert.match(prompts[0], /dynamic/)
+  await adapter.close()
+})
+
+test('replaces a persisted coordinator without the current coordinator contract', async () => {
+  const tools = fakeToolServer()
+  let resumes = 0
+  let creates = 0
+  const client = {
+    async newSession(options) {
+      creates += 1
+      return {
+        sessionId: 'fresh-coordinator',
+        cwd: options.cwd,
+        response: {},
+      }
+    },
+    async resumeSession() {
+      resumes += 1
+      return {
+        sessionId: 'legacy-coordinator',
+        cwd: '/legacy',
+        response: {},
+      }
+    },
+    async prompt() {
+      return {
+        content: completed('done'),
+        response: { stopReason: 'end_turn' },
+      }
+    },
+    async close() {},
+  }
+  const adapter = new AcpBackendAdapter({
+    protocol: 'qwen',
+    directory: '/coordinator',
+    client,
+    sessionToolServer: tools,
+  })
+  adapter.registry.get = () => ({
+    sessionId: 'legacy-coordinator',
+    cwd: '/legacy',
+  })
+  const deleted = []
+  const saved = []
+  adapter.registry.delete = key => deleted.push(key)
+  adapter.registry.set = (key, session) => saved.push([key, { ...session }])
+
+  await adapter.coordinatorTurn('turn', {
+    ownerId: 'owner-one',
+    coordinationRunId: 'work-one',
+  })
+
+  assert.equal(resumes, 0)
+  assert.equal(creates, 1)
+  assert.equal(deleted.length, 1)
+  assert.equal(saved[0][1].sessionId, 'fresh-coordinator')
+  assert.equal(saved[0][1].contractVersion, 6)
+  await adapter.close()
 })
 
 test('isolates coordinator MCP registrations by owner and releases them', async () => {
@@ -1086,24 +1210,24 @@ test('isolates coordinator MCP registrations by owner and releases them', async 
     tools.registrations[1].descriptor.url,
   )
   assert.equal(
-    adapter.delegatedWorkRuns.get('work-owner-one').delegation.ownerId,
+    adapter.coordinationRuns.get('work-owner-one').delegation.ownerId,
     'owner-one',
   )
   assert.equal(
-    adapter.delegatedWorkRuns.get('work-owner-two').delegation.ownerId,
+    adapter.coordinationRuns.get('work-owner-two').delegation.ownerId,
     'owner-two',
   )
   assert.equal(
-    adapter.delegatedWorkRuns.get('work-owner-one').delegation.directory,
+    adapter.coordinationRuns.get('work-owner-one').delegation.directory,
     '/coordinator',
   )
   assert.equal(
-    adapter.delegatedWorkRuns.get('work-owner-two').delegation.directory,
+    adapter.coordinationRuns.get('work-owner-two').delegation.directory,
     '/coordinator',
   )
   await Promise.all([
-    adapter.delegatedWorkRuns.get('work-owner-one').delegation.promise,
-    adapter.delegatedWorkRuns.get('work-owner-two').delegation.promise,
+    adapter.coordinationRuns.get('work-owner-one').delegation.promise,
+    adapter.coordinationRuns.get('work-owner-two').delegation.promise,
   ])
   await adapter.close()
   assert.equal(tools.releaseCalls, 2)
@@ -1126,9 +1250,10 @@ for (const action of ['start', 'send']) {
     const result = await adapter.runCoordinator('delegate', {
       ownerId: 'owner-one',
       coordinationRunId: 'work-one',
+      workObjective: '开发一个独立网页游戏',
       onEvent: event => events.push(event),
     })
-    assert.equal(JSON.parse(result.content).presentation.speech, '第三层结果已整理')
+    assert.equal(result.content, '第三层结果已整理')
     assert.ok(events.some(event => event.type === 'backend.delegated'))
     assert.ok(events.some(
       event => event.type === 'backend.delegation.completed',
@@ -1149,6 +1274,17 @@ for (const action of ['start', 'send']) {
     ))
     assert.equal(coordinatorPrompts.length, 2)
     assert.equal(
+      client.calls
+        .filter(call => call[0] === 'prompt')
+        .every(call => call[3].timeoutMs === 0),
+      true,
+    )
+    assert.match(
+      JSON.stringify(coordinatorPrompts[1][2]),
+      /原任务：开发一个独立网页游戏/u,
+    )
+    assert.doesNotMatch(JSON.stringify(coordinatorPrompts[1][2]), /work-one/u)
+    assert.equal(
       client.calls.some(call => call[0] === 'config'),
       false,
     )
@@ -1156,7 +1292,7 @@ for (const action of ['start', 'send']) {
   })
 }
 
-test('ACP permissions expose permanent allow and reject semantics', async () => {
+test('ACP permissions expose detailed session-scoped allow and reject semantics', async () => {
   const client = fakeAcpClient()
   const adapter = new AcpBackendAdapter({
     protocol: 'opencode',
@@ -1180,7 +1316,13 @@ test('ACP permissions expose permanent allow and reject semantics', async () => 
     toolCall: {
       toolCallId: 'tool-one',
       name: 'write',
-      rawInput: { path: '/tmp/file' },
+      title: 'Write project file',
+      kind: 'edit',
+      locations: [{ path: '/tmp/file', line: 12 }],
+      rawInput: {
+        path: '/tmp/file',
+        description: 'Update the generated project',
+      },
     },
     options,
   }, {
@@ -1189,21 +1331,55 @@ test('ACP permissions expose permanent allow and reject semantics', async () => 
   const requested = events.find(event => (
     event.type === 'backend.permission.requested'
   ))
-  await adapter.respondPermission(requested.permission.id, 'always', {
+  assert.equal(requested.permission.approvalScope, 'session')
+  assert.equal(
+    requested.permission.summary,
+    'Write project file：Update the generated project',
+  )
+  assert.deepEqual(requested.permission.operation, {
+    title: 'Write project file',
+    kind: 'edit',
+    description: 'Update the generated project',
+    path: '/tmp/file',
+    locations: [{ path: '/tmp/file', line: 12 }],
+  })
+  await adapter.resolveAuthorization(requested.permission.id, 'always', {
     ownerId: 'owner-one',
   })
   assert.deepEqual(await pending, {
+    // Gateway owns the session-wide policy, so the backend receives the
+    // narrowest option for each individual request.
     outcome: { outcome: 'selected', optionId: 'once' },
   })
   assert.ok(events.some(event => (
     event.type === 'backend.permission.resolved'
   )))
   assert.deepEqual(
-    await adapter.respondPermission(requested.permission.id, 'always', {
+    await adapter.resolveAuthorization(requested.permission.id, 'always', {
       ownerId: 'owner-one',
     }),
     events.find(event => event.type === 'backend.permission.resolved').permission,
   )
+  const oneShot = adapter.handlePermission({
+    sessionId: 'coordinator-session',
+    toolCall: {
+      toolCallId: 'tool-once',
+      name: 'write',
+      rawInput: { path: '/tmp/one-shot' },
+    },
+    options,
+  }, {
+    session: client.sessions.get('coordinator-session'),
+  })
+  const oneShotRequest = events.filter(event => (
+    event.type === 'backend.permission.requested'
+  )).at(-1)
+  await adapter.resolveAuthorization(oneShotRequest.permission.id, 'once', {
+    ownerId: 'owner-one',
+  })
+  assert.deepEqual(await oneShot, {
+    outcome: { outcome: 'selected', optionId: 'once' },
+  })
   const repeated = adapter.handlePermission({
     sessionId: 'coordinator-session',
     toolCall: {
@@ -1219,7 +1395,7 @@ test('ACP permissions expose permanent allow and reject semantics', async () => 
     event.type === 'backend.permission.requested'
   )).at(-1)
   assert.notEqual(repeatedRequest.permission.id, requested.permission.id)
-  await adapter.respondPermission(repeatedRequest.permission.id, 'reject', {
+  await adapter.resolveAuthorization(repeatedRequest.permission.id, 'reject', {
     ownerId: 'owner-one',
   })
   assert.deepEqual(await repeated, {
@@ -1275,7 +1451,7 @@ test('permission cleanup is isolated to the ACP prompt that requested it', async
   )
   assert.equal(coordinatorEvents.at(-1).permission.status, 'cancelled')
   assert.equal(adapter.pendingPermissions.has(projectPermission.id), true)
-  await adapter.respondPermission(projectPermission.id, 'always', {
+  await adapter.resolveAuthorization(projectPermission.id, 'always', {
     ownerId: 'owner-one',
   })
   assert.deepEqual(await project, {
@@ -1306,7 +1482,7 @@ test('automatically allows only the Gateway-owned Session MCP tools', async () =
   await adapter.close()
 })
 
-test('delegated status queries go through the coordinator and cancellation does too when idle', async () => {
+test('delegated status and cancellation bypass the coordinator', async () => {
   const client = fakeAcpClient({ holdTarget: true })
   const tools = fakeToolServer()
   client.bind(tools)
@@ -1321,7 +1497,7 @@ test('delegated status queries go through the coordinator and cancellation does 
     ownerId: 'owner-one',
     coordinationRunId: 'work-one',
   })
-  while (!adapter.delegatedWorkRuns.has('work-one')) {
+  while (!adapter.coordinationRuns.has('work-one')) {
     await new Promise(resolve => setImmediate(resolve))
   }
   const status = await adapter.queryDelegatedWork(
@@ -1329,18 +1505,17 @@ test('delegated status queries go through the coordinator and cancellation does 
     '做到哪了',
     { ownerId: 'owner-one' },
   )
-  assert.equal(JSON.parse(status.content).presentation.speech, '当前状态：running')
-  const cancelled = await adapter.cancelDelegatedWork('work-one', {
+  assert.equal(JSON.parse(status.content).result,
+    '这项工作仍在执行中，当前没有新的详细进展。')
+  assert.equal(status.metadata.statusSource, 'gateway')
+  const cancelled = await adapter.cancelWork('work-one', {
     ownerId: 'owner-one',
   })
-  assert.equal(cancelled.route, 'coordinator')
+  assert.equal(cancelled.route, 'adapter')
   await assert.rejects(running, /取消/)
-  assert.ok(client.calls.some(call => (
-    call[0] === 'prompt' && call[2].includes('kind="status"')
-  )))
-  assert.ok(client.calls.some(call => (
-    call[0] === 'prompt' && call[2].includes('kind="cancel"')
-  )))
+  assert.equal(client.calls.some(call => (
+    call[0] === 'prompt' && /kind="(?:status|cancel)"/.test(call[2])
+  )), false)
   await adapter.close()
 })
 
@@ -1359,11 +1534,11 @@ test('busy-coordinator cancellation uses ACP directly and reconciles on the next
     ownerId: 'owner-one',
     coordinationRunId: 'work-one',
   })
-  while (!adapter.delegatedWorkRuns.has('work-one')) {
+  while (!adapter.coordinationRuns.has('work-one')) {
     await new Promise(resolve => setImmediate(resolve))
   }
   adapter.activeCoordinatorTurns.add('coordinator-session')
-  const cancellation = await adapter.cancelDelegatedWork('work-one', {
+  const cancellation = await adapter.cancelWork('work-one', {
     ownerId: 'owner-one',
   })
   adapter.activeCoordinatorTurns.delete('coordinator-session')
@@ -1376,9 +1551,220 @@ test('busy-coordinator cancellation uses ACP directly and reconciles on the next
   const followUp = client.calls.findLast(call => (
     call[0] === 'prompt' && call[2].includes('plain follow-up')
   ))
-  assert.match(followUp[2], /side_audio_bot_reconciliation/)
-  assert.match(followUp[2], /delegated_session_cancelled/)
-  assert.equal(adapter.pendingCoordinatorFacts.has('owner-one'), false)
+  assert.match(
+    followUp[2],
+    /上一请求已取消，不要续接其未完成内容/,
+  )
+  assert.doesNotMatch(followUp[2], /work-one|request_id|delegation_id/)
+  assert.equal(
+    adapter.registry.reconciliationsFor('opencode:owner-one:backend').length,
+    0,
+  )
+  await adapter.close()
+})
+
+test('ordinary coordinator cancellation terminates the old request before the next turn', async () => {
+  const prompts = []
+  const client = {
+    async newSession(options) {
+      return {
+        sessionId: 'coordinator-session',
+        cwd: options.cwd,
+        response: {},
+      }
+    },
+    async prompt(_sessionId, prompt, options = {}) {
+      prompts.push(prompt)
+      if (prompt.includes('first request')) {
+        return new Promise((_resolve, reject) => {
+          options.signal.addEventListener(
+            'abort',
+            () => reject(options.signal.reason),
+            { once: true },
+          )
+        })
+      }
+      return {
+        content: completed('第二个请求已完成'),
+        response: { stopReason: 'end_turn' },
+      }
+    },
+    async close() {},
+  }
+  const adapter = new AcpBackendAdapter({
+    protocol: 'qoder',
+    directory: '/coordinator',
+    client,
+  })
+  const controller = new AbortController()
+  const first = adapter.runCoordinator('first request', {
+    ownerId: 'owner-one',
+    coordinationRunId: 'work-one',
+    coordinationRequestId: 'job_1',
+    signal: controller.signal,
+  })
+  while (!adapter.coordinationRuns.get('work-one')?.sessionId) {
+    await new Promise(resolve => setImmediate(resolve))
+  }
+
+  const cancellation = await adapter.cancelWork('work-one', {
+    ownerId: 'owner-one',
+  })
+  controller.abort(new Error('cancelled by user'))
+  assert.equal(cancellation.layer, 'coordinator')
+  await assert.rejects(first, /cancelled by user/)
+
+  const second = await adapter.runCoordinator('second request', {
+    ownerId: 'owner-one',
+    coordinationRunId: 'work-two',
+    coordinationRequestId: 'job_2',
+  })
+  assert.equal(second.content, '第二个请求已完成')
+  assert.match(prompts[1], /上一请求已取消，不要续接其未完成内容/)
+  assert.doesNotMatch(prompts[1], /job_1|work-one|request_id/)
+  assert.match(prompts[1], /仅处理以下新请求/)
+  assert.deepEqual(
+    adapter.registry.reconciliationsFor('qoder:owner-one:backend'),
+    [],
+  )
+  assert.equal(adapter.coordinationRuns.has('work-one'), false)
+  assert.equal(adapter.coordinationRuns.has('work-two'), false)
+  await adapter.close()
+})
+
+test('delivers persisted cancellation reconciliation after a Gateway restart', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-acp-restart-'))
+  const sessionStatePath = join(directory, 'acp-sessions.json')
+  try {
+    const firstClient = {
+      async newSession(options) {
+        return {
+          sessionId: 'persisted-coordinator',
+          cwd: options.cwd,
+          response: {},
+        }
+      },
+      async prompt(_sessionId, _prompt, options = {}) {
+        return new Promise((_resolve, reject) => {
+          options.signal.addEventListener(
+            'abort',
+            () => reject(options.signal.reason),
+            { once: true },
+          )
+        })
+      },
+      async close() {},
+    }
+    const firstAdapter = new AcpBackendAdapter({
+      protocol: 'qoder',
+      directory: '/coordinator',
+      sessionStatePath,
+      client: firstClient,
+      sessionToolServer: fakeToolServer(),
+    })
+    const controller = new AbortController()
+    const first = firstAdapter.runCoordinator('request before restart', {
+      ownerId: 'owner-one',
+      coordinationRunId: 'work-before-restart',
+      coordinationRequestId: 'job_21',
+      signal: controller.signal,
+    })
+    while (!firstAdapter.coordinationRuns.get('work-before-restart')?.sessionId) {
+      await new Promise(resolve => setImmediate(resolve))
+    }
+    await firstAdapter.cancelWork('work-before-restart', {
+      ownerId: 'owner-one',
+    })
+    controller.abort(new Error('cancelled before restart'))
+    await assert.rejects(first, /cancelled before restart/)
+    await firstAdapter.close()
+
+    const prompts = []
+    let resumes = 0
+    const secondClient = {
+      async newSession() {
+        throw new Error('persisted coordinator should be resumed')
+      },
+      async resumeSession(sessionId, options) {
+        resumes += 1
+        return {
+          sessionId,
+          cwd: options.cwd,
+          response: {},
+        }
+      },
+      async prompt(_sessionId, prompt) {
+        prompts.push(prompt)
+        return {
+          content: completed('重启后继续完成'),
+          response: { stopReason: 'end_turn' },
+        }
+      },
+      async close() {},
+    }
+    const secondAdapter = new AcpBackendAdapter({
+      protocol: 'qoder',
+      directory: '/coordinator',
+      sessionStatePath,
+      client: secondClient,
+      sessionToolServer: fakeToolServer(),
+    })
+    await secondAdapter.runCoordinator('request after restart', {
+      ownerId: 'owner-one',
+      coordinationRunId: 'work-after-restart',
+      coordinationRequestId: 'job_22',
+    })
+
+    // Once to restore the persisted Session and once to re-supply its MCP
+    // definitions before the first prompt after restart.
+    assert.equal(resumes, 2)
+    assert.match(prompts[0], /上一请求已取消，不要续接其未完成内容/)
+    assert.doesNotMatch(
+      prompts[0],
+      /job_21|work-before-restart|request_id/,
+    )
+    assert.deepEqual(
+      secondAdapter.registry.reconciliationsFor('qoder:owner-one:backend'),
+      [],
+    )
+    await secondAdapter.close()
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
+})
+
+test('busy-coordinator status query returns Gateway-known state immediately', async () => {
+  const client = fakeAcpClient({ holdTarget: true })
+  const tools = fakeToolServer()
+  client.bind(tools)
+  const adapter = new AcpBackendAdapter({
+    protocol: 'opencode',
+    root: '/repo',
+    directory: '/coordinator',
+    client,
+    sessionToolServer: tools,
+  })
+  const running = adapter.runCoordinator('delegate', {
+    ownerId: 'owner-one',
+    coordinationRunId: 'work-one',
+  })
+  while (!adapter.coordinationRuns.has('work-one')) {
+    await new Promise(resolve => setImmediate(resolve))
+  }
+  adapter.activeCoordinatorTurns.add('coordinator-session')
+  const before = client.calls.length
+  const status = await adapter.queryDelegatedWork(
+    'work-one',
+    '做到哪了',
+    { ownerId: 'owner-one' },
+  )
+  adapter.activeCoordinatorTurns.delete('coordinator-session')
+  assert.equal(client.calls.length, before)
+  assert.equal(JSON.parse(status.content).result,
+    '这项工作仍在执行中，当前没有新的详细进展。')
+  assert.equal(status.metadata.statusSource, 'gateway')
+  await adapter.cancelWork('work-one', { ownerId: 'owner-one' })
+  await assert.rejects(running, /取消/)
   await adapter.close()
 })
 
@@ -1574,91 +1960,6 @@ test('replaces a restored OpenCode coordinator with a stale mode', async () => {
   await adapter.close()
 })
 
-test('supports legacy ACP Session model selection', async () => {
-  const client = fakeAcpClient()
-  const configured = []
-  client.setLegacySessionModel = async (...args) => configured.push(args)
-  const adapter = new AcpBackendAdapter({
-    protocol: 'claude',
-    model: 'claude-sonnet',
-    client,
-  })
-  const session = {
-    sessionId: 'legacy-session',
-    response: {
-      models: {
-        currentModelId: 'claude-default',
-        availableModels: [
-          { modelId: 'claude-default' },
-          { modelId: 'claude-sonnet' },
-        ],
-      },
-    },
-  }
-  await adapter.configureSession(session, 'project')
-  assert.deepEqual(configured, [
-    ['legacy-session', 'claude-sonnet'],
-  ])
-  assert.equal(session.response.models.currentModelId, 'claude-sonnet')
-  await adapter.close()
-})
-
-test('matches legacy ACP model IDs case-insensitively', async () => {
-  const client = fakeAcpClient()
-  const configured = []
-  client.setLegacySessionModel = async (...args) => configured.push(args)
-  const adapter = new AcpBackendAdapter({
-    protocol: 'claude',
-    model: 'claude-sonnet',
-    client,
-  })
-  const session = {
-    sessionId: 'legacy-session',
-    response: {
-      models: {
-        currentModelId: 'Claude-Default',
-        availableModels: [
-          { modelId: 'Claude-Default' },
-          { modelId: 'Claude-Sonnet' },
-        ],
-      },
-    },
-  }
-  await adapter.configureSession(session, 'project')
-  assert.deepEqual(configured, [
-    ['legacy-session', 'Claude-Sonnet'],
-  ])
-  assert.equal(session.response.models.currentModelId, 'Claude-Sonnet')
-  await adapter.close()
-})
-
-test('uses OpenClaw Gateway model override when ACP omits model options', async () => {
-  const client = fakeAcpClient()
-  const configured = []
-  const adapter = new AcpBackendAdapter({
-    protocol: 'openclaw',
-    baseUrl: 'http://127.0.0.1:18789',
-    directory: '/coordinator',
-    model: 'bailian/qwen3.7-plus',
-    client,
-    nativeDelegationAdapter: {
-      async setSessionModel(input) {
-        configured.push(input)
-      },
-    },
-  })
-  await adapter.configureSession({
-    sessionId: 'openclaw-session',
-    meta: { sessionKey: 'agent:voice:coordinator' },
-    response: { configOptions: [] },
-  }, 'coordinator')
-  assert.deepEqual(configured, [{
-    sessionKey: 'agent:voice:coordinator',
-    model: 'bailian/qwen3.7-plus',
-  }])
-  await adapter.close()
-})
-
 test('rejects explicit models that ACP cannot apply', async () => {
   const client = fakeAcpClient()
   const adapter = new AcpBackendAdapter({
@@ -1669,7 +1970,13 @@ test('rejects explicit models that ACP cannot apply', async () => {
   await assert.rejects(
     adapter.configureSession({
       sessionId: 'missing-option',
-      response: { configOptions: [] },
+      response: {
+        configOptions: [],
+        models: {
+          currentModelId: 'legacy-default',
+          availableModels: [{ modelId: 'forced-model' }],
+        },
+      },
     }, 'project'),
     /没有通过 ACP 提供 Session 模型配置/,
   )
@@ -1829,14 +2136,7 @@ test('OpenClaw maps native Session tool updates into the shared delegation lifec
           },
         })
         return {
-          content: JSON.stringify({
-            work_id: 'work-one',
-            state: 'delegated',
-            mode: 'delegate',
-            delegation_id: 'run-one',
-            target_session_id: 'agent:child:one',
-            presentation: { speech: 'OpenClaw 已开始执行。', inline: null },
-          }),
+          content: 'OpenClaw 已开始执行。',
           response: { stopReason: 'end_turn' },
         }
       }
@@ -1872,7 +2172,7 @@ test('OpenClaw maps native Session tool updates into the shared delegation lifec
   })
   const result = await running
   assert.equal(
-    JSON.parse(result.content).presentation.speech,
+    result.content,
     'OpenClaw 第三层结果已整理',
   )
   assert.deepEqual(nativeCalls, [[
@@ -1942,7 +2242,7 @@ test('OpenClaw reattaches a persisted native delegation after Gateway restart', 
   })
 
   assert.equal(
-    JSON.parse(result.content).presentation.speech,
+    result.content,
     '恢复结果已整理',
   )
   assert.ok(events.some(event => event.type === 'backend.delegated'))
@@ -1982,9 +2282,131 @@ test('releases completed ACP tool-call state instead of retaining it globally', 
   assert.equal(Object.hasOwn(adapter, 'toolCalls'), false)
 })
 
+test('streams only ACP Agent messages as backend progress text', () => {
+  const adapter = new AcpBackendAdapter({
+    protocol: 'qoder',
+    client: fakeAcpClient(),
+    sessionToolServer: fakeToolServer(),
+  })
+  const events = []
+  const run = {
+    toolCalls: new Map(),
+    nativeToolCalls: new Map(),
+    onEvent: event => events.push(event),
+  }
+
+  adapter.onSessionUpdate(run, {
+    sessionUpdate: 'agent_thought_chunk',
+    content: { type: 'text', text: '不应播报的内部推理' },
+  })
+  adapter.onSessionUpdate(run, {
+    sessionUpdate: 'tool_call',
+    toolCallId: 'tool-one',
+    name: 'Read',
+    status: 'in_progress',
+  })
+  adapter.onSessionUpdate(run, {
+    sessionUpdate: 'agent_message_chunk',
+    messageId: 'message-one',
+    content: { type: 'text', text: '已经完成资料读取，' },
+  })
+  adapter.onSessionUpdate(run, {
+    sessionUpdate: 'agent_message_chunk',
+    messageId: 'message-one',
+    content: { type: 'text', text: '正在整理结论。' },
+  })
+
+  const messages = events.filter(event => event.type === 'backend.message')
+  assert.deepEqual(messages.map(event => event.message), [
+    '已经完成资料读取，',
+    '已经完成资料读取，正在整理结论。',
+  ])
+  assert.ok(events.some(event => (
+    event.type === 'backend.activity'
+    && event.activity.kind === 'thinking'
+  )))
+  assert.ok(events.some(event => (
+    event.type === 'backend.activity'
+    && event.activity.kind === 'tool'
+  )))
+  assert.equal(messages.some(event => /内部推理|Read/.test(event.message)), false)
+})
+
+test('reports recent project Session updates with Gateway delegation status', async () => {
+  const client = fakeAcpClient({
+    holdTarget: true,
+    targetUpdates: [
+      {
+        sessionUpdate: 'tool_call',
+        toolCallId: 'tool-one',
+        name: 'Read',
+        status: 'in_progress',
+        rawInput: { path: '/project/package.json' },
+      },
+      {
+        sessionUpdate: 'tool_call_update',
+        toolCallId: 'tool-one',
+        status: 'completed',
+      },
+      {
+        sessionUpdate: 'plan',
+        entries: [
+          { content: '读取项目', status: 'completed' },
+          { content: '实现功能', status: 'in_progress' },
+        ],
+      },
+      {
+        sessionUpdate: 'agent_message_chunk',
+        content: { type: 'text', text: '不应作为进展摘要保存' },
+      },
+    ],
+  })
+  const tools = fakeToolServer()
+  client.bind(tools)
+  const adapter = new AcpBackendAdapter({
+    protocol: 'opencode',
+    root: '/repo',
+    directory: '/coordinator',
+    client,
+    sessionToolServer: tools,
+  })
+
+  const running = adapter.runCoordinator('delegate', {
+    ownerId: 'owner-one',
+    coordinationRunId: 'work-one',
+  })
+  while (!adapter.coordinationRuns.has('work-one')) {
+    await new Promise(resolve => setImmediate(resolve))
+  }
+
+  const status = adapter.statusForDelegation({ session_id: 'project-1' })
+  assert.equal(status.status, 'running')
+  assert.deepEqual(status.recent_updates, [
+    {
+      kind: 'tool',
+      tool: 'Read',
+      status: 'completed',
+      category: 'read',
+      detail: '/project/package.json',
+    },
+    {
+      kind: 'plan',
+      status: 'running',
+      detail: '实现功能',
+      completed: 1,
+      total: 2,
+    },
+  ])
+
+  await adapter.cancelWork('work-one', { ownerId: 'owner-one' })
+  await assert.rejects(running, /取消/)
+  await adapter.close()
+})
+
 test('injects builtin MCP servers into coordinator and project sessions', async () => {
   const builtin = {
     name: 'open-computer-use',
+    type: 'stdio',
     command: process.execPath,
     args: ['/repo/node_modules/open-computer-use/bin', 'mcp'],
     env: [{ name: 'ELECTRON_RUN_AS_NODE', value: '1' }],
@@ -2042,9 +2464,11 @@ test('injects builtin MCP servers into coordinator and project sessions', async 
   assert.equal(coordinator.length, 2)
   assert.equal(coordinator[0].type, 'http')
   assert.equal(coordinator[1], builtin)
+  assert.equal(coordinator[1].type, 'stdio')
 
   const project = sessionMcp.get('project-session')
   assert.deepEqual(project, [builtin])
+  assert.equal(project[0].type, 'stdio')
   await adapter.close()
 })
 

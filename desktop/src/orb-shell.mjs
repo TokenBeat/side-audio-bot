@@ -19,6 +19,9 @@ export const ORB_CHANNELS = Object.freeze({
   lifecycleLoad: 'side-audio-bot:lifecycle-load',
   lifecycle: 'side-audio-bot:lifecycle',
   taskCardPlacement: 'side-audio-bot:task-card-placement',
+  surfaceLoad: 'side-audio-bot:surface-load',
+  surfaceSet: 'side-audio-bot:surface-set',
+  conversationSessionSet: 'side-audio-bot:conversation-session-set',
   quit: 'side-audio-bot:quit',
 })
 
@@ -57,6 +60,9 @@ export function bindOrbShell({
   presence,
   logger = null,
   onOpenSettings = null,
+  onLoadSurface = null,
+  onSetSurface = null,
+  onSetConversationSession = null,
   onQuit = null,
   onDragEnd = null,
 } = {}) {
@@ -131,11 +137,41 @@ export function bindOrbShell({
     return { state: presence.state }
   })
 
-  handle(ORB_CHANNELS.enterHide, event => {
+  handle(ORB_CHANNELS.enterHide, (event, options = {}) => {
     if (!fromOrbWindow(event)) {
       throw new Error('无权修改桌面状态')
     }
-    return { state: presence.hide('inactivity') }
+    // The conversation panel is an active application surface. A stale
+    // inactivity timer from the compact orb must never disconnect its
+    // realtime session while the panel remains visible and interactive.
+    const explicit = options?.explicit === true
+    if (!explicit && onLoadSurface?.() === 'panel') {
+      return { state: presence.state }
+    }
+    if (explicit && onLoadSurface?.() === 'panel') onSetSurface?.('orb')
+    return { state: presence.hide(explicit ? 'requested' : 'inactivity') }
+  })
+
+  handle(ORB_CHANNELS.surfaceLoad, event => {
+    if (!fromOrbWindow(event)) {
+      throw new Error('无权读取桌面展示形态')
+    }
+    return { mode: onLoadSurface?.() === 'panel' ? 'panel' : 'orb' }
+  })
+
+  handle(ORB_CHANNELS.surfaceSet, (event, requestedMode) => {
+    if (!fromOrbWindow(event)) {
+      throw new Error('无权修改桌面展示形态')
+    }
+    const mode = requestedMode === 'panel' ? 'panel' : 'orb'
+    return { mode: onSetSurface?.(mode) === 'panel' ? 'panel' : 'orb' }
+  })
+
+  handle(ORB_CHANNELS.conversationSessionSet, (event, sessionId) => {
+    if (!fromOrbWindow(event)) {
+      throw new Error('无权修改桌面对话会话')
+    }
+    return { sessionId: onSetConversationSession?.(sessionId) || '' }
   })
 
   on(ORB_CHANNELS.wake, event => {

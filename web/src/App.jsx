@@ -9,8 +9,8 @@ import {
 import {
   buildConversationTurns,
   discardUserTranscript,
-  finalAssistantContent,
-  insertByTurn,
+  mergeConversationHistory,
+  upsertAssistantTranscript,
   upsertUserTranscript,
 } from './message-order.js'
 import MessageContent from './MessageContent.jsx'
@@ -18,20 +18,21 @@ import MultimodalComposer from './MultimodalComposer.jsx'
 import DesktopFluidOrb from './DesktopFluidOrb.jsx'
 import DesktopSpriteOrb from './DesktopSpriteOrb.jsx'
 import DesktopBloubOrb from './DesktopBloubOrb.jsx'
+import DomainLibraryPanel from './DomainLibraryPanel.jsx'
 import { desktopOrbClassName, resolveOrbVisualState } from './orb-presentation.js'
 import { useBloubAppearance } from './use-bloub-appearance.js'
 import {
   isBuiltinOrbSkin,
-  resolveOrbSkinId,
 } from '../../shared/orb-skin-catalog.mjs'
 import { supportsComposerInput } from '../../shared/client-input-capabilities.mjs'
 import { resultLabel } from './presentation.js'
-import { t } from './i18n.js'
+import { setRuntimeLanguage, t } from './i18n.js'
 import {
   removeDeliveredTask,
   removeTaskInPhase,
   taskDeliverySettled,
   taskDetail,
+  taskNeedsPresentation,
   taskLabel,
   taskView,
 } from './task-view.js'
@@ -45,13 +46,13 @@ import { requestedSessionId } from './session.js'
 import { initialVoiceEnabled } from './voice-defaults.js'
 import {
   applyDesktopClientState,
-  desktopAutoHideSeconds,
+  desktopCanFinishWaking,
   desktopCanHide,
   desktopHideDeadline,
-  desktopWakeWordEnabled,
-  desktopWorkSettled,
   desktopTasksActive,
-  desktopTasksAttention,
+  desktopWorkSettled,
+  desktopTasksWorking,
+  performDesktopClientAction,
 } from './desktop-hide.js'
 import {
   desktopTaskCards,
@@ -62,19 +63,23 @@ import {
   desktopRealtimeRuntime,
   resolveDesktopRuntime,
 } from './desktop-runtime.js'
+import {
+  spriteAnimationEventForGatewayEvent,
+  spriteAnimationForEvent,
+} from './sprite-orb.js'
+import {
+  applyDesktopClientSettings,
+  initialDesktopClientSettings,
+} from './desktop-client-settings.js'
 
 const desktopOrbMode = (
   new URLSearchParams(window.location.search).get('desktop') === 'orb'
 )
-const takeoverRequested = (
-  new URLSearchParams(window.location.search).get('takeover') === '1'
+const initialDesktopSurfaceMode = (
+  new URLSearchParams(window.location.search).get('surface') === 'panel'
+    ? 'panel'
+    : 'orb'
 )
-const orbSkinId = resolveOrbSkinId({
-  orbSkin: new URLSearchParams(window.location.search).get('orbSkin'),
-  orbStyle: new URLSearchParams(window.location.search).get('orbStyle'),
-})
-const autoHideSeconds = desktopAutoHideSeconds(window.location.search)
-const wakeWordEnabled = desktopWakeWordEnabled(window.location.search)
 const composerEnabled = supportsComposerInput(desktopOrbMode ? 'desktop' : 'web')
 
 function getSessionId() {
@@ -97,7 +102,6 @@ function labelFor(state) {
     processing: t('正在处理'),
     speaking: t('正在说'),
     working: t('正在处理任务'),
-    attention: t('等待你的确认'),
     starting: t('正在启动'),
     connecting: t('正在连接语音前台'),
     occupied: t('其他入口正在使用'),
@@ -128,6 +132,17 @@ function OrbControlIcon({ type, muted = false, collapsed = false }) {
       <path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.04.04a2 2 0 0 1-2.83 2.83l-.04-.04a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.08 1.65V21a2 2 0 0 1-4 0v-.06A1.8 1.8 0 0 0 8.8 19.3a1.8 1.8 0 0 0-1.98.36l-.04.04a2 2 0 0 1-2.83-2.83l.04-.04a1.8 1.8 0 0 0 .36-1.98A1.8 1.8 0 0 0 2.7 13.8H2.6a2 2 0 0 1 0-4h.06A1.8 1.8 0 0 0 4.3 8.72a1.8 1.8 0 0 0-.36-1.98l-.04-.04a2 2 0 0 1 2.83-2.83l.04.04a1.8 1.8 0 0 0 1.98.36A1.8 1.8 0 0 0 9.82 2.6V2.5a2 2 0 0 1 4 0v.06A1.8 1.8 0 0 0 14.9 4.2a1.8 1.8 0 0 0 1.98-.36l.04-.04a2 2 0 0 1 2.83 2.83l-.04.04a1.8 1.8 0 0 0-.36 1.98 1.8 1.8 0 0 0 1.65 1.08h.1a2 2 0 0 1 0 4h-.06A1.8 1.8 0 0 0 19.4 15Z" />
     </svg>
   }
+  if (type === 'conversation') {
+    return <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 5.5h14v10H9l-4 3v-13Z" />
+      <path d="M8 9h8m-8 3h5" />
+    </svg>
+  }
+  if (type === 'collapse') {
+    return <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m8 10 4 4 4-4" />
+    </svg>
+  }
   if (type === 'tasks') {
     return <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d={collapsed ? 'm7 9 5 5 5-5' : 'm7 14 5-5 5 5'} />
@@ -147,6 +162,18 @@ function upsertTask(items, taskId, update, fallback) {
 }
 
 export default function App() {
+  const [desktopClientSettings, setDesktopClientSettings] = useState(
+    () => initialDesktopClientSettings(window.location.search),
+  )
+  const {
+    orbSkinId,
+    autoHideSeconds,
+    wakeWordEnabled,
+  } = desktopClientSettings
+  // `t()` reads the module-level runtime language. Keeping a revision in
+  // React state makes a language-only settings update repaint this surface
+  // without replacing its Gateway WebSocket or Realtime Session.
+  const [, setLanguageRevision] = useState(0)
   const [sessionId, setSessionId] = useState(getSessionId)
   const [voiceEnabled, setVoiceEnabled] = useState(() => initialVoiceEnabled({
     desktopOrbMode,
@@ -172,17 +199,20 @@ export default function App() {
   })
   const [agentTasks, setAgentTasks] = useState([])
   const [desktopTasksCollapsed, setDesktopTasksCollapsed] = useState(false)
+  const [showDomainLibrary, setShowDomainLibrary] = useState(false)
   const [desktopTaskLayout, setDesktopTaskLayout] = useState({
     placement: 'below',
     orbOffsetX: 0,
   })
   const [orbDragging, setOrbDragging] = useState(false)
   const [orbDragDirection, setOrbDragDirection] = useState('')
-  const [spriteAnimationCue, setSpriteAnimationCue] = useState(null)
+  const [spriteAnimationCues, setSpriteAnimationCues] = useState([])
   const [spriteOrbFailed, setSpriteOrbFailed] = useState(false)
   const [desktopLifecycle, setDesktopLifecycle] = useState('active')
+  const [desktopSurfaceMode, setDesktopSurfaceMode] = useState(
+    initialDesktopSurfaceMode,
+  )
   const [lastInteractionAt, setLastInteractionAt] = useState(Date.now)
-  const [workSettledAt, setWorkSettledAt] = useState(Date.now)
   const activeVoiceResponse = useRef('')
   const currentTurnId = useRef('')
   const responseTurnMap = useRef(new Map())
@@ -191,28 +221,75 @@ export default function App() {
   const messagesRef = useRef(null)
   const stickToBottom = useRef(true)
   const orbDrag = useRef(null)
-  const suppressOrbClick = useRef(false)
   const spriteAnimationCueId = useRef(0)
   const runtimeReadyAnnounced = useRef(false)
-  const previousDesktopRuntime = useRef('starting')
-  const previousWorkSettled = useRef(true)
-  const workSettledAtRef = useRef(workSettledAt)
+  const previousTasksActive = useRef(false)
+  const workSettledAtRef = useRef(Date.now())
+  const autoHideStateRef = useRef(null)
+  const autoHideRequestedDeadlineRef = useRef(0)
   const lastWakeAtRef = useRef(0)
+  const previousDesktopLifecycle = useRef('active')
+  const gatewayCommandsRef = useRef(null)
+  const sessionIdRef = useRef(sessionId)
+  sessionIdRef.current = sessionId
+  const spriteAnimationCue = spriteAnimationCues[0] || null
+
+  useEffect(() => {
+    if (!desktopOrbMode) return undefined
+    const bridge = window.sideAudioBotDesktop
+    if (typeof bridge?.onClientSettings !== 'function') return undefined
+    return bridge.onClientSettings(settings => {
+      setDesktopClientSettings(current => applyDesktopClientSettings(
+        current,
+        settings,
+      ))
+      if (settings.orbSkin) setSpriteOrbFailed(false)
+      if (settings.language) {
+        setRuntimeLanguage(settings.language)
+        setLanguageRevision(value => value + 1)
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    const persistSession = window.sideAudioBotDesktop?.setConversationSession
+    if (!desktopOrbMode || typeof persistSession !== 'function') return
+    void persistSession(sessionId).catch(() => {})
+  }, [sessionId])
 
   const noteInteraction = useCallback(() => {
     setLastInteractionAt(Date.now())
   }, [])
 
-  const triggerSpriteAnimation = useCallback(name => {
+  const changeDesktopSurface = useCallback(async mode => {
+    const bridge = window.sideAudioBotDesktop
+    if (!desktopOrbMode || !bridge?.setSurface) return
+    try {
+      const result = await bridge.setSurface(mode)
+      setDesktopSurfaceMode(result?.mode === 'panel' ? 'panel' : 'orb')
+      noteInteraction()
+    } catch {
+      // A rejected host transition leaves the current presentation intact.
+    }
+  }, [noteInteraction])
+
+  const triggerSpriteAnimation = useCallback((eventName, { priority = false } = {}) => {
     // bloub-bot 是内置皮肤但自带彩蛋动画（burst/comet），同样要放行。
     if (!desktopOrbMode) return
     if (isBuiltinOrbSkin(orbSkinId) && orbSkinId !== 'bloub-bot') return
+    const name = spriteAnimationForEvent(eventName)
+    if (!name) return
     spriteAnimationCueId.current += 1
-    setSpriteAnimationCue({ id: spriteAnimationCueId.current, name })
-  }, [])
+    const cue = { id: spriteAnimationCueId.current, name }
+    setSpriteAnimationCues(current => (
+      priority ? [cue, ...current] : [...current, cue]
+    ))
+  }, [orbSkinId])
 
   const completeSpriteAnimationCue = useCallback(id => {
-    setSpriteAnimationCue(current => current?.id === id ? null : current)
+    setSpriteAnimationCues(current => (
+      current[0]?.id === id ? current.slice(1) : current
+    ))
   }, [])
 
   const respondToPermission = useCallback(async (taskId, permission, decision) => {
@@ -230,15 +307,9 @@ export default function App() {
       }),
     ))
     try {
-      const response = await fetch(
-        `api/permissions/${encodeURIComponent(permission.id)}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ decision }),
-        },
-      )
-      if (response.status === 404 || response.status === 409) {
+      await gatewayCommandsRef.current?.respondPermission(permission.id, decision)
+    } catch (error) {
+      if (['permission_not_found', 'task_not_found'].includes(error.code)) {
         setAgentTasks(items => upsertTask(
           items,
           taskId,
@@ -246,11 +317,6 @@ export default function App() {
         ))
         return
       }
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}))
-        throw new Error(payload.error || t('请求失败（{status}）', { status: response.status }))
-      }
-    } catch (error) {
       setAgentTasks(items => upsertTask(
         items,
         taskId,
@@ -356,7 +422,8 @@ export default function App() {
         turnId: event.turnId,
         final,
       }))
-  }, [])
+    if (final) noteInteraction()
+  }, [noteInteraction])
 
   const updateVoiceMessage = useCallback((event, final = false) => {
     const responseId = event.responseId || activeVoiceResponse.current
@@ -364,63 +431,24 @@ export default function App() {
     activeVoiceResponse.current = responseId
     const id = `voice:${responseId}`
     const trackedTurnId = responseTurnMap.current.get(responseId) || event.turnId || currentTurnId.current
-    setMessages(items => {
-      const index = items.findIndex(item => item.id === id)
-      if (index < 0) return insertByTurn(items, {
-          id,
-          role: 'assistant',
-          content: final
-            ? finalAssistantContent(event.content)
-            : event.content || '',
-          turnId: trackedTurnId,
-          taskId: event.taskId,
-          taskIds: event.taskIds,
-          origin: event.origin,
-          deliverySequence: event.deliverySequence,
-          live: !final,
-      })
-      const next = [...items]
-      next[index] = {
-        ...next[index],
-        content: final
-          ? finalAssistantContent(event.content, next[index].content)
-          : next[index].content + (event.content || ''),
-        turnId: trackedTurnId || next[index].turnId,
-        taskId: event.taskId || next[index].taskId,
-        taskIds: event.taskIds || next[index].taskIds,
-        origin: event.origin || next[index].origin,
-        deliverySequence: event.deliverySequence || next[index].deliverySequence,
-        live: !final,
-      }
-      return next
-    })
-  }, [])
-
-  const updateTimelineItem = useCallback(item => {
-    if (!item?.content) return
-    setMessages(items => {
-      const id = `inline:${item.id || item.taskId || crypto.randomUUID()}`
-      const existing = items.findIndex(message => message.id === id)
-      const message = {
-        id,
-        role: 'assistant',
-        content: item.content,
-        title: item.title,
-        turnId: item.turnId || currentTurnId.current,
-        taskId: item.taskId,
-        companion: true,
-        final: true,
-      }
-      if (existing < 0) return insertByTurn(items, message)
-      const next = [...items]
-      next[existing] = message
-      return next
-    })
+    setMessages(items => upsertAssistantTranscript(items, {
+      id,
+      content: event.content,
+      turnId: trackedTurnId,
+      taskId: event.taskId,
+      taskIds: event.taskIds,
+      origin: event.origin,
+      citations: event.citations,
+      final,
+    }))
   }, [])
 
   const onRealtimeEvent = useCallback(event => {
+    const animationEvent = spriteAnimationEventForGatewayEvent(event)
+    if (animationEvent) {
+      triggerSpriteAnimation(animationEvent)
+    }
     if (event.type === 'turn.started') {
-      noteInteraction()
       currentTurnId.current = event.turnId || ''
       activeVoiceResponse.current = ''
       stickToBottom.current = true
@@ -454,42 +482,30 @@ export default function App() {
     ) {
       window.sideAudioBotDesktop?.wake()
     }
-    if (event.type === 'gateway.connected') {
-      fetch(`api/tasks?sessionId=${encodeURIComponent(sessionId)}`)
-        .then(response => response.ok ? response.json() : Promise.reject())
-        .then(payload => {
-          const serverTasks = payload.tasks || []
-          const byId = new Map(serverTasks.map(task => [task.id, task]))
-          setAgentTasks(items => {
-            const known = new Set(items.map(task => task.id))
-            const reconciled = items.flatMap(task => {
-              const current = byId.get(task.id)
-              if (current && taskDeliverySettled(current)) return []
-              if (current) return [taskView(current, task)]
-              if (task.phase !== 'disconnected') return [task]
-              return [{
-                ...task,
-                phase: 'failed',
-                error: t('网关重连后未找到这次后台执行，请重新提交。'),
-              }]
-            })
-            serverTasks
-              .filter(task => (
-                task.workState === 'active'
-                && !known.has(task.id)
-              ))
-              .reverse()
-              .forEach(task => reconciled.push(taskView(task)))
-            return reconciled
-          })
+    if (event.type === 'session.recovered') {
+      if (sessionIdRef.current !== sessionId) return
+      setMessages(items => mergeConversationHistory(items, event.messages || []))
+      const serverTasks = event.tasks || []
+      const byId = new Map(serverTasks.map(task => [task.id, task]))
+      setAgentTasks(items => {
+        const known = new Set(items.map(task => task.id))
+        const reconciled = items.flatMap(task => {
+          const current = byId.get(task.id)
+          if (current && taskDeliverySettled(current)) return []
+          if (current) return [taskView(current, task)]
+          if (task.phase !== 'disconnected') return [task]
+          return [{
+            ...task,
+            phase: 'failed',
+            error: t('网关重连后未找到这次后台执行，请重新提交。'),
+          }]
         })
-        .catch(() => {})
-      fetch(`api/timeline?sessionId=${encodeURIComponent(sessionId)}`)
-        .then(response => response.ok ? response.json() : Promise.reject())
-        .then(payload => {
-          for (const item of payload.items || []) updateTimelineItem(item)
-        })
-        .catch(() => {})
+        serverTasks
+          .filter(task => taskNeedsPresentation(task) && !known.has(task.id))
+          .reverse()
+          .forEach(task => reconciled.push(taskView(task)))
+        return reconciled
+      })
     }
     if (event.type === 'voice.deactivated') {
       setVoiceEnabled(false)
@@ -536,9 +552,6 @@ export default function App() {
     }
     if (event.type === 'transcript.discard' && event.role === 'user') {
       setMessages(items => discardUserTranscript(items, event.turnId))
-    }
-    if (event.type === 'timeline.inline' && event.item?.content) {
-      updateTimelineItem(event.item)
     }
     if (event.type === 'response.started') {
       activeVoiceResponse.current = event.responseId
@@ -616,6 +629,15 @@ export default function App() {
         taskView(progress),
       ))
     }
+    if (event.type === 'task.updated') {
+      const task = event.task
+      setAgentTasks(items => upsertTask(
+        items,
+        task.id,
+        current => taskView(task, current),
+        taskView(task),
+      ))
+    }
     if (event.type === 'task.delegated') {
       const task = event.task
       if (!task.turnId || task.turnId === currentTurnId.current) {
@@ -683,7 +705,6 @@ export default function App() {
     }
     if (event.type === 'task.failed') {
       const failed = event.task
-      triggerSpriteAnimation('failed')
       if (failed.turnId) agentTurnIds.current.delete(failed.turnId)
       if (!failed.turnId || failed.turnId === currentTurnId.current) {
         setActivity(t('后台失败：{error}', { error: failed.error }))
@@ -730,10 +751,8 @@ export default function App() {
     }
   }, [
     sessionId,
-    updateTimelineItem,
     updateUserTranscript,
     updateVoiceMessage,
-    noteInteraction,
     voiceEnabled,
     waitingForVoice,
     triggerSpriteAnimation,
@@ -760,7 +779,6 @@ export default function App() {
     clientType: desktopOrbMode ? 'desktop' : 'web',
     clientLabel: desktopOrbMode ? t('桌面端') : 'WebUI',
     clientStates: desktopOrbMode ? ['sleeping'] : [],
-    takeover: takeoverRequested,
     realtimeProvider: realtimeProviderForConnection(
       realtimeProvider,
       healthValidated,
@@ -771,7 +789,16 @@ export default function App() {
       setWaitingForVoice(false)
       setActivity(message)
     },
+    onClientAction: event => performDesktopClientAction(event, {
+      desktop: desktopOrbMode,
+      bridge: window.sideAudioBotDesktop,
+      onLifecycle: setDesktopLifecycle,
+    }),
+    onWakeWordAudio: (audio, sampleRate) => {
+      window.sideAudioBotDesktop?.acceptWakeWordAudio(audio, sampleRate)
+    },
   })
+  gatewayCommandsRef.current = voice
   const lifecycleTransition = (
     desktopOrbMode && desktopLifecycle !== 'active'
   )
@@ -783,10 +810,10 @@ export default function App() {
     realtime: desktopRealtimeRuntime(voice.connectionState),
     backend: desktopBackendRuntime(backend),
   })
-  const desktopHasActiveTasks = desktopOrbMode && desktopTasksActive(agentTasks)
+  const desktopHasWorkingTasks = desktopOrbMode && desktopTasksWorking(agentTasks)
   // 统一视觉状态仲裁：生命周期 → 异常 → 对话态 → 后台态。
-  // 后台任务态（attention/working）仅在桌面悬浮球展示，
-  // WebUI 由任务卡片承载同类信息。
+  // 后台工作态仅在桌面悬浮球展示；等待授权由播报和任务卡片承载，
+  // 不占用 Agent 动画状态。WebUI 也由任务卡片承载同类信息。
   const orbVisualState = resolveOrbVisualState({
     lifecycle: desktopLifecycle,
     runtimeState: desktopOrbMode ? desktopRuntime.overall : null,
@@ -796,30 +823,33 @@ export default function App() {
       && voice.connectionState === 'connecting',
     ownershipBusy: voice.ownership.state === 'busy',
     voiceState: voice.visualState || voice.state,
-    tasksActive: desktopHasActiveTasks,
-    attentionPending: desktopOrbMode && desktopTasksAttention(agentTasks),
+    tasksWorking: desktopHasWorkingTasks,
   })
-  const attentionTask = agentTasks.find(
+  const authorizationTask = agentTasks.find(
     task => task.authorization?.status === 'pending',
   )
 
   const bloubAppearance = useBloubAppearance({
     orbSkinId,
     orbVisualState,
+    bloubSettings: {
+      autoState: desktopClientSettings.orbBloubAutoState,
+      fixedShape: desktopClientSettings.orbBloubFixedShape,
+      urlShape: desktopClientSettings.orbBloubShape,
+      urlColor: desktopClientSettings.orbBloubColor,
+      urlExpression: desktopClientSettings.orbBloubExpression,
+    },
   })
 
   useEffect(() => {
     if (!desktopOrbMode) return
     const current = desktopRuntime.overall
-    const previous = previousDesktopRuntime.current
     const presentation = advanceDesktopRuntimePresentation({
       current,
-      previous,
       readyAnnounced: runtimeReadyAnnounced.current,
     })
     runtimeReadyAnnounced.current = presentation.readyAnnounced
     if (presentation.cue) triggerSpriteAnimation(presentation.cue)
-    previousDesktopRuntime.current = current
   }, [desktopRuntime.overall, triggerSpriteAnimation])
 
   const desktopCards = useMemo(
@@ -832,6 +862,16 @@ export default function App() {
 
   useEffect(() => {
     if (!desktopOrbMode) return undefined
+    window.sideAudioBotDesktop?.loadSurface?.()
+      .then(result => setDesktopSurfaceMode(
+        result?.mode === 'panel' ? 'panel' : 'orb',
+      ))
+      .catch(() => {})
+    return undefined
+  }, [])
+
+  useEffect(() => {
+    if (!desktopOrbMode) return undefined
     return window.sideAudioBotDesktop?.onTaskCardPlacement?.(
       setDesktopTaskLayout,
     )
@@ -840,10 +880,12 @@ export default function App() {
   useEffect(() => {
     if (!desktopOrbMode) return undefined
     window.sideAudioBotDesktop?.setTaskCardCount(
-      desktopTasksCollapsed ? 0 : desktopCards.length,
+      desktopSurfaceMode === 'panel'
+        ? desktopCards.length
+        : desktopTasksCollapsed ? 0 : desktopCards.length,
     )
     return undefined
-  }, [desktopCards.length, desktopTasksCollapsed])
+  }, [desktopCards.length, desktopSurfaceMode, desktopTasksCollapsed])
 
   useEffect(() => {
     if (!desktopOrbMode) return undefined
@@ -855,19 +897,18 @@ export default function App() {
 
   const workSettled = desktopWorkSettled({
     tasks: agentTasks,
-    messages,
     voiceState: voice.visualState || voice.state,
   })
+  const tasksActive = desktopTasksActive(agentTasks)
 
   useEffect(() => {
     if (!desktopOrbMode) return
-    if (workSettled && !previousWorkSettled.current) {
+    if (!tasksActive && previousTasksActive.current) {
       const settledAt = Date.now()
       workSettledAtRef.current = settledAt
-      setWorkSettledAt(settledAt)
     }
-    previousWorkSettled.current = workSettled
-  }, [workSettled])
+    previousTasksActive.current = tasksActive
+  }, [tasksActive])
 
   useEffect(() => {
     if (!desktopOrbMode) return undefined
@@ -875,6 +916,13 @@ export default function App() {
     if (!bridge) return undefined
     const applyLifecycle = lifecycle => {
       if (!lifecycle?.state) return
+      if (
+        lifecycle.state === 'waking'
+        && previousDesktopLifecycle.current !== 'waking'
+      ) {
+        triggerSpriteAnimation('wake', { priority: true })
+      }
+      previousDesktopLifecycle.current = lifecycle.state
       setDesktopLifecycle(lifecycle.state)
       if (lifecycle.state === 'waking') {
         lastWakeAtRef.current = Date.now()
@@ -882,7 +930,13 @@ export default function App() {
         triggerSpriteAnimation('hatching')
       }
       if (lifecycle.reason === 'activity') noteInteraction()
-      if (lifecycle.state === 'hidden') setActivity(t('已隐藏'))
+      if (lifecycle.state === 'hidden') {
+        // Main has already collapsed a visible conversation panel before an
+        // explicit sleep. Mirror that authoritative surface transition so a
+        // later wake cannot render the panel inside the compact orb window.
+        setDesktopSurfaceMode('orb')
+        setActivity(t('已隐藏'))
+      }
       if (lifecycle.state === 'waking') setActivity(t('正在显示悬浮球'))
       if (lifecycle.state === 'active' && lifecycle.reason === 'ready') {
         setActivity(t('待命'))
@@ -903,55 +957,65 @@ export default function App() {
 
   useEffect(() => {
     if (!desktopOrbMode || desktopLifecycle !== 'waking') return
-    const ready = (
-      voice.connectionState === 'connected'
-      && (!voiceEnabled || voice.inputReady)
-    )
-    if (ready || voice.connectionState === 'unavailable') {
+    // Presence readiness describes whether the desktop surface can finish
+    // waking, not whether microphone capture has initialized. Keeping those
+    // lifecycles separate prevents a slow/denied microphone from leaving the
+    // orb permanently in `waking`, which would also disable inactivity sleep.
+    if (desktopCanFinishWaking(voice.connectionState)) {
       window.sideAudioBotDesktop?.lifecycleReady()
     }
   }, [
     desktopLifecycle,
     voice.connectionState,
-    voice.inputReady,
-    voiceEnabled,
   ])
 
-  // 快捷键/托盘唤起只恢复窗口；Gateway 若在休眠，前台连接会停在 sleeping，
-  // 需要显式唤醒才能走到 connected，否则悬浮球永远无法就绪。
+  // 快捷键/托盘唤起恢复 Gateway presence；Realtime 连接在休眠期间保持。
   const wakeGateway = voice.wake
+  const publishClientEvent = voice.publishClientEvent
   useEffect(() => {
     if (!desktopOrbMode || desktopLifecycle !== 'waking') return
     wakeGateway()
   }, [desktopLifecycle, wakeGateway])
 
+  autoHideStateRef.current = {
+    desktopLifecycle,
+    desktopSurfaceMode,
+    lastInteractionAt,
+    connectionState: voice.connectionState,
+    visualError: voice.visualError,
+    workSettled,
+  }
+
   useEffect(() => {
     if (!desktopOrbMode || autoHideSeconds === 0) return undefined
-    if (!desktopCanHide({
-      settled: workSettled,
-      connectionState: voice.connectionState,
-      visualError: voice.visualError,
-      lifecycle: desktopLifecycle,
-    })) return undefined
-    const deadline = desktopHideDeadline({
-      lastInteractionAt,
-      workSettledAt: workSettledAtRef.current,
-      timeoutSeconds: autoHideSeconds,
-    })
-    const timer = setTimeout(() => {
-      window.sideAudioBotDesktop?.enterHide()
-        .then(lifecycle => setDesktopLifecycle(lifecycle.state))
-        .catch(() => {})
-    }, Math.max(0, deadline - Date.now()))
-    return () => clearTimeout(timer)
-  }, [
-    desktopLifecycle,
-    lastInteractionAt,
-    voice.connectionState,
-    voice.visualError,
-    workSettled,
-    workSettledAt,
-  ])
+    const check = () => {
+      const current = autoHideStateRef.current
+      if (!current || current.desktopSurfaceMode === 'panel') return
+      if (!desktopCanHide({
+        settled: current.workSettled,
+        connectionState: current.connectionState,
+        visualError: current.visualError,
+        lifecycle: current.desktopLifecycle,
+      })) return
+      const deadline = desktopHideDeadline({
+        lastInteractionAt: current.lastInteractionAt,
+        workSettledAt: workSettledAtRef.current,
+        timeoutSeconds: autoHideSeconds,
+      })
+      if (
+        Date.now() < deadline
+        || autoHideRequestedDeadlineRef.current === deadline
+      ) return
+      if (publishClientEvent('desktop.presence.sleep_requested', {
+        idle_ms: autoHideSeconds * 1000,
+      })) {
+        autoHideRequestedDeadlineRef.current = deadline
+      }
+    }
+    const timer = setInterval(check, 1_000)
+    check()
+    return () => clearInterval(timer)
+  }, [autoHideSeconds, publishClientEvent])
 
   // Switching the front end reconnects on its own: realtimeProvider is part of
   // the realtime effect's dependencies, so changing it tears the current socket
@@ -1001,7 +1065,7 @@ export default function App() {
 
   const enableVoice = () => {
     if (!voice.activateAudio()) return
-    if (voice.ownership.state === 'busy' && !takeoverRequested) {
+    if (voice.ownership.state === 'busy') {
       setWaitingForVoice(true)
       setActivity(t('等待{holder}释放语音', { holder: ownershipLabel || t('其他入口') }))
       return
@@ -1034,12 +1098,8 @@ export default function App() {
     event.currentTarget.setPointerCapture?.(event.pointerId)
     orbDrag.current = {
       pointerId: event.pointerId,
-      startX: event.screenX,
-      startY: event.screenY,
       lastX: event.screenX,
-      moved: false,
     }
-    suppressOrbClick.current = false
     setOrbDragging(true)
     setOrbDragDirection('')
     bridge.dragStart(event.screenX, event.screenY)
@@ -1048,11 +1108,6 @@ export default function App() {
   const moveOrb = event => {
     const drag = orbDrag.current
     if (!drag || drag.pointerId !== event.pointerId) return
-    if (
-      Math.hypot(event.screenX - drag.startX, event.screenY - drag.startY) >= 4
-    ) {
-      drag.moved = true
-    }
     const deltaX = event.screenX - drag.lastX
     if (Math.abs(deltaX) >= 2) {
       setOrbDragDirection(deltaX > 0 ? 'right' : 'left')
@@ -1064,30 +1119,21 @@ export default function App() {
   const endOrbDrag = event => {
     const drag = orbDrag.current
     if (!drag || drag.pointerId !== event.pointerId) return
-    suppressOrbClick.current = drag.moved
     orbDrag.current = null
     setOrbDragging(false)
     setOrbDragDirection('')
     window.sideAudioBotDesktop?.dragEnd()
   }
 
-  const handleOrbClick = () => {
-    if (suppressOrbClick.current) {
-      suppressOrbClick.current = false
-      return
-    }
+  const handleVoiceOrbClick = () => {
     if (voice.state === 'speaking') {
       voice.interrupt()
-      return
-    }
-    if (desktopOrbMode && (voiceEnabled || waitingForVoice)) {
-      disableVoice()
       return
     }
     enableVoice()
   }
 
-  if (desktopOrbMode) {
+  if (desktopOrbMode && desktopSurfaceMode === 'orb') {
     return <main className={`desktop-gallery-shell${
       desktopCards.length && !desktopTasksCollapsed ? ' has-task-cards' : ''
     }${desktopTaskLayout.placement === 'above' ? ' tasks-above' : ''}`}
@@ -1106,14 +1152,13 @@ export default function App() {
           desktopLifecycle === 'waking'
             ? t('正在显示悬浮球')
             : voice.error
-          || (orbVisualState === 'attention' && attentionTask
-            ? taskDetail(attentionTask)
+          || (orbVisualState === 'idle' && authorizationTask
+            ? taskDetail(authorizationTask)
             : orbVisualState === 'occupied' && ownershipLabel
               ? t('{holder}正在使用语音', { holder: ownershipLabel })
               : labelFor(orbVisualState))
         }
-        onClick={handleOrbClick}
-        onPointerEnter={() => triggerSpriteAnimation('jumping')}
+        onPointerEnter={() => triggerSpriteAnimation('hover')}
         onPointerDown={beginOrbDrag}
         onPointerMove={moveOrb}
         onPointerUp={endOrbDrag}
@@ -1143,7 +1188,7 @@ export default function App() {
               <DesktopSpriteOrb
                 skin={orbSkinId}
                 state={orbVisualState}
-                baseWorking={desktopHasActiveTasks}
+                baseWorking={desktopHasWorkingTasks}
                 dragDirection={orbDragDirection}
                 cue={spriteAnimationCue}
                 onCueComplete={completeSpriteAnimationCue}
@@ -1177,6 +1222,16 @@ export default function App() {
             }
           >
             <OrbControlIcon type="microphone" muted={!voiceEnabled} />
+          </button>
+          <button
+            onClick={event => {
+              event.stopPropagation()
+              void changeDesktopSurface('panel')
+            }}
+            aria-label={t('打开对话')}
+            title={t('打开对话')}
+          >
+            <OrbControlIcon type="conversation" />
           </button>
           <button
             onClick={event => {
@@ -1267,10 +1322,23 @@ export default function App() {
           onClick={() => respondToPermission(
             agentTask.id,
             agentTask.authorization,
+            'once',
+          )}
+        >
+          {t('本次允许')}
+        </button>
+        <button
+          className="permission-allow"
+          disabled={agentTask.authorization.submitting}
+          onClick={() => respondToPermission(
+            agentTask.id,
+            agentTask.authorization,
             'always',
           )}
         >
-          {agentTask.authorization.submitting ? t('正在提交') : t('始终允许')}
+          {agentTask.authorization.submitting
+            ? t('正在提交')
+            : t('本会话始终允许')}
         </button>
         <button
           className="permission-deny"
@@ -1302,11 +1370,14 @@ export default function App() {
       role={message.role}
       content={message.content}
       live={message.live}
+      citations={message.citations}
     />
     {message.interrupted && <small className="interrupted">{t('已打断')}</small>}
   </article>
 
-  return <main className="app">
+  return <main className={`app${
+    desktopOrbMode ? ' desktop-conversation-panel' : ''
+  }`}>
     <header>
       <div className="brand"><span>V</span><div>side-audio-bot<small>REALTIME VOICE · LIVE</small></div></div>
       <a
@@ -1347,14 +1418,40 @@ export default function App() {
           {t('前台：{label}', { label: item.label })}
         </option>)}
       </select>}
-      <div className="status"><i className={orbVisualState} />{labelFor(orbVisualState)}</div>
-      <button className="ghost" onClick={resetSession}>{t('新会话')}</button>
+      <div className="status">
+        <i className={orbVisualState} /><span>{labelFor(orbVisualState)}</span>
+      </div>
+      {/* 资料库入口只在 web 模式给：桌面悬浮球的 header 已经紧到把「新会话」
+          压成一个「＋」，再塞一个文字按钮会挤掉语音按钮 */}
+      {!desktopOrbMode && (
+        <button
+          className={`ghost${showDomainLibrary ? ' active' : ''}`}
+          onClick={() => setShowDomainLibrary(value => !value)}
+          title={t('把本机的手册、规章、教材交给助手')}
+        >
+          {t('资料库')}
+        </button>
+      )}
+      <button
+        className={`ghost${desktopOrbMode ? ' desktop-new-session' : ''}`}
+        onClick={resetSession}
+        aria-label={t('新会话')}
+        title={desktopOrbMode ? t('新会话') : undefined}
+      >{desktopOrbMode ? '＋' : t('新会话')}</button>
       <button
         className={[
           'voice',
           voiceEnabled ? 'active' : '',
           waitingForVoice ? 'waiting' : '',
         ].filter(Boolean).join(' ')}
+        aria-label={voiceEnabled
+          ? t('麦克风静音')
+          : waitingForVoice ? t('取消等待') : t('开启麦克风')}
+        title={desktopOrbMode
+          ? voiceEnabled
+            ? t('麦克风静音')
+            : waitingForVoice ? t('取消等待') : t('开启麦克风')
+          : undefined}
         onClick={() => {
           if (voiceEnabled || waitingForVoice) {
             disableVoice()
@@ -1363,17 +1460,30 @@ export default function App() {
           enableVoice()
         }}
       >
-        {voiceEnabled
-          ? t('麦克风静音')
-          : waitingForVoice ? t('取消等待') : t('开启麦克风')}
+        {desktopOrbMode
+          ? <OrbControlIcon type="microphone" muted={!voiceEnabled} />
+          : voiceEnabled
+            ? t('麦克风静音')
+            : waitingForVoice ? t('取消等待') : t('开启麦克风')}
       </button>
+      {desktopOrbMode && <button
+        className="ghost desktop-panel-collapse"
+        onClick={() => void changeDesktopSurface('orb')}
+        title={t('收起为悬浮球')}
+      >
+        <OrbControlIcon type="collapse" />
+      </button>}
     </header>
 
     <section className="workspace">
+      {showDomainLibrary && <DomainLibraryPanel
+        onClose={() => setShowDomainLibrary(false)}
+        getTask={voice.getTask}
+      />}
       <div className="hero">
         <button
           className={`orb ${orbVisualState}`}
-          onClick={handleOrbClick}
+          onClick={handleVoiceOrbClick}
           aria-label={t('语音交互')}
         >
           <span />
@@ -1411,7 +1521,7 @@ export default function App() {
 
       {composerEnabled && <MultimodalComposer
         onSend={sendComposerInput}
-        onStage={voice.stageInputParts}
+        compact={desktopOrbMode}
       />}
 
     </section>

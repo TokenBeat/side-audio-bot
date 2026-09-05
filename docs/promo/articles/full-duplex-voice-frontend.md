@@ -35,7 +35,7 @@ side-audio-bot 把系统切成两层：
 ```
 
 前台是一个实时语音运行时（核心实现在 `server/src/voice/realtime-gateway.mjs`，
-约 1900 行），后台复用用户已有的编码 Agent，通过统一的 ACP 协议接入
+约 1900 行），后台复用用户已有的 Agent，通过统一的 ACP 协议接入
 （`server/src/agent/`）。两层之间没有强耦合：换任何一个后台 Agent，
 语音层完全不用动。
 

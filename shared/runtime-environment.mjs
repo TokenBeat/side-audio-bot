@@ -6,7 +6,6 @@ import {
   linkSync,
   lstatSync,
   mkdirSync,
-  readdirSync,
   readFileSync,
   unlinkSync,
   writeFileSync,
@@ -31,7 +30,8 @@ const USER_CONFIG_TEMPLATE = [
   '# 权限模式：native（后台自行询问）或 full（最高权限；仅支持安全映射的后端）',
   '# Pi 没有权限审批机制，无论配置什么都始终生效 full',
   '# SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native',
-  '# 可选：显式覆盖后台模型；留空时使用 Agent 原有模型',
+  '# 可选：通过 ACP 标准覆盖 Session 模型；OpenCode/OpenClaw 托管初始化也会使用',
+  '# 留空时完全沿用 Agent 原有模型；后台未声明 ACP 模型选项时显式覆盖会失败',
   '# SIDE_AUDIO_BOT_BACKEND_MODEL=',
   '# 可选：SIDE_AUDIO_BOT_BACKEND_AGENT=协调 Agent ID',
   '# Kimi Code 可复用原生登录，或设置官方 KIMI_MODEL_* 临时模型变量',
@@ -302,126 +302,6 @@ function resolveBackendWorkspaces(env, root, configDirectory) {
     }))
 }
 
-// 旧版本按后台隔离的 workspaces/<id>/ 目录里可能有用户文件。只提示位置，
-// 不自动迁移、不删除，由用户决定是否手动移动到共享 workspace。
-function collectLegacyWorkspaceNotices(configDirectory, sharedWorkspace) {
-  const notices = []
-  for (const definition of backendDefinitions()) {
-    if (!definition.workspaceEnvironment) continue
-    const legacyDirectory = resolve(
-      configDirectory,
-      `workspaces/${definition.id}`,
-    )
-    let entries
-    try {
-      entries = readdirSync(legacyDirectory)
-    } catch (error) {
-      if (error.code !== 'ENOENT' && error.code !== 'ENOTDIR') throw error
-      continue
-    }
-    if (entries.length) {
-      notices.push({
-        backend: definition.id,
-        legacyDirectory,
-        sharedWorkspace,
-      })
-    }
-  }
-  return notices
-}
-
-function codeBuddyModelName(env) {
-  const configured = String(
-    env.SIDE_AUDIO_BOT_BACKEND_MODEL || '',
-  ).trim()
-  const separator = configured.indexOf('/')
-  return separator >= 0 ? configured.slice(separator + 1) : configured
-}
-
-function codeBuddyTemplateContent(templatePath, model) {
-  const template = JSON.parse(readFileSync(templatePath, 'utf8'))
-  const defaultModel = String(template.models?.[0]?.id || '').trim()
-  if (!defaultModel) {
-    throw new Error(`CodeBuddy 模型模板缺少默认模型：${templatePath}`)
-  }
-  template.models = template.models.map(entry => (
-    entry.id === defaultModel
-      ? {
-          ...entry,
-          id: model,
-          ...(entry.name ? {
-            name: model === defaultModel ? entry.name : model,
-          } : {}),
-        }
-      : entry
-  ))
-  if (Array.isArray(template.availableModels)) {
-    template.availableModels = template.availableModels.map(id => (
-      id === defaultModel ? model : id
-    ))
-  }
-  return `${JSON.stringify(template, null, 2)}\n`
-}
-
-function ensureCodeBuddyTemplate(templatePath, targetPath, env) {
-  mkdirSync(dirname(targetPath), { recursive: true, mode: 0o700 })
-  const model = codeBuddyModelName(env)
-  if (!model) {
-    let current
-    try {
-      current = readFileSync(targetPath, 'utf8')
-    } catch (error) {
-      if (error.code === 'ENOENT') return null
-      throw error
-    }
-    try {
-      const currentModel = String(
-        JSON.parse(current).models?.[0]?.id || '',
-      ).trim()
-      if (
-        currentModel
-        && current === codeBuddyTemplateContent(templatePath, currentModel)
-      ) {
-        unlinkSync(targetPath)
-      }
-    } catch {
-      // Preserve malformed or manually edited user configuration.
-    }
-    return null
-  }
-  const desired = codeBuddyTemplateContent(templatePath, model)
-  try {
-    writeFileSync(targetPath, desired, {
-      encoding: 'utf8',
-      flag: 'wx',
-      mode: 0o600,
-    })
-  } catch (error) {
-    if (error.code !== 'EEXIST') throw error
-    const current = readFileSync(targetPath, 'utf8')
-    let generated = false
-    try {
-      const currentModel = String(
-        JSON.parse(current).models?.[0]?.id || '',
-      ).trim()
-      generated = Boolean(currentModel) && current === codeBuddyTemplateContent(
-        templatePath,
-        currentModel,
-      )
-    } catch {
-      // Preserve malformed or manually edited user configuration.
-    }
-    if (generated && current !== desired) {
-      writeFileSync(targetPath, desired, {
-        encoding: 'utf8',
-        mode: 0o600,
-      })
-    }
-  }
-  chmodSync(targetPath, 0o600)
-  return targetPath
-}
-
 function migratePrivateFile(legacyPath, targetPath) {
   try {
     lstatSync(targetPath)
@@ -520,7 +400,6 @@ export function loadRuntimeEnvironment({
     ? resolve(root, env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR)
     : resolve(configDirectory, 'backends/openclaw/state')
   let migratedFiles = []
-  let legacyWorkspaceNotices = []
   if (prepareBackendRuntime && !readOnly) {
     migratePrivateFile(
       resolve(root, 'runtime/frontend-memory.json'),
@@ -540,19 +419,6 @@ export function loadRuntimeEnvironment({
         mkdirSync(entry.directory, { recursive: true, mode: 0o700 })
       }
       env[entry.environment] = entry.directory
-    }
-    // 旧的按后台隔离目录可能分别留在运行时目录与资产目录（桌面版分离后）。
-    legacyWorkspaceNotices = [...new Set([configDirectory, dataDirectory])]
-      .flatMap(directory => collectLegacyWorkspaceNotices(
-        directory,
-        sharedWorkspace,
-      ))
-    if (backendWorkspaces.codebuddy?.managed) {
-      ensureCodeBuddyTemplate(
-        resolve(root, 'config/codebuddy/workspace/.codebuddy/models.json'),
-        resolve(codeBuddyWorkspace, '.codebuddy/models.json'),
-        env,
-      )
     }
     mkdirSync(openClawStateDirectory, { recursive: true, mode: 0o700 })
     env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR = openClawStateDirectory
@@ -588,7 +454,6 @@ export function loadRuntimeEnvironment({
     acpWorkspace,
     openClawStateDirectory,
     migratedFiles,
-    legacyWorkspaceNotices,
     loadedFiles,
     generatedSecret: secret.generated,
     statePath: secret.statePath,

@@ -30,8 +30,24 @@ contextBridge.exposeInMainWorld('sideAudioBotDesktop', {
     )
   },
   openSettings: () => ipcRenderer.send('side-audio-bot:open-settings'),
-  enterHide: () => ipcRenderer.invoke('side-audio-bot:enter-hide'),
+  loadSurface: () => ipcRenderer.invoke('side-audio-bot:surface-load'),
+  setSurface: mode => ipcRenderer.invoke(
+    'side-audio-bot:surface-set',
+    mode,
+  ),
+  setConversationSession: sessionId => ipcRenderer.invoke(
+    'side-audio-bot:conversation-session-set',
+    sessionId,
+  ),
+  enterHide: options => ipcRenderer.invoke(
+    'side-audio-bot:enter-hide',
+    options,
+  ),
   wake: () => ipcRenderer.send('side-audio-bot:wake'),
+  acceptWakeWordAudio: (audio, sampleRate) => ipcRenderer.send(
+    'side-audio-bot:wake-word-audio',
+    { audio, sampleRate },
+  ),
   lifecycleReady: () => ipcRenderer.send('side-audio-bot:lifecycle-ready'),
   loadLifecycle: () => ipcRenderer.invoke('side-audio-bot:lifecycle-load'),
   pauseWakeShortcut: () => ipcRenderer.invoke(
@@ -46,6 +62,15 @@ contextBridge.exposeInMainWorld('sideAudioBotDesktop', {
     ipcRenderer.on('side-audio-bot:lifecycle', listener)
     return () => ipcRenderer.removeListener(
       'side-audio-bot:lifecycle',
+      listener,
+    )
+  },
+  onClientSettings: callback => {
+    if (typeof callback !== 'function') return () => {}
+    const listener = (_event, settings) => callback(settings || {})
+    ipcRenderer.on('side-audio-bot:client-settings', listener)
+    return () => ipcRenderer.removeListener(
+      'side-audio-bot:client-settings',
       listener,
     )
   },

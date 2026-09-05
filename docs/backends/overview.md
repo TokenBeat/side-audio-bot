@@ -7,10 +7,10 @@ The Backend Agent handles tasks that require tools, file operations, or sustaine
 | Backend Agent | Integration Method | Setup Requirements | Skills | Recommendation |
 | --- | --- | --- | --- | --- |
 | None | N/A | Frontend-only mode, no configuration needed | — | ★★★★★ |
+| Qwen Code | Native ACP | Supports one-click install, requires user configuration | `~/.qwen/skills/` | ★★★★★ |
 | OpenCode | Native ACP | Supports one-click install and Bailian configuration | `~/.config/opencode/skills/` | ★★★★★ |
 | OpenClaw | Built-in ACP bridge | Supports one-click install and Bailian configuration | `~/.openclaw/skills/` | ★★★★★ |
 | Qoder | Native ACP | Supports one-click install, requires user configuration | `~/.qoder/skills/` | ★★★★★ |
-| Qwen Code | Native ACP | Supports one-click install, requires user configuration | `~/.qwen/skills/` | ★★★★☆ |
 | Kimi Code | Native ACP | Supports one-click install, requires user configuration | `~/.agents/skills/` | ★★★★★ |
 | Hermes | Native ACP | Supports one-click install, requires user configuration | `~/.hermes/skills/` | ★★★★☆ |
 | CodeBuddy | Native ACP | Supports one-click install, requires user configuration | `~/.codebuddy/skills/` | ★★★★☆ |
@@ -22,7 +22,7 @@ The Backend Agent handles tasks that require tools, file operations, or sustaine
 Skills install once through `sideaudio skill install` (a branded entry point
 for the standard skills.sh installer) and land in every backend's user-level
 directory above automatically. See
-[Skill Management](../configuration.md#skill-management).
+[Skill Management](../configuration/backend.md#skill-management).
 
 The recommendation rating reflects the current integration completeness, compatibility, and extent of real-world verification: five stars indicates a fully tested and recommended integration, while four stars indicates ongoing development or incomplete verification of the same scope.
 
@@ -109,5 +109,5 @@ sideaudio gateway uninstall
 
 The background service re-reads `config.env` on every startup; after modifying configuration, run `gateway restart` to apply changes.
 
-For advanced configuration of each backend (executable paths, working directories, model overrides, etc.), see
+For advanced configuration of each backend (executable paths, working directories, standard ACP model overrides, etc.), see
 [Configuration Guide](../configuration.md).

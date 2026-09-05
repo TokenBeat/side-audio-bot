@@ -59,6 +59,8 @@ import {
 import {
   DESKTOP_ORB_HEIGHT,
   DESKTOP_ORB_WIDTH,
+  desktopConversationPanelBounds,
+  desktopOrbAnchorFromPanel,
   desktopOrbBounds,
   desktopSurfaceLayout,
 } from './desktop-surface-layout.mjs'
@@ -78,6 +80,7 @@ import {
   updateSettingsContent,
   applySettingsEnvironment,
 } from './settings-config.mjs'
+import { DesktopWakeWordRuntime } from './wake-word/runtime.mjs'
 import {
   effectiveOrbSkin as resolveEffectiveOrbSkin,
   importSkin,
@@ -158,6 +161,7 @@ const desktopSettingsStore = createSettingsStore({
   configDir: runtimeEnvironment.dataDirectory,
   uiStateDir: runtimeEnvironment.configDirectory,
 })
+let desktopConversationSessionId = desktopSettingsStore.conversationSession.load()
 const orbPlacement = createOrbPlacement({
   getDisplays: () => screen.getAllDisplays(),
   orbSize: { width: DESKTOP_ORB_WIDTH, height: DESKTOP_ORB_HEIGHT },
@@ -191,6 +195,7 @@ const initialSettings = parseSettings(
   process.env,
 )
 let desktopLanguage = initialSettings.language
+let desktopWakeWordEnabled = initialSettings.wakeWordEnabled
 const desktopText = (text, params) => desktopTranslator(
   desktopLanguage,
   app.getLocale(),
@@ -212,6 +217,7 @@ let rendererServer = null
 let desktopTaskCount = 0
 let desktopTaskPlacement = 'below'
 let desktopOrbOffsetX = 0
+let desktopSurfaceMode = 'orb'
 let reconnectTimer = null
 let embeddedGateway = null
 let borrowedGatewayOrigin = ''
@@ -224,6 +230,27 @@ const desktopPresence = new DesktopPresence({
   getWindow: () => mainWindow,
   globalShortcut,
   logger,
+})
+
+const desktopWakeWord = new DesktopWakeWordRuntime({
+  modelRoot: resolve(runtimeEnvironment.configDirectory, 'models/wake-word'),
+  onDetected: () => desktopPresence.wake('wake-word'),
+  onError: error => logger.warn('wake_word.failed', { error }),
+})
+desktopWakeWord.setEnabled(desktopWakeWordEnabled)
+
+ipcMain.on('side-audio-bot:wake-word-audio', (event, payload) => {
+  if (
+    !desktopWakeWordEnabled
+    || desktopPresence.state !== 'hidden'
+    || !mainWindow
+    || mainWindow.isDestroyed()
+    || event.sender !== mainWindow.webContents
+  ) return
+  const audio = typeof payload?.audio === 'string' ? payload.audio : ''
+  const sampleRate = Number(payload?.sampleRate)
+  if (!audio || audio.length > 128 * 1024 || sampleRate !== 16_000) return
+  desktopWakeWord.accept(audio, sampleRate)
 })
 
 const MAX_GATEWAY_CRASH_RESTARTS = 3
@@ -330,7 +357,7 @@ async function startLocalGateway(origin) {
             && !mainWindow.isDestroyed()
             && desktopPresence.state !== 'hidden'
           ) {
-            void loadSideAudioAgent(mainWindow)
+            void loadTokenBeatAgent(mainWindow)
           }
         }).catch(error => {
           lastRuntimeError = error?.message || String(error)
@@ -395,6 +422,7 @@ async function runtimeStatus(target = appOrigin) {
   const health = await readGatewayHealth(target)
   return {
     gatewayConnected: Boolean(health),
+    gatewayUrl: String(target || ''),
     realtimeProvider: health?.realtimeProvider || null,
     realtimeLabel: health?.realtimeLabel || null,
     realtimeModel: health?.realtimeModel || null,
@@ -462,12 +490,12 @@ async function showUnavailable(window) {
   clearTimeout(reconnectTimer)
   reconnectTimer = setTimeout(() => {
     if (mainWindow === window && !window.isDestroyed()) {
-      void loadSideAudioAgent(window)
+      void loadTokenBeatAgent(window)
     }
   }, 3000)
 }
 
-async function loadSideAudioAgent(window) {
+async function loadTokenBeatAgent(window) {
   try {
     if (!rendererServer) throw new Error('desktop renderer is unavailable')
     const settings = parseSettings(
@@ -484,12 +512,31 @@ async function loadSideAudioAgent(window) {
       orbBloubExpression: settings.orbBloubExpression,
       orbBloubAutoState: settings.orbBloubAutoState,
       orbBloubFixedShape: settings.orbBloubFixedShape,
+      surfaceMode: desktopSurfaceMode,
+      sessionId: desktopConversationSessionId,
     }))
     clearTimeout(reconnectTimer)
     reconnectTimer = null
   } catch {
     await showUnavailable(window)
   }
+}
+
+function sendDesktopClientSettings(window, settings) {
+  if (!window || window.isDestroyed()) return
+  window.webContents.send('side-audio-bot:client-settings', {
+    orbSkin: effectiveOrbSkin(settings.orbSkin),
+    autoHideSeconds: settings.autoHideSeconds,
+    wakeWordEnabled: settings.wakeWordEnabled,
+    language: effectiveDesktopLanguage(settings.language, app.getLocale()),
+    // orbBloub 外观走热应用路径，与 orbSkin/autoHide/language 对齐，
+    // 避免改 bloub 外观时整个 webview 重载打断 Realtime Session。
+    orbBloubShape: settings.orbBloubShape,
+    orbBloubColor: settings.orbBloubColor,
+    orbBloubExpression: settings.orbBloubExpression,
+    orbBloubAutoState: settings.orbBloubAutoState,
+    orbBloubFixedShape: settings.orbBloubFixedShape,
+  })
 }
 
 function showDesktop(reason = 'tray') {
@@ -606,10 +653,11 @@ function createWindow() {
       desktopTaskCount = 0
       desktopTaskPlacement = 'below'
       desktopOrbOffsetX = 0
+      desktopSurfaceMode = 'orb'
     }
   })
 
-  loadSideAudioAgent(window)
+  loadTokenBeatAgent(window)
   return window
 }
 
@@ -673,6 +721,16 @@ const orbShell = bindOrbShell({
   presence: desktopPresence,
   logger,
   onOpenSettings: () => showSettings(),
+  onLoadSurface: () => desktopSurfaceMode,
+  onSetSurface: mode => {
+    const selected = setDesktopSurfaceMode(mode)
+    if (selected === 'panel') desktopPresence.wake('panel')
+    return selected
+  },
+  onSetConversationSession: sessionId => {
+    desktopConversationSessionId = desktopSettingsStore.conversationSession.save(sessionId)
+    return desktopConversationSessionId
+  },
   onQuit: () => app.quit(),
   onDragEnd: () => {
     const [x, y] = mainWindow.getPosition()
@@ -681,9 +739,72 @@ const orbShell = bindOrbShell({
   },
 })
 
+function sendDesktopTaskPlacement() {
+  mainWindow?.webContents.send(
+    'side-audio-bot:task-card-placement',
+    {
+      placement: desktopTaskPlacement,
+      orbOffsetX: desktopOrbOffsetX,
+    },
+  )
+}
+
+function setDesktopSurfaceMode(requestedMode) {
+  if (!mainWindow || mainWindow.isDestroyed()) return 'orb'
+  const mode = requestedMode === 'panel' ? 'panel' : 'orb'
+  if (mode === desktopSurfaceMode) return mode
+
+  const bounds = mainWindow.getBounds()
+  if (mode === 'panel') {
+    const orbBounds = desktopOrbBounds(bounds, {
+      taskCount: desktopTaskCount,
+      placement: desktopTaskPlacement,
+      orbOffsetX: desktopOrbOffsetX,
+    })
+    const workArea = screen.getDisplayMatching(orbBounds).workArea
+    desktopSurfaceMode = 'panel'
+    orbShell.cancelDrag()
+    mainWindow.setAlwaysOnTop(false)
+    mainWindow.setVisibleOnAllWorkspaces(false)
+    mainWindow.setSkipTaskbar(false)
+    mainWindow.setHasShadow(true)
+    mainWindow.setBounds(desktopConversationPanelBounds({
+      orbBounds,
+      workArea,
+    }), false)
+    mainWindow.show()
+    mainWindow.focus()
+    return desktopSurfaceMode
+  }
+
+  const workArea = screen.getDisplayMatching(bounds).workArea
+  const orbAnchor = desktopOrbAnchorFromPanel({ bounds, workArea })
+  desktopSurfaceMode = 'orb'
+  mainWindow.setSkipTaskbar(true)
+  mainWindow.setHasShadow(false)
+  configureOrbWindow(mainWindow)
+  orbPlacement.recordPosition(orbAnchor)
+  const layout = desktopSurfaceLayout({
+    bounds: orbAnchor,
+    currentTaskCount: 0,
+    taskCount: desktopTaskCount,
+    placement: desktopTaskPlacement,
+    workArea,
+  })
+  desktopTaskPlacement = layout.placement
+  desktopOrbOffsetX = layout.orbOffsetX
+  sendDesktopTaskPlacement()
+  mainWindow.setBounds(layout.bounds, false)
+  return desktopSurfaceMode
+}
+
 function updateDesktopTaskSurface(value) {
   if (!mainWindow || mainWindow.isDestroyed()) return
   const taskCount = Math.min(100, Math.max(0, Math.floor(Number(value) || 0)))
+  if (desktopSurfaceMode === 'panel') {
+    desktopTaskCount = taskCount
+    return
+  }
   const bounds = mainWindow.getBounds()
   const orbBounds = desktopOrbBounds(bounds, {
     taskCount: desktopTaskCount,
@@ -702,13 +823,7 @@ function updateDesktopTaskSurface(value) {
   desktopTaskCount = taskCount
   desktopTaskPlacement = layout.placement
   desktopOrbOffsetX = layout.orbOffsetX
-  mainWindow.webContents.send(
-    'side-audio-bot:task-card-placement',
-    {
-      placement: desktopTaskPlacement,
-      orbOffsetX: desktopOrbOffsetX,
-    },
-  )
+  sendDesktopTaskPlacement()
   const next = layout.bounds
   if (
     bounds.x !== next.x
@@ -776,6 +891,7 @@ ipcMain.handle('side-audio-bot:settings-load', async event => {
     runtime: setupRequired
       ? {
           gatewayConnected: false,
+          gatewayUrl: String(appOrigin || ''),
           realtimeProvider: null,
           realtimeLabel: null,
           realtimeModel: null,
@@ -785,6 +901,7 @@ ipcMain.handle('side-audio-bot:settings-load', async event => {
         }
       : await runtimeStatus(),
     setupRequired,
+    firstRun: !configExistedAtLaunch,
     runtimeError: lastRuntimeError || null,
     wakeShortcutRegistered: desktopPresence.shortcutRegistered,
     restartRequired: false,
@@ -1115,13 +1232,6 @@ ipcMain.handle('side-audio-bot:settings-save', async (event, settings) => {
     || previous.backendCredential !== normalized.backendCredential
   )
   const orbSkinChanged = previous.orbSkin !== normalized.orbSkin
-  const orbBloubAppearanceChanged = (
-    previous.orbBloubShape !== normalized.orbBloubShape
-    || previous.orbBloubColor !== normalized.orbBloubColor
-    || previous.orbBloubExpression !== normalized.orbBloubExpression
-    || previous.orbBloubAutoState !== normalized.orbBloubAutoState
-    || previous.orbBloubFixedShape !== normalized.orbBloubFixedShape
-  )
   const autoHideChanged = (
     previous.autoHideSeconds !== normalized.autoHideSeconds
   )
@@ -1142,7 +1252,6 @@ ipcMain.handle('side-audio-bot:settings-save', async (event, settings) => {
     || stepfunChanged
     || backendModelChanged
     || backendConnectionChanged
-    || wakeWordChanged
   )
   if (!remote && borrowedGatewayOrigin && gatewayRuntimeChanged) {
     const borrowedHealth = await readGatewayHealth(borrowedGatewayOrigin)
@@ -1182,6 +1291,8 @@ ipcMain.handle('side-audio-bot:settings-save', async (event, settings) => {
   }
   chmodSync(runtimeEnvironment.configPath, 0o600)
   desktopLanguage = normalized.language
+  desktopWakeWordEnabled = normalized.wakeWordEnabled
+  desktopWakeWord.setEnabled(desktopWakeWordEnabled)
   createTray()
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.setTitle(desktopText('设置'))
@@ -1237,7 +1348,9 @@ ipcMain.handle('side-audio-bot:settings-save', async (event, settings) => {
   process.env.SIDE_AUDIO_ORB_SKIN = normalized.orbSkin
   await ensureDesktopUi()
   const desktopRendererChanged = (
-    (restarted || gatewayChanged || orbSkinChanged || orbBloubAppearanceChanged || autoHideChanged || languageChanged)
+    // orbBloub 外观现已走 sendDesktopClientSettings 热应用，与 orbSkin/autoHide/language 一致，
+    // 无需触发 loadTokenBeatAgent 重载。仅 gateway 切换/重启才重载渲染器。
+    gatewayChanged
     && mainWindow
     && !mainWindow.isDestroyed()
   )
@@ -1247,7 +1360,13 @@ ipcMain.handle('side-audio-bot:settings-save', async (event, settings) => {
     // client instead of carrying its wake-word-only sleep state across the
     // restart.
     desktopPresence.wake('settings')
-    void loadSideAudioAgent(mainWindow)
+    void loadTokenBeatAgent(mainWindow)
+  } else if (mainWindow && !mainWindow.isDestroyed()) {
+    // Client-owned presentation and presence preferences are hot-applied in
+    // the renderer. They must not replace the Gateway Client connection (and
+    // therefore the Realtime Session) as a side effect of changing a skin,
+    // language or idle policy.
+    sendDesktopClientSettings(mainWindow, normalized)
   }
   const runtime = await runtimeStatus(appOrigin)
   return {
@@ -1368,6 +1487,7 @@ if (!app.requestSingleInstanceLock()) {
     cleanup: async () => {
       logger.info('desktop.stopping')
       desktopPresence.destroy()
+      desktopWakeWord.stop()
       tray?.destroy()
       tray = null
       const server = rendererServer

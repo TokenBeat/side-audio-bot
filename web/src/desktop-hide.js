@@ -1,4 +1,8 @@
 import { GatewayServerEvent } from '../../shared/realtime-events.mjs'
+import {
+  GatewayClientActionName,
+  GatewayClientProtocolEvent,
+} from '../../shared/gateway-client-protocol.mjs'
 
 const ACTIVE_TASK_PHASES = new Set([
   'queued',
@@ -39,19 +43,21 @@ export function desktopTasksActive(tasks = []) {
   ))
 }
 
-// 后台任务在等待用户授权：不确认就永远卡住，优先级高于普通执行态。
-export function desktopTasksAttention(tasks = []) {
-  return tasks.some(task => task.authorization?.status === 'pending')
+// 动画只呈现实际执行中的后台工作。等待授权仍属于 active，用于阻止
+// 自动休眠，但它是一次前后台交互，不是 working 动画状态。
+export function desktopTasksWorking(tasks = []) {
+  return tasks.some(task => (
+    ACTIVE_TASK_PHASES.has(task.phase)
+    && task.authorization?.status !== 'pending'
+  ))
 }
 
 export function desktopWorkSettled({
   tasks = [],
-  messages = [],
   voiceState = 'idle',
 } = {}) {
   return (
     !desktopTasksActive(tasks)
-    && !messages.some(message => message.live)
     && !ACTIVE_VOICE_STATES.has(voiceState)
   )
 }
@@ -70,6 +76,10 @@ export function desktopCanHide({
   )
 }
 
+export function desktopCanFinishWaking(connectionState) {
+  return connectionState === 'connected' || connectionState === 'unavailable'
+}
+
 export function desktopHideDeadline({
   lastInteractionAt,
   workSettledAt,
@@ -85,6 +95,51 @@ export function desktopHideDeadline({
 // 可能恰好在唤醒瞬间到期，迟到的过期指令不应把悬浮球藏回去
 // （随后的 voice.wake 会重新唤醒 Gateway）。
 export const DESKTOP_WAKE_GRACE_MS = 5000
+
+export async function performDesktopClientAction(event, {
+  desktop = false,
+  bridge,
+  onLifecycle = () => {},
+} = {}) {
+  if (event?.type !== GatewayClientProtocolEvent.CLIENT_ACTION_REQUEST) return null
+  if (
+    !desktop
+    || event.name !== GatewayClientActionName.ENTER_SLEEP
+    || typeof bridge?.enterHide !== 'function'
+  ) {
+    return {
+      status: 'unsupported',
+      error: {
+        code: 'client_action_unsupported',
+        message: `Unsupported Client Action: ${String(event?.name || '')}`,
+      },
+    }
+  }
+  try {
+    // A Client Action is an explicit model/user request. It must not be
+    // blocked by the grace period used only for stale automatic sleep events.
+    const lifecycle = await bridge.enterHide({ explicit: true })
+    if (lifecycle?.state) onLifecycle(lifecycle.state)
+    if (lifecycle?.state !== 'hidden') {
+      return {
+        status: 'failed',
+        error: {
+          code: 'desktop_hide_incomplete',
+          message: 'Desktop did not enter the hidden state',
+        },
+      }
+    }
+    return { status: 'completed', output: { state: 'hidden' } }
+  } catch (error) {
+    return {
+      status: 'failed',
+      error: {
+        code: 'desktop_hide_failed',
+        message: String(error?.message || error).slice(0, 500),
+      },
+    }
+  }
+}
 
 export async function applyDesktopClientState(event, {
   desktop = false,

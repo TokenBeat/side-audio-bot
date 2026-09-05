@@ -73,11 +73,11 @@ async function startGateway() {
     }),
     memoryService: fakeMemoryStore(),
     notesStore: fakeNotesStore(),
-    coordinator: null,
+    backendRuntime: null,
     backendAvailability: {
       snapshot: () => ({ configured: true, ok: false, known: true }),
     },
-    respondPermission: async () => ({}),
+    respondAuthorization: async () => ({}),
     permissionPolicy: {
       resolveDecision: () => null,
       rememberDecision: () => {},
@@ -103,7 +103,6 @@ function connectDesktopClient(server) {
         clientLabel: '桌面端',
         clientStates: ['sleeping'],
         clientInstanceId: 'repro-instance',
-        takeover: false,
       }))
       resolve(socket)
     })

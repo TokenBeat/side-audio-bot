@@ -14,13 +14,13 @@ export const codexBackendDriver = {
     externalMcp: true,
     nativeDelegation: false,
     sessionMcp: true,
+    coordinatorMcpInstructions: false,
   },
 
   createProfile({
     root,
     directory,
     cliPath,
-    model,
     modelUrl,
     permissionMode,
   }) {
@@ -38,7 +38,6 @@ export const codexBackendDriver = {
             ? {
                 MODEL_PROVIDER: CODEX_PROVIDER,
                 CODEX_CONFIG: JSON.stringify({
-                  ...(clean(model) ? { model: clean(model) } : {}),
                   model_provider: CODEX_PROVIDER,
                   model_providers: {
                     [CODEX_PROVIDER]: {
