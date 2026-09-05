@@ -40,6 +40,18 @@ if (git(['status', '--porcelain']) !== '') {
   process.exit(1);
 }
 
+// public 分支在别的 worktree（比如主 checkout）里被占用时，git 会拒绝
+// worktree add -B —— 提前给出可读的提示，而不是让 git 的报错炸出来。
+const worktreeList = git(['worktree', 'list', '--porcelain']);
+const publicOccupied = worktreeList
+  .split('\n\n')
+  .some((block) => block.includes('branch refs/heads/public'));
+if (publicOccupied) {
+  console.error('[brand:publish] local branch "public" is checked out in another worktree.');
+  console.error('[brand:publish] switch that checkout off public first (git switch dev), then re-run.');
+  process.exit(1);
+}
+
 const baseSha = git(['rev-parse', '--short', from]);
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'brand-publish-'));
 console.log(`[brand:publish] rebuilding public from ${from}@${baseSha}`);
