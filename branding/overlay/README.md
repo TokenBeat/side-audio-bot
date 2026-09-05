@@ -1,0 +1,248 @@
+# Side Audio Bot
+
+[中文](README_ZH.md) | [English](README.md)
+
+[![CI](https://github.com/TokenBeat/side-audio-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/TokenBeat/side-audio-bot/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/side-audio-bot)](https://www.npmjs.com/package/side-audio-bot)
+[![node](https://img.shields.io/badge/node-%E2%89%A522.22.2-brightgreen)](https://nodejs.org/)
+[![license](https://img.shields.io/github/license/TokenBeat/side-audio-bot)](LICENSE)
+<!-- [![WeChat](https://img.shields.io/badge/WeChat-join_chat-07C160?logo=wechat&logoColor=white)](#community) -->
+
+## Agent Presence
+
+Real conversation should not leave you waiting after a single sentence, nor
+should it grind to a halt just because the Agent is looking something up,
+calling a tool, or working on a task.
+
+Conversation should keep flowing, and the Agent should always be present.
+
+That is why we built **side-audio-bot**—a realtime voice runtime that keeps
+Agents talking, working, and present. Whether chatting with you, thinking
+through a problem, or working on a task, your Agent remains in the
+conversation. It listens, responds, and when the task is complete, naturally
+tells you:
+
+"It's ready."
+
+## News
+
+- **2026-08-25 · [v1.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.11.0)**
+  Initial release of side-audio-bot with realtime voice runtime, desktop app, and backend Agent support.
+
+## Conversation Continues, Tasks Too
+
+Conversation doesn't stop for background tasks; when a task completes, the
+result naturally returns to the current conversation:
+
+<!-- https://github.com/user-attachments/assets/ab570531-8da9-4af4-93fa-244bb6614c05 -->
+
+### Core Features
+
+- Full-duplex realtime voice interaction, natural interruption, and sustained multi-turn conversation
+- DashScope Qwen Audio and Qwen3.5 Omni Realtime model selection from one shared model catalog
+- One-click selection of your preferred coding Agent, reusing existing tools, MCP, and Skills
+- Frontend conversation and background tasks run in parallel; ask about progress or cancel at any time
+- Create multiple independent tasks executed asynchronously by the backend Agent, with continuous status tracking
+- Task results automatically return to the current conversation, supporting follow-up questions and modifications
+- WebUI, terminal TUI, and desktop floating orb (macOS / Windows / Linux)
+- Desktop auto-sleep disconnects cloud Realtime without stopping submitted tasks; wake with a configurable shortcut or the local wake word
+- Per-user long-term personalization and cross-session memory
+
+## Architecture
+
+![side-audio-bot architecture](docs/architecture-overview-en.png)
+
+Questions that can be answered directly are answered immediately; when tools
+or sustained processing are needed, the task is delegated to the backend Agent.
+Throughout, the user always faces the same assistant.
+
+<details open>
+<summary>View detailed architecture</summary>
+
+![side-audio-bot reference architecture](docs/side-audio-bot-architecture-en.png)
+
+For the full design and module breakdown, see the [architecture document](docs/architecture.md).
+
+</details>
+
+## Agent Support
+
+| Backend Agent | Integration | Setup | Rating |
+| --- | --- | --- | --- |
+| None | N/A | Frontend-only mode, no config needed | ★★★★★ |
+| OpenCode | Native ACP | One-click install + Bailian config | ★★★★★ |
+| OpenClaw | Built-in ACP bridge | One-click install + Bailian config | ★★★★★ |
+| Qoder | Native ACP | One-click install, user config required | ★★★★★ |
+| Qwen Code | Native ACP | One-click install, user config required | ★★★★☆ |
+| Kimi Code | Native ACP | One-click install, user config required | ★★★★★ |
+| Hermes | Native ACP | One-click install, user config required | ★★★★☆ |
+| CodeBuddy | Native ACP | One-click install, user config required | ★★★★☆ |
+| Codex | External ACP adapter | One-click install (base + adapter), user config required | ★★★★☆ |
+| Claude Code | External ACP adapter | One-click install (base + adapter), user config required | ★★★★☆ |
+| DeepSeek | Native ACP | One-click install, DeepSeek API key required | ★★★★☆ |
+| Pi | External ACP adapter | One-click install (base + adapter), user config required | ★★★★☆ |
+
+Ratings reflect current integration completeness, compatibility, and
+verification level: five stars indicate a thoroughly tested recommended
+integration; four stars indicate active development or not yet fully verified.
+For detailed configuration and capability boundaries, see the [configuration guide](docs/configuration.md).
+
+## Installation
+
+Requires Node.js 22.22.2+ or 24.15.0+, npm 10+. One-click install (recommended):
+
+```bash
+npm install -g side-audio-bot
+```
+
+For building from source, installing from GitHub, and obtaining a DashScope
+API Key, see the [installation guide](docs/getting-started/install.md).
+
+## Quick Start
+
+1. Create your config and fill in the API Key:
+
+```bash
+sideaudio config
+```
+
+```dotenv
+DASHSCOPE_API_KEY=your-key
+# Voice frontend model: Omni Flash/Plus or Audio Flash/Plus (Audio Plus is default)
+QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-plus
+# Backend Agent: optional, leave empty or set to none for frontend-only mode
+AGENT_PROTOCOL=openclaw
+# Backend model: can be empty; if empty, uses the Agent's own user config
+SIDE_AUDIO_BOT_BACKEND_MODEL=qwen3.7-max
+```
+
+> Uses DashScope realtime voice frontend by default; alternatively, switch to a local [speech-to-speech frontend](docs/voice-frontends/speech-to-speech.md), no cloud API Key needed.
+> `qwen3.5-omni-flash-realtime` and `qwen3.5-omni-plus-realtime`
+> accept text, audio, and image at the model level. This release transports text and
+> audio only; image/frame and native-video transport remain disabled until their client and
+> Gateway paths are implemented.
+
+The Desktop app or `sideaudio config set --realtime-model <id>` configures the single
+Gateway-wide model. Restart the Gateway after a CLI change. WebUI and TUI display the active
+model but do not override it.
+
+2. Start the Gateway, then open another terminal to start the TUI (or use `sideaudio webui` for the browser UI):
+
+```bash
+sideaudio        # Terminal 1: Gateway
+sideaudio tui    # Terminal 2: TUI
+```
+
+For full configuration options, speech-to-speech frontend setup, and TUI
+platform notes, see [quick start](docs/getting-started/quickstart.md),
+[voice frontends](docs/voice-frontends/speech-to-speech.md), and
+[TUI notes](docs/getting-started/tui.md).
+
+## Examples
+
+This repository includes a smart cockpit voice Agent example with vehicle
+control, navigation, music, weather, web search, flash-buy workflows, and a
+car UI:
+
+```bash
+cp examples/car/.env.example examples/car/.env.local
+npm install --prefix examples/car/server
+npm install --prefix examples/car/react-app
+npm run example:car:server   # Terminal 1: car Agent server
+npm run example:car:web      # Terminal 2: car UI
+```
+
+See [examples/car](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/car) for details.
+
+## Desktop App
+
+The desktop app provides a floating voice orb that stays on your desktop,
+with a built-in Gateway, automatic idle sleep, a configurable wake shortcut,
+and a local voice wake word. Sleep disconnects the Realtime frontend while
+keeping the app, Gateway, backend Agent, and submitted tasks alive; it is not
+the same as quitting or restarting the desktop app. Completed tasks can wake
+the app and return their results to the conversation.
+Download the installer for your platform from the releases page, or build
+from source:
+
+```bash
+npm run desktop:build:local      # macOS
+npm run desktop:build:win        # Windows
+npm run desktop:build:linux      # Linux (AppImage + deb, no signing)
+```
+
+For visuals, orb behavior, and build instructions, see the [desktop documentation](docs/desktop/overview.md).
+
+## Backend Agent
+
+`AGENT_PROTOCOL` is optional. Leave empty for frontend-only mode; when set,
+it reuses the installed Agent's user-level models, tools, MCP, Skills, and
+authentication. The CLI and desktop app share one onboarding contract: reuse
+an existing Agent when available, install only missing components when the
+user requests one-click installation, and keep installation, configuration,
+and runtime readiness as separate states. Configuration stays backend-owned;
+the desktop app opens the Agent's native setup entry instead of copying or
+rewriting its credentials.
+
+```bash
+sideaudio setup   # View available backend Agents
+```
+
+For Agent selection, persistent background service, generic ACP entry, and
+permission modes, see the [backend Agent documentation](docs/backends/overview.md).
+
+## Personalization and Memory
+
+User data is stored in `~/.config/sideaudio/` (`ASSISTANT.md`, `USER.md`,
+`MEMORY.md`, `tasks.json`, `logs/`), kept local only, never
+committed to the repository. See [assistant profile, user preferences, and memory](docs/reference/memory.md).
+
+## Important Notes
+
+- Do not store passwords, API Keys, verification codes, or access tokens in user preferences or conversation.
+- Microphone audio and realtime conversation are sent to the configured Realtime frontend service (DashScope or speech-to-speech).
+- Background tasks may invoke the selected Agent's models, tools, MCP, and external services.
+- `full` permission allows the backend to execute commands and modify files; use only in trusted projects.
+- The Gateway is for local use only; do not expose it directly to the network or public internet.
+- On Linux / Windows with full-duplex without echo cancellation, wear headphones.
+
+For detailed data boundaries, see the [privacy notice](PRIVACY.md); for
+network and permission configuration, see the [configuration guide](docs/configuration.md).
+
+## Development
+
+```bash
+npm install
+npm run build
+npm test
+```
+
+```bash
+npm run dev       # Gateway + WebUI hot reload
+npm run desktop   # Desktop floating orb (macOS / Windows)
+```
+
+For more build, test, and release instructions, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Community
+
+You can start discussions directly in [GitHub Issues](https://github.com/TokenBeat/side-audio-bot/issues).
+
+<!-- For users in China, scan the QR codes below to join the WeChat group. If the
+group QR code is full or expired, scan either maintainer's personal QR code
+to be invited.
+
+| WeChat Group | Personal | Personal |
+| :---: | :---: | :---: |
+| <img src="docs/wechat-group-qr.png" width="240" alt="WeChat group QR code"> | <img src="docs/wechat-contact-qr.png" width="240" alt="Li Xu personal WeChat QR code"> | <img src="docs/wechat-pigeon-dan-qr.png" width="240" alt="Pigeon.Dan personal WeChat QR code"> | -->
+
+## Contributing and Security
+
+- Development and contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Security reports: [SECURITY.md](SECURITY.md)
+- Data flow and privacy: [PRIVACY.md](PRIVACY.md)
+- Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+
+## License
+
+[Apache License 2.0](LICENSE)
