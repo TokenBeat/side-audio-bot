@@ -6,14 +6,14 @@ import test from 'node:test'
 import { createSettingsStore, SETTINGS_FILE, UI_STATE_FILE } from '../src/settings-store.mjs'
 
 function temporaryRoot(t) {
-  const root = mkdtempSync(join(tmpdir(), 'qwaudio-store-'))
+  const root = mkdtempSync(join(tmpdir(), 'sideaudio-store-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   return root
 }
 
 test('requires an explicit configDir', () => {
   assert.throws(() => createSettingsStore({}), error => {
-    assert.equal(error.code, 'QWAUDIO_GATEWAY_CONFIG_DIR_REQUIRED')
+    assert.equal(error.code, 'SIDEAUDIO_GATEWAY_CONFIG_DIR_REQUIRED')
     return true
   })
 })

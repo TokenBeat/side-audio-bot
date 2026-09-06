@@ -4,7 +4,7 @@ import {
   timingSafeEqual,
 } from 'node:crypto'
 
-const COOKIE_NAME = 'qwen_audio_agent_identity'
+const COOKIE_NAME = 'side_audio_bot_identity'
 const MAX_AGE_SECONDS = 7 * 24 * 60 * 60
 
 function cookies(header = '') {
@@ -33,7 +33,7 @@ export class IdentityManager {
     personalOwnerId = 'user_personal',
   } = {}) {
     if (!secret || String(secret).length < 32) {
-      throw new Error('QWEN_AUDIO_AGENT_AUTH_SECRET must contain at least 32 characters')
+      throw new Error('SIDE_AUDIO_BOT_AUTH_SECRET must contain at least 32 characters')
     }
     this.secret = String(secret)
     this.cookieName = cookieName

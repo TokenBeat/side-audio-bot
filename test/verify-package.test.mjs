@@ -5,12 +5,12 @@ import { parsePackOutput } from '../scripts/verify-package.mjs'
 // npm <=10 emits `npm pack --json` as an array of package entries.
 const ARRAY_FORMAT = JSON.stringify([
   {
-    id: 'qwen-audio-agent@1.0.0',
-    name: 'qwen-audio-agent',
+    id: 'side-audio-bot@1.0.0',
+    name: 'side-audio-bot',
     version: '1.0.0',
-    filename: 'qwen-audio-agent-1.0.0.tgz',
+    filename: 'side-audio-bot-1.0.0.tgz',
     files: [
-      { path: 'cli/bin/qwenaudio.mjs', size: 273, mode: 420 },
+      { path: 'cli/bin/sideaudio.mjs', size: 273, mode: 420 },
       { path: 'package.json', size: 100, mode: 420 },
     ],
   },
@@ -18,12 +18,12 @@ const ARRAY_FORMAT = JSON.stringify([
 
 // npm >=11 emits `npm pack --json` keyed by package name.
 const OBJECT_FORMAT = JSON.stringify({
-  'qwen-audio-agent': {
-    id: 'qwen-audio-agent@1.0.0',
-    name: 'qwen-audio-agent',
+  'side-audio-bot': {
+    id: 'side-audio-bot@1.0.0',
+    name: 'side-audio-bot',
     version: '1.0.0',
-    filename: 'qwen-audio-agent-1.0.0.tgz',
-    files: [{ path: 'cli/bin/qwenaudio.mjs', size: 273, mode: 420 }],
+    filename: 'side-audio-bot-1.0.0.tgz',
+    files: [{ path: 'cli/bin/sideaudio.mjs', size: 273, mode: 420 }],
   },
 })
 
@@ -40,21 +40,21 @@ const BUILD_LOG_NOISE = [
 test('parses legacy npm <=10 array pack output', () => {
   const packages = parsePackOutput(ARRAY_FORMAT)
   assert.equal(packages.length, 1)
-  assert.equal(packages[0].filename, 'qwen-audio-agent-1.0.0.tgz')
+  assert.equal(packages[0].filename, 'side-audio-bot-1.0.0.tgz')
   assert.deepEqual(
     packages[0].files.map(file => file.path),
-    ['cli/bin/qwenaudio.mjs', 'package.json'],
+    ['cli/bin/sideaudio.mjs', 'package.json'],
   )
 })
 
 test('parses npm >=11 object pack output', () => {
   const packages = parsePackOutput(OBJECT_FORMAT)
   assert.equal(packages.length, 1)
-  assert.equal(packages[0].id, 'qwen-audio-agent@1.0.0')
-  assert.equal(packages[0].filename, 'qwen-audio-agent-1.0.0.tgz')
+  assert.equal(packages[0].id, 'side-audio-bot@1.0.0')
+  assert.equal(packages[0].filename, 'side-audio-bot-1.0.0.tgz')
   assert.deepEqual(
     packages[0].files.map(file => file.path),
-    ['cli/bin/qwenaudio.mjs'],
+    ['cli/bin/sideaudio.mjs'],
   )
 })
 
@@ -66,24 +66,24 @@ test('tolerates leading and trailing whitespace', () => {
 test('parses npm 10 array output polluted by prepare-script build logs', () => {
   const packages = parsePackOutput(`${BUILD_LOG_NOISE}\n${ARRAY_FORMAT}`)
   assert.equal(packages.length, 1)
-  assert.equal(packages[0].filename, 'qwen-audio-agent-1.0.0.tgz')
+  assert.equal(packages[0].filename, 'side-audio-bot-1.0.0.tgz')
   assert.deepEqual(
     packages[0].files.map(file => file.path),
-    ['cli/bin/qwenaudio.mjs', 'package.json'],
+    ['cli/bin/sideaudio.mjs', 'package.json'],
   )
 })
 
 test('parses object output even when preceded by build-log noise', () => {
   const packages = parsePackOutput(`${BUILD_LOG_NOISE}\n${OBJECT_FORMAT}`)
   assert.equal(packages.length, 1)
-  assert.equal(packages[0].filename, 'qwen-audio-agent-1.0.0.tgz')
+  assert.equal(packages[0].filename, 'side-audio-bot-1.0.0.tgz')
 })
 
 test('parses output with trailing noise after the JSON block', () => {
-  const stdout = `${ARRAY_FORMAT}\n> qwen-audio-agent prepare\n> node scripts/prepare-build.mjs`
+  const stdout = `${ARRAY_FORMAT}\n> side-audio-bot prepare\n> node scripts/prepare-build.mjs`
   const packages = parsePackOutput(stdout)
   assert.equal(packages.length, 1)
-  assert.equal(packages[0].id, 'qwen-audio-agent@1.0.0')
+  assert.equal(packages[0].id, 'side-audio-bot@1.0.0')
 })
 
 test('throws on empty output', () => {

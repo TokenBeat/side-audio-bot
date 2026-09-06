@@ -1,15 +1,15 @@
-# Qwen Audio Agent 智能座舱示例
+# Side Audio Bot 智能座舱示例
 
 [English](README.md) | 中文
 
 ![智能座舱框架架构图](docs/framework-architecture.svg)
 
-这是 qwen-audio-agent 在智能座舱领域的可运行落地示范。它使用框架公开能力
+这是 side-audio-bot 在智能座舱领域的可运行落地示范。它使用框架公开能力
 重新实现完整座舱链路，并在边界合适的地方复用早期座舱原型的 UI 代码和视觉资源，
 以节约实现成本。它不是对旧 Demo 的迁移或兼容改造，也没有自建第二套 Realtime
 或前台对话历史；后台模型循环只存在于可替换的 `agent/` 进程中。
 
-qwen-audio-agent 的基础边界是“前台对话 + 后台执行”两层。示例中的座舱 UI 是前台的
+side-audio-bot 的基础边界是“前台对话 + 后台执行”两层。示例中的座舱 UI 是前台的
 可替换客户端组件，座舱 Agent 是可替换后台；二者都不是框架强制实现。真正复用的
 框架能力是 Gateway、前台实时对话、GCP Client SDK、BackendPort、A2A 和 MCP 接缝。
 后台 Agent 可以按需派生独立 Session，扩展出第三层执行空间；仓库自带示例则使用

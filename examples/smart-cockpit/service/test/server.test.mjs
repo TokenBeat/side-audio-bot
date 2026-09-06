@@ -291,7 +291,7 @@ test('scopes frontend tools while retaining a complete backend MCP surface', asy
 })
 
 test('serves persistent custom skill management to the scenario UI', async t => {
-  const root = await mkdtemp(resolve(tmpdir(), 'qwen-cockpit-http-skills-'))
+  const root = await mkdtemp(resolve(tmpdir(), 'sideaudio-cockpit-http-skills-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const service = serviceFixture()
   service.customSkills = new CustomSkillStore({ root })

@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 import { baseEnvironment, clean, processAcpConnection } from './shared.mjs'
 
-const CODEX_PROVIDER = 'qwen-audio-agent'
+const CODEX_PROVIDER = 'side-audio-bot'
 
 export const codexBackendDriver = {
   id: 'codex',

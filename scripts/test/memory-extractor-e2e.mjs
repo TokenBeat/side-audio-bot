@@ -5,7 +5,7 @@
 //
 //   node scripts/test/memory-extractor-e2e.mjs
 //
-// The key is read from the environment or ~/.config/qwaudio/config.env and is
+// The key is read from the environment or ~/.config/sideaudio/config.env and is
 // never printed. Every scenario uses temporary stores; nothing touches the
 // real user data directory.
 import { mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs'
@@ -21,9 +21,9 @@ import {
 } from '../../server/src/conversation/memory-extractor.mjs'
 
 function resolveApiKey() {
-  if (process.env.QWEN_AUDIO_MEMORY_API_KEY) return process.env.QWEN_AUDIO_MEMORY_API_KEY
+  if (process.env.SIDE_AUDIO_MEMORY_API_KEY) return process.env.SIDE_AUDIO_MEMORY_API_KEY
   if (process.env.DASHSCOPE_API_KEY) return process.env.DASHSCOPE_API_KEY
-  const configPath = join(homedir(), '.config/qwaudio/config.env')
+  const configPath = join(homedir(), '.config/sideaudio/config.env')
   if (!existsSync(configPath)) return ''
   const match = readFileSync(configPath, 'utf8')
     .match(/^DASHSCOPE_API_KEY=(.+)$/m)
@@ -135,15 +135,15 @@ const SCENARIOS = [
 
 const apiKey = resolveApiKey()
 if (!apiKey) {
-  console.error('未找到 DASHSCOPE_API_KEY（环境变量或 ~/.config/qwaudio/config.env），无法运行端到端测试。')
+  console.error('未找到 DASHSCOPE_API_KEY（环境变量或 ~/.config/sideaudio/config.env），无法运行端到端测试。')
   process.exit(1)
 }
-const model = process.env.QWEN_AUDIO_MEMORY_MODEL || 'qwen-flash'
+const model = process.env.SIDE_AUDIO_MEMORY_MODEL || 'qwen-flash'
 console.log(`模型: ${model}  端点: DashScope compatible-mode\n`)
 
 let failures = 0
 for (const scenario of SCENARIOS) {
-  const directory = mkdtempSync(join(tmpdir(), 'qwenaudio-memory-e2e-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-memory-e2e-'))
   const store = new MarkdownContextStore({
     filePath: join(directory, 'MEMORY.md'),
     scope: 'memory',

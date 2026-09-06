@@ -18,7 +18,7 @@ import {
 } from '../../shared/runtime-environment.mjs'
 
 function fixture() {
-  const base = mkdtempSync(resolve(tmpdir(), 'qwaudio-config-'))
+  const base = mkdtempSync(resolve(tmpdir(), 'sideaudio-config-'))
   const root = resolve(base, 'app')
   const homeDirectory = resolve(base, 'home')
   mkdirSync(root, { recursive: true })
@@ -56,12 +56,12 @@ test('loads setup configuration without creating or changing user files', () => 
   assert.equal(existsSync(result.configDirectory), false)
   assert.equal(existsSync(result.configPath), false)
   assert.equal(env.CODEX_WORKSPACE, undefined)
-  assert.equal(env.QWEN_AUDIO_AGENT_AUTH_SECRET, undefined)
+  assert.equal(env.SIDE_AUDIO_BOT_AUTH_SECRET, undefined)
 })
 
 test('loads environment, project and user config in documented priority order', () => {
   const target = fixture()
-  const configDirectory = resolve(target.homeDirectory, '.config/qwaudio')
+  const configDirectory = resolve(target.homeDirectory, '.config/sideaudio')
   mkdirSync(configDirectory, { recursive: true })
   writeFileSync(resolve(configDirectory, 'config.env'), [
     'DASHSCOPE_API_KEY=user-key',
@@ -93,7 +93,7 @@ test('generates and reuses a private stable local identity secret', () => {
     env: first,
   })
   assert.equal(result.generatedSecret, true)
-  assert.equal(first.QWEN_AUDIO_AGENT_AUTH_SECRET.length, 64)
+  assert.equal(first.SIDE_AUDIO_BOT_AUTH_SECRET.length, 64)
   assertPrivateMode(result.statePath)
 
   const second = {}
@@ -103,8 +103,8 @@ test('generates and reuses a private stable local identity secret', () => {
     env: second,
   })
   assert.equal(
-    second.QWEN_AUDIO_AGENT_AUTH_SECRET,
-    first.QWEN_AUDIO_AGENT_AUTH_SECRET,
+    second.SIDE_AUDIO_BOT_AUTH_SECRET,
+    first.SIDE_AUDIO_BOT_AUTH_SECRET,
   )
   assert.match(readFileSync(result.statePath, 'utf8'), /AUTH_SECRET=/)
   const configContent = readFileSync(result.configPath, 'utf8')
@@ -134,20 +134,20 @@ test('reuses the persisted secret when the environment provides an empty value',
     env: first,
   })
 
-  const second = { QWEN_AUDIO_AGENT_AUTH_SECRET: '' }
+  const second = { SIDE_AUDIO_BOT_AUTH_SECRET: '' }
   const result = loadRuntimeEnvironment({
     root: target.root,
     homeDirectory: target.homeDirectory,
     env: second,
   })
 
-  assert.equal(second.QWEN_AUDIO_AGENT_AUTH_SECRET, first.QWEN_AUDIO_AGENT_AUTH_SECRET)
+  assert.equal(second.SIDE_AUDIO_BOT_AUTH_SECRET, first.SIDE_AUDIO_BOT_AUTH_SECRET)
   assert.equal(result.generatedSecret, false)
 })
 
 test('does not overwrite an existing user model', () => {
   const target = fixture()
-  const configDirectory = resolve(target.homeDirectory, '.config/qwaudio')
+  const configDirectory = resolve(target.homeDirectory, '.config/sideaudio')
   mkdirSync(configDirectory, { recursive: true })
   const userModelPath = resolve(configDirectory, 'USER.md')
   writeFileSync(userModelPath, '# USER\n\n- 称呼：老大\n')
@@ -192,10 +192,10 @@ test('copies the assistant profile template once and preserves user customizatio
 })
 
 test('supports an explicit cross-platform user config directory', () => {
-  const directory = resolve('/tmp/qwaudio-custom')
+  const directory = resolve('/tmp/sideaudio-custom')
   assert.equal(
     userConfigDirectory({
-      QWAUDIO_CONFIG_DIR: directory,
+      SIDEAUDIO_CONFIG_DIR: directory,
     }, '/unused'),
     directory,
   )
@@ -237,11 +237,11 @@ test('keeps managed backend data outside the installation directory', () => {
   )
   assert.equal(env.OPENCODE_WORKSPACE, result.openCodeWorkspace)
   assert.equal(
-    env.QWEN_AUDIO_AGENT_OPENCLAW_WORKSPACE,
+    env.SIDE_AUDIO_BOT_OPENCLAW_WORKSPACE,
     result.openClawWorkspace,
   )
   assert.equal(
-    env.QWEN_AUDIO_AGENT_OPENCLAW_STATE_DIR,
+    env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR,
     result.openClawStateDirectory,
   )
   assert.equal(env.OPENCLAW_STATE_DIR, undefined)
@@ -268,7 +268,7 @@ test('keeps managed backend data outside the installation directory', () => {
 })
 
 test('desktop client setup does not require packaged backend templates', () => {
-  const base = mkdtempSync(resolve(tmpdir(), 'qwaudio-desktop-config-'))
+  const base = mkdtempSync(resolve(tmpdir(), 'sideaudio-desktop-config-'))
   const root = resolve(base, 'app')
   const homeDirectory = resolve(base, 'home')
   mkdirSync(root, { recursive: true })
@@ -296,7 +296,7 @@ test('desktop client setup does not require packaged backend templates', () => {
   assert.equal(existsSync(result.piWorkspace), false)
   assert.equal(existsSync(result.acpWorkspace), false)
   assert.equal(env.OPENCODE_WORKSPACE, undefined)
-  assert.equal(env.QWEN_AUDIO_AGENT_OPENCLAW_WORKSPACE, undefined)
+  assert.equal(env.SIDE_AUDIO_BOT_OPENCLAW_WORKSPACE, undefined)
   assert.equal(env.OPENCLAW_STATE_DIR, undefined)
   assert.equal(env.QODER_WORKSPACE, undefined)
   assert.equal(env.KIMI_WORKSPACE, undefined)
@@ -380,13 +380,13 @@ test('does not require a DashScope credential for speech-to-speech', () => {
   )
 })
 
-test('splits assets into QWAUDIO_DATA_DIR while runtime state stays put', () => {
+test('splits assets into SIDEAUDIO_DATA_DIR while runtime state stays put', () => {
   const target = fixture()
   const runtimeDir = resolve(target.base, 'desktop-runtime')
-  const dataDir = resolve(target.homeDirectory, '.config/qwaudio')
+  const dataDir = resolve(target.homeDirectory, '.config/sideaudio')
   const env = {
-    QWAUDIO_CONFIG_DIR: runtimeDir,
-    QWAUDIO_DATA_DIR: dataDir,
+    SIDEAUDIO_CONFIG_DIR: runtimeDir,
+    SIDEAUDIO_DATA_DIR: dataDir,
   }
   const result = loadRuntimeEnvironment({
     root: target.root,
@@ -412,7 +412,7 @@ test('splits assets into QWAUDIO_DATA_DIR while runtime state stays put', () => 
   assertPrivateMode(result.statePath)
 })
 
-test('keeps assets beside runtime state without QWAUDIO_DATA_DIR', () => {
+test('keeps assets beside runtime state without SIDEAUDIO_DATA_DIR', () => {
   const target = fixture()
   const env = {}
   const result = loadRuntimeEnvironment({

@@ -100,7 +100,7 @@ test('drops a whole list and keeps others', () => {
 })
 
 test('persists notes atomically with private permissions', t => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwen-audio-agent-notes-'))
+  const directory = mkdtempSync(join(tmpdir(), 'side-audio-bot-notes-'))
   t.after(() => rmSync(directory, { recursive: true }))
   const filePath = join(directory, 'frontend-notes.json')
   const first = new FrontendNotesStore({ filePath })
@@ -115,7 +115,7 @@ test('persists notes atomically with private permissions', t => {
 })
 
 test('quarantines corrupt notes and continues with an empty writable store', t => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwen-audio-agent-notes-corrupt-'))
+  const directory = mkdtempSync(join(tmpdir(), 'side-audio-bot-notes-corrupt-'))
   t.after(() => rmSync(directory, { recursive: true }))
   const filePath = join(directory, 'frontend-notes.json')
   writeFileSync(filePath, '{not-json')
@@ -134,7 +134,7 @@ test('quarantines corrupt notes and continues with an empty writable store', t =
 })
 
 test('rolls back additions when persistence is unavailable', t => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwen-audio-agent-notes-write-failure-'))
+  const directory = mkdtempSync(join(tmpdir(), 'side-audio-bot-notes-write-failure-'))
   t.after(() => rmSync(directory, { recursive: true, force: true }))
   const warnings = []
   const store = new FrontendNotesStore({

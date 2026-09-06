@@ -1,6 +1,6 @@
 # 为 AI Agent 构建全双工语音前台：对话不该停下来
 
-> 本文基于 qwen-audio-agent 的真实实现，讲清楚一个问题：
+> 本文基于 side-audio-bot 的真实实现，讲清楚一个问题：
 > 当 Agent 在后台查资料、跑工具、处理任务时，语音对话如何保持连续？
 
 ## 问题：说完一句话，就陷入等待
@@ -16,7 +16,7 @@
 
 ## 架构：前台语音运行时 + 后台 Agent
 
-qwen-audio-agent 把系统切成两层：
+side-audio-bot 把系统切成两层：
 
 ```
 ┌────────────────────────────────────────────┐
@@ -120,6 +120,6 @@ WebRTC/WebSocket 长连接在真实网络下一定会断。前台实现了
 
 ---
 
-qwen-audio-agent 是开源项目（Apache-2.0），支持 WebUI、终端 TUI 和
+side-audio-bot 是开源项目（Apache-2.0），支持 WebUI、终端 TUI 和
 macOS 桌面悬浮球三种形态。欢迎在 GitHub 上交流：
-https://github.com/QwenAudio/qwen-audio-agent
+https://github.com/TokenBeat/side-audio-bot

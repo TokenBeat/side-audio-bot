@@ -10,7 +10,7 @@ import {
 } from 'node:fs'
 import { resolve } from 'node:path'
 
-export const GATEWAY_LOCK_SCHEMA = 'qwaudio.gateway-lock/v1'
+export const GATEWAY_LOCK_SCHEMA = 'sideaudio.gateway-lock/v1'
 
 export function gatewayLockPath(configDirectory) {
   return resolve(configDirectory, 'gateway.lock')
@@ -154,7 +154,7 @@ export function acquireGatewayLease(configDirectory, {
         const conflict = new Error(
           `已有 Gateway 正在运行${existing.origin ? `：${existing.origin}` : ''}`,
         )
-        conflict.code = 'QWAUDIO_GATEWAY_ALREADY_RUNNING'
+        conflict.code = 'SIDEAUDIO_GATEWAY_ALREADY_RUNNING'
         conflict.lease = existing
         throw conflict
       }

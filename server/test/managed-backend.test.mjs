@@ -33,13 +33,13 @@ function childProcess() {
 }
 
 function openClawFixture() {
-  const root = mkdtempSync(resolve(tmpdir(), 'qwaudio-openclaw-'))
+  const root = mkdtempSync(resolve(tmpdir(), 'sideaudio-openclaw-'))
   const stateDirectory = resolve(root, '.openclaw')
   mkdirSync(stateDirectory, { recursive: true })
   return {
     root,
     configPath: resolve(stateDirectory, 'openclaw.json'),
-    tokenPath: resolve(root, 'qwaudio', 'gateway-secret'),
+    tokenPath: resolve(root, 'sideaudio', 'gateway-secret'),
   }
 }
 
@@ -107,11 +107,11 @@ test('copies OpenClaw capabilities without external message channels', () => {
 test('Gateway-owned backend moves away from occupied ports', async () => {
   const env = {
     AGENT_PROTOCOL: 'openclaw',
-    QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP: 'owned',
+    SIDE_AUDIO_BOT_BACKEND_OWNERSHIP: 'owned',
     OPENCLAW_BASE_URL: 'http://127.0.0.1:18789',
     DASHSCOPE_API_KEY: 'test-key',
-    QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen-plus',
-    QWEN_AUDIO_AGENT_AUTH_SECRET: 'must-not-reach-openclaw',
+    SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen-plus',
+    SIDE_AUDIO_BOT_AUTH_SECRET: 'must-not-reach-openclaw',
     SPEECH_TO_SPEECH_AUTH_TOKEN: 'must-not-reach-openclaw',
   }
   const calls = []
@@ -133,12 +133,12 @@ test('Gateway-owned backend moves away from occupied ports', async () => {
   assert.equal(env.OPENCLAW_PORT, '45678')
   assert.equal(calls[0][0], process.execPath)
   assert.equal(calls[0][1][0], resolve('/repo', 'scripts/openclaw-gateway.mjs'))
-  assert.equal(calls[0][2].env.QWEN_AUDIO_AGENT_ENV_LOADED, '1')
+  assert.equal(calls[0][2].env.SIDE_AUDIO_BOT_ENV_LOADED, '1')
   assert.equal(calls[0][2].env.DASHSCOPE_API_KEY, 'test-key')
-  assert.equal(calls[0][2].env.QWEN_AUDIO_AGENT_AUTH_SECRET, undefined)
+  assert.equal(calls[0][2].env.SIDE_AUDIO_BOT_AUTH_SECRET, undefined)
   assert.equal(calls[0][2].env.SPEECH_TO_SPEECH_AUTH_TOKEN, undefined)
   assert.equal(env.OPENCLAW_GATEWAY_TOKEN.length, 64)
-  assert.notEqual(env.OPENCLAW_GATEWAY_TOKEN, env.QWEN_AUDIO_AGENT_AUTH_SECRET)
+  assert.notEqual(env.OPENCLAW_GATEWAY_TOKEN, env.SIDE_AUDIO_BOT_AUTH_SECRET)
   runtime.close()
   assert.deepEqual(signals, [[-4242, 'SIGTERM']])
 })
@@ -146,7 +146,7 @@ test('Gateway-owned backend moves away from occupied ports', async () => {
 test('force-stops a managed backend that ignores graceful shutdown', async () => {
   const env = {
     AGENT_PROTOCOL: 'openclaw',
-    QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP: 'owned',
+    SIDE_AUDIO_BOT_BACKEND_OWNERSHIP: 'owned',
     OPENCLAW_BASE_URL: 'http://127.0.0.1:18789',
   }
   const child = childProcess()
@@ -189,7 +189,7 @@ test('uses an explicitly configured OpenClaw Gateway as an external service', as
     },
   })
   assert.equal(runtime.ownsProcess, false)
-  assert.equal(env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP, 'external')
+  assert.equal(env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP, 'external')
   assert.equal(env.OPENCLAW_BASE_URL, 'http://127.0.0.1:18789')
 })
 
@@ -304,7 +304,7 @@ test('additional ACP backends run inside the Gateway without an HTTP server', as
 test('full permission mode configures managed OpenCode without discarding inline config', () => {
   const env = {
     AGENT_PROTOCOL: 'opencode',
-    QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE: 'full',
+    SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE: 'full',
     OPENCODE_COORDINATOR_AGENT: 'custom-coordinator',
     OPENCODE_CONFIG_CONTENT: JSON.stringify({
       theme: 'system',
@@ -325,13 +325,13 @@ test('full permission mode configures managed OpenCode without discarding inline
     inline.agent['custom-coordinator'].permission,
     'allow',
   )
-  assert.equal(inline.agent['qwen-audio-agent-backend'], undefined)
+  assert.equal(inline.agent['side-audio-bot-backend'], undefined)
 })
 
 test('full permission mode rejects backends that cannot support it safely', () => {
   assert.throws(() => resolveManagedBackend({
     AGENT_PROTOCOL: 'openclaw',
-    QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE: 'full',
+    SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE: 'full',
   }), /OpenClaw/)
 })
 
@@ -348,7 +348,7 @@ test('always-full backends report the effective full mode regardless of configur
   })
   assert.deepEqual(resolveManagedBackend({
     AGENT_PROTOCOL: 'pi',
-    QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE: 'native',
+    SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE: 'native',
   }), {
     protocol: 'pi',
     ownership: 'owned',

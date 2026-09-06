@@ -7,7 +7,7 @@ import {
   skillsInstallerAgents,
 } from './backend-catalog.mjs'
 
-// qwenaudio skill 是 skills.sh（npm 包 skills）的 1:1 品牌化入口：技能的
+// sideaudio skill 是 skills.sh（npm 包 skills）的 1:1 品牌化入口：技能的
 // 下载、落盘、lockfile 一致性全部由 skills.sh 自管，这里只负责组装参数、
 // 透传输出。技能落点为各后台 CLI 的用户级全局目录（~/.claude/skills 等），
 // 产品内外、桌面版与 CLI 天然共享。
@@ -18,7 +18,7 @@ function clean(value) {
 }
 
 export function skillsCliPackage(env = process.env) {
-  return clean(env.QWEN_AUDIO_AGENT_SKILLS_CLI_PACKAGE)
+  return clean(env.SIDE_AUDIO_BOT_SKILLS_CLI_PACKAGE)
     || DEFAULT_SKILLS_CLI_PACKAGE
 }
 
@@ -174,7 +174,7 @@ export function ensureBackendSkills({
       failures.push({
         source,
         names,
-        hint: '若技能已从来源移除，可执行 qwenaudio skill remove <名称> 清理，'
+        hint: '若技能已从来源移除，可执行 sideaudio skill remove <名称> 清理，'
           + '避免每次启动重试',
         message: String(error?.message || error),
       })

@@ -32,8 +32,8 @@ function agentCard(origin) {
       protocolVersion: A2A_PROTOCOL_VERSION,
     }],
     provider: {
-      organization: 'Qwen Audio Agent Examples',
-      url: 'https://github.com/QwenAudio/qwen-audio-agent',
+      organization: 'Side Audio Bot Examples',
+      url: 'https://github.com/TokenBeat/side-audio-bot',
     },
     version: '1.0.0',
     capabilities: {

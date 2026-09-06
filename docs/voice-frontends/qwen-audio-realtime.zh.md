@@ -1,7 +1,7 @@
 # Qwen Audio 3.0 Realtime
 
 默认语音前台：DashScope 的 Qwen Audio 3.0 Realtime 系列，专为语音直通语音的
-对话而生。装好 qwen-audio-agent、只填一个 API Key 时，用的就是它。
+对话而生。装好 side-audio-bot、只填一个 API Key 时，用的就是它。
 
 ## 模型
 
@@ -27,8 +27,8 @@ QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-plus
 重启 Gateway 生效：
 
 ```bash
-qwenaudio config set --realtime-model qwen-audio-3.0-realtime-flash
-qwenaudio gateway restart
+sideaudio config set --realtime-model qwen-audio-3.0-realtime-flash
+sideaudio gateway restart
 ```
 
 WebUI 和 TUI 只展示当前生效模型，不单独覆盖。

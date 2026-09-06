@@ -1,6 +1,6 @@
 # Gateway 契约
 
-本文件是外部客户端（桌面版、CLI、WebUI，或集成 qwen-audio-agent 的平台方）
+本文件是外部客户端（桌面版、CLI、WebUI，或集成 side-audio-bot 的平台方）
 可以依赖的**唯一契约索引**。未在此列出的一切（内部模块路径、配置目录内除下文
 点名之外的文件布局、数据库与状态文件格式）都不属于契约，可能在任意版本变更。
 
@@ -15,9 +15,9 @@
 变更升 major。
 
 稳定的 6.0 北向边界记录在
-[Gateway Client Protocol](https://github.com/QwenAudio/qwen-audio-agent/blob/main/docs/gateway-protocol.zh.md) 与
-[已完成的 Roadmap](https://github.com/QwenAudio/qwen-audio-agent/blob/main/docs/roadmap/gateway-client-protocol.zh.md) 中，并由已关闭的
-[GitHub issue #251](https://github.com/QwenAudio/qwen-audio-agent/issues/251)
+[Gateway Client Protocol](https://github.com/TokenBeat/side-audio-bot/blob/main/docs/gateway-protocol.zh.md) 与
+[已完成的 Roadmap](https://github.com/TokenBeat/side-audio-bot/blob/main/docs/roadmap/gateway-client-protocol.zh.md) 中，并由已关闭的
+[GitHub issue #251](https://github.com/TokenBeat/side-audio-bot/issues/251)
 记录。GCP1–GCP5 已完成：6.0 握手、Client Event Ingress、运行时命令面、Agent
 Delivery、Client Action、参考 Client SDK 与有限回放均落在同一条 WebSocket 上。
 已实现行为仍以本契约索引为准。
@@ -51,9 +51,9 @@ Task 事件提供与 A2A 对齐的 `submitted`、
 | `web.same-origin-ui` | Gateway 在自己的 origin 上静态托管 Web UI，webview 指向 Gateway 地址即可，无需额外配置 | `test/consumer-install.test.mjs` |
 | `web.skin-assets` | 导入的悬浮球皮肤在 Gateway origin 的 `/skins/<id>/` 下提供，悬浮球页面的同源素材请求无需宿主另起静态服务 | `test/consumer-install.test.mjs` |
 | `gateway.instance-lease` | 配置目录中的租约标识运行中的实例；`/api/health` 回显 `gatewayInstanceId`，同端口的陌生进程不会被误认为本 Gateway | `test/consumer-install.test.mjs` |
-| `gateway.setup-gate` | 未配置的启动以 `QWAUDIO_GATEWAY_SETUP_REQUIRED` 拒绝并附带 `missing` 清单，而不是运行一个语音不可用的实例 | `test/gateway-setup.test.mjs` |
+| `gateway.setup-gate` | 未配置的启动以 `SIDEAUDIO_GATEWAY_SETUP_REQUIRED` 拒绝并附带 `missing` 清单，而不是运行一个语音不可用的实例 | `test/gateway-setup.test.mjs` |
 | `gateway.settings-store` | 配置持久化由本包自持：`createSettingsStore({ configDir })`——宿主不认识任何配置项、不持有任何配置文件 | `desktop/test/settings-store.test.mjs` |
-| `host.electron-entry` | `qwen-audio-agent/electron`：Electron 主进程可直接 `require` 的 CommonJS 入口，一次 `load()` 拿到全部契约 | `test/consumer-install.test.mjs` |
+| `host.electron-entry` | `side-audio-bot/electron`：Electron 主进程可直接 `require` 的 CommonJS 入口，一次 `load()` 拿到全部契约 | `test/consumer-install.test.mjs` |
 | `host.gateway-process` | `GatewayProcess` 随包发布：fork、端口回退、就绪握手、重启、计划退出与崩溃分离——桌面版跑的是同一份实现 | `desktop/test/gateway-process.test.mjs` |
 | `input.suspend-protocol` | `POST /api/input/suspend\|resume`、`GET /api/input`；Gateway 通过 `input.suspend` / `input.resume` 把抢占传达给客户端 | `server/test/input-suspend-protocol.test.mjs` |
 | `input.suspend-clears-playback` | 抢占同时清除播报，宿主录音不会录进 Gateway 自己的语音 | `server/test/input-suspend-protocol.test.mjs` |
@@ -86,38 +86,38 @@ Task 事件提供与 A2A 对齐的 `submitted`、
 
 | 入口 | 导出 |
 | --- | --- |
-| `qwen-audio-agent/electron` | **CJS**：`load()`（一个命名空间拿到全部契约）、`PRELOAD_PATH` |
-| `qwen-audio-agent/gateway-protocol` | `GATEWAY_PROTOCOL_VERSION`、`GATEWAY_CAPABILITIES` |
-| `qwen-audio-agent/gateway-client-protocol` | GCP 6.0 信封、握手与运行时命令 Schema、解析器、能力常量和参考 Client Helper |
-| `qwen-audio-agent/gateway-client-sdk` | `GatewayClient`：WebSocket 生命周期、6.0 握手、请求关联、Client Action、有限回放和重连恢复 |
-| `qwen-audio-agent/gateway-client-profiles` | WebUI、Desktop、TUI 的参考 capability profile |
-| `qwen-audio-agent/client-events` | 供 Gateway 扩展使用的 Client Event Definition Registry、内置定义、路由 Policy 与 `GatewayEventRouter` |
-| `qwen-audio-agent/client-actions` | `ClientActionPort`、内置 Action 名称、capability 映射、请求/结果关联、deadline 与进行中请求去重 |
-| `qwen-audio-agent/agent-delivery` | Provider 无关的 `AgentDelivery` 值与路由模式 |
-| `qwen-audio-agent/gateway-setup` | `gatewaySetupStatus`、`assertGatewaySetup` |
-| `qwen-audio-agent/gateway-process` | `GatewayProcess`、`createGatewayProcess`、`GATEWAY_READY_MESSAGE`、`DEFAULT_GATEWAY_ENTRY`、`validateGatewayOrigin`、`portInUse` |
-| `qwen-audio-agent/gateway-lease` | `readGatewayLease`、`findRunningGateway`、`acquireGatewayLease` |
-| `qwen-audio-agent/realtime-events` | `GatewayClientEvent`、`GatewayServerEvent`、`GatewayTaskEvent` |
-| `qwen-audio-agent/gateway-events` | Gateway 事件 Zod Schema 与解析函数 |
-| `qwen-audio-agent/ag-ui-events` | 当前支持的 AG-UI 兼容事件 Zod Schema 与解析函数 |
-| `qwen-audio-agent/gateway-client-state` | `createGatewayClientState`、`reduceGatewayClientState`、`acceptsGatewayVoiceState` |
-| `qwen-audio-agent/settings` | `createSettingsStore` |
-| `qwen-audio-agent/skin-store` | `importSkin`、`listSkins`、`removeSkin`、`effectiveOrbSkin`、`skinsDirectory`、`validateSkinPackage` |
-| `qwen-audio-agent/orb/main` | `bindOrbShell`、`configureOrbWindow`、`ORB_CHANNELS` |
-| `qwen-audio-agent/orb/window` | `createOrbWindow`、`orbWindowOptions`、`ORB_PRELOAD_PATH`、`ORB_WINDOW_SIZE` |
-| `qwen-audio-agent/orb/placement` | `createOrbPlacement`、`ORB_PLACEMENT_MARGIN` |
-| `qwen-audio-agent/orb/presence` | `DesktopPresence` |
-| `qwen-audio-agent/orb/preload` | 悬浮球与设置页共用的渲染进程 preload |
-| `qwen-audio-agent/orb/url` | `desktopOrbUrl` |
-| `qwen-audio-agent/web-dist/*` | 预构建的前端产物 |
+| `side-audio-bot/electron` | **CJS**：`load()`（一个命名空间拿到全部契约）、`PRELOAD_PATH` |
+| `side-audio-bot/gateway-protocol` | `GATEWAY_PROTOCOL_VERSION`、`GATEWAY_CAPABILITIES` |
+| `side-audio-bot/gateway-client-protocol` | GCP 6.0 信封、握手与运行时命令 Schema、解析器、能力常量和参考 Client Helper |
+| `side-audio-bot/gateway-client-sdk` | `GatewayClient`：WebSocket 生命周期、6.0 握手、请求关联、Client Action、有限回放和重连恢复 |
+| `side-audio-bot/gateway-client-profiles` | WebUI、Desktop、TUI 的参考 capability profile |
+| `side-audio-bot/client-events` | 供 Gateway 扩展使用的 Client Event Definition Registry、内置定义、路由 Policy 与 `GatewayEventRouter` |
+| `side-audio-bot/client-actions` | `ClientActionPort`、内置 Action 名称、capability 映射、请求/结果关联、deadline 与进行中请求去重 |
+| `side-audio-bot/agent-delivery` | Provider 无关的 `AgentDelivery` 值与路由模式 |
+| `side-audio-bot/gateway-setup` | `gatewaySetupStatus`、`assertGatewaySetup` |
+| `side-audio-bot/gateway-process` | `GatewayProcess`、`createGatewayProcess`、`GATEWAY_READY_MESSAGE`、`DEFAULT_GATEWAY_ENTRY`、`validateGatewayOrigin`、`portInUse` |
+| `side-audio-bot/gateway-lease` | `readGatewayLease`、`findRunningGateway`、`acquireGatewayLease` |
+| `side-audio-bot/realtime-events` | `GatewayClientEvent`、`GatewayServerEvent`、`GatewayTaskEvent` |
+| `side-audio-bot/gateway-events` | Gateway 事件 Zod Schema 与解析函数 |
+| `side-audio-bot/ag-ui-events` | 当前支持的 AG-UI 兼容事件 Zod Schema 与解析函数 |
+| `side-audio-bot/gateway-client-state` | `createGatewayClientState`、`reduceGatewayClientState`、`acceptsGatewayVoiceState` |
+| `side-audio-bot/settings` | `createSettingsStore` |
+| `side-audio-bot/skin-store` | `importSkin`、`listSkins`、`removeSkin`、`effectiveOrbSkin`、`skinsDirectory`、`validateSkinPackage` |
+| `side-audio-bot/orb/main` | `bindOrbShell`、`configureOrbWindow`、`ORB_CHANNELS` |
+| `side-audio-bot/orb/window` | `createOrbWindow`、`orbWindowOptions`、`ORB_PRELOAD_PATH`、`ORB_WINDOW_SIZE` |
+| `side-audio-bot/orb/placement` | `createOrbPlacement`、`ORB_PLACEMENT_MARGIN` |
+| `side-audio-bot/orb/presence` | `DesktopPresence` |
+| `side-audio-bot/orb/preload` | 悬浮球与设置页共用的渲染进程 preload |
+| `side-audio-bot/orb/url` | `desktopOrbUrl` |
+| `side-audio-bot/web-dist/*` | 预构建的前端产物 |
 
-除 `qwen-audio-agent/electron` 与 `qwen-audio-agent/orb/preload` 为
+除 `side-audio-bot/electron` 与 `side-audio-bot/orb/preload` 为
 CommonJS（边界所需）外，其余均为 ESM。
 
 ## 嵌入流程
 
 ```js
-const audioAgent = require('qwen-audio-agent/electron')
+const audioAgent = require('side-audio-bot/electron')
 const api = await audioAgent.load()
 
 const settings = api.createSettingsStore({ configDir })
@@ -183,8 +183,8 @@ await orb.load()
 ## Realtime 事件
 
 `WS /api/realtime?sessionId=<id>` 是公开的对话客户端边界。事件名通过
-`qwen-audio-agent/realtime-events` 发布，消息 Schema 与解析器通过
-`qwen-audio-agent/gateway-events` 发布；客户端应使用这些包入口，不依赖内部路径。
+`side-audio-bot/realtime-events` 发布，消息 Schema 与解析器通过
+`side-audio-bot/gateway-events` 发布；客户端应使用这些包入口，不依赖内部路径。
 `gateway.connected` 与 `gateway.disconnected` 是共享状态 reducer 使用的客户端本地
 生命周期辅助事件，不会通过 WebSocket 下发。
 
@@ -223,7 +223,7 @@ await orb.load()
 
 ### 共享客户端状态
 
-`qwen-audio-agent/gateway-client-state` 将公开 Gateway 事件归并为无副作用的客户端
+`side-audio-bot/gateway-client-state` 将公开 Gateway 事件归并为无副作用的客户端
 状态：`connectionState`、`voiceReady`、`voiceState`、`wakeWordActive`、
 `ownership` 与 `currentTurnId`。`reduceGatewayClientState(state, event)` 对未知事件
 保持原对象不变，
@@ -238,7 +238,7 @@ await orb.load()
 ## 实例租约
 
 运行中的 Gateway 在其配置目录写入 `gateway.lock`：
-`{ schema: "qwaudio.gateway-lock/v1", instanceId, pid, owner, state, origin,
+`{ schema: "sideaudio.gateway-lock/v1", instanceId, pid, owner, state, origin,
 startedAt, heartbeatAt }`。定位实例的方式：读租约、探活 `origin`、并核对
 `/api/health` 回显的 `gatewayInstanceId` 是否一致——端口被其他进程复用时
 读到的是"未运行"，而不是别人的状态。干净退出会释放租约。锁定测试：
@@ -248,7 +248,7 @@ startedAt, heartbeatAt }`。定位实例的方式：读租约、探活 `origin`�
 
 缺少必填的实时语音凭据（`DASHSCOPE_API_KEY`，或选择 Speech-to-Speech 时的
 服务地址）时，`server/src/index.mjs` 在触碰租约之前即拒绝启动：进程以非零
-退出，错误信息点名每一个缺失的键。`QWEN_AUDIO_ALLOW_UNCONFIGURED=1` 供
+退出，错误信息点名每一个缺失的键。`SIDE_AUDIO_ALLOW_UNCONFIGURED=1` 供
 从不建立语音连接的调试场景显式跳过。锁定测试：`test/gateway-setup.test.mjs`、
 `test/consumer-install.test.mjs`。
 

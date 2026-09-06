@@ -11,7 +11,7 @@ import {
 } from '../src/core/frontend-profile.mjs'
 
 function fixture() {
-  const directory = mkdtempSync(join(tmpdir(), 'qwen-audio-profile-'))
+  const directory = mkdtempSync(join(tmpdir(), 'side-audio-profile-'))
   mkdirSync(join(directory, 'tools'))
   writeFileSync(join(directory, 'ASSISTANT.md'), '# Assistant\n', 'utf8')
   writeFileSync(join(directory, 'tools', 'mcp.json'), '{}\n', 'utf8')
@@ -64,8 +64,8 @@ test('keeps explicit environment paths above profile defaults', () => {
   assert.deepEqual(resolveFrontendProfileConfiguration({
     profile,
     env: {
-      QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH: '/explicit/ASSISTANT.md',
-      QWEN_AUDIO_FRONTEND_MCP_CONFIG: '/explicit/mcp.json',
+      SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH: '/explicit/ASSISTANT.md',
+      SIDE_AUDIO_FRONTEND_MCP_CONFIG: '/explicit/mcp.json',
     },
     defaultAssistantProfilePath: '/default/ASSISTANT.md',
   }), {

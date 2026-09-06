@@ -92,7 +92,7 @@ async function prepare(directory, { fetchImpl }) {
     await extractSelected(archivePath, stagingDirectory)
     writeFileSync(
       resolve(stagingDirectory, WAKE_WORD_MODEL_FILES.keywords),
-      'n ǐ h ǎo q iān w èn @你好千问\n',
+      'n ǐ h ǎo m éi q iú @你好煤球\n',
       { encoding: 'utf8', mode: 0o600 },
     )
     if (!complete(stagingDirectory)) {

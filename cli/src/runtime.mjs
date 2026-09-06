@@ -70,11 +70,11 @@ export function resolveBackend(options = {}, env = process.env) {
   // launching a second managed service on another port.
   const ownership = resolveBackendOwnership(protocol, {
     baseUrlConfigured: explicitBaseUrl,
-    requestedOwnership: env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP,
+    requestedOwnership: env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP,
   })
   const requestedPermissionMode = String(
     options.backendPermissionMode
-    || env.QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE
+    || env.SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE
     || 'native',
   ).toLowerCase()
   if (!['native', 'full'].includes(requestedPermissionMode)) {
@@ -100,7 +100,7 @@ export function resolveBackend(options = {}, env = process.env) {
     ownership,
     permissionMode,
     agentId: String(
-      options.backendAgent || env.QWEN_AUDIO_AGENT_BACKEND_AGENT || '',
+      options.backendAgent || env.SIDE_AUDIO_BOT_BACKEND_AGENT || '',
     ).trim(),
     baseUrl: definition.baseUrlEnvironment
       ? normalizedOrigin(options.backendUrl || configured)
@@ -264,19 +264,19 @@ function backendEnvironment(env, backend) {
       // child Gateway reload AGENT_PROTOCOL from config.env.
       AGENT_PROTOCOL: '',
     }
-    delete next.QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE
-    delete next.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP
-    delete next.QWEN_AUDIO_AGENT_BACKEND_AGENT
+    delete next.SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE
+    delete next.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP
+    delete next.SIDE_AUDIO_BOT_BACKEND_AGENT
     return next
   }
   const definition = backendDefinition(backend.protocol)
   const next = {
     ...env,
     AGENT_PROTOCOL: backend.protocol,
-    QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP: backend.ownership,
-    QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE: backend.permissionMode,
+    SIDE_AUDIO_BOT_BACKEND_OWNERSHIP: backend.ownership,
+    SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE: backend.permissionMode,
     ...(backend.agentId
-      ? { QWEN_AUDIO_AGENT_BACKEND_AGENT: backend.agentId }
+      ? { SIDE_AUDIO_BOT_BACKEND_AGENT: backend.agentId }
       : {}),
   }
   if (!definition?.baseUrlEnvironment) return next

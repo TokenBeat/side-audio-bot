@@ -6,7 +6,7 @@ import test from 'node:test'
 import { CustomSkillStore } from '../custom-skills/store.mjs'
 
 async function fixture(t) {
-  const root = await mkdtemp(resolve(tmpdir(), 'qwen-cockpit-skills-'))
+  const root = await mkdtemp(resolve(tmpdir(), 'sideaudio-cockpit-skills-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   let timestamp = Date.parse('2026-09-01T00:00:00.000Z')
   return new CustomSkillStore({

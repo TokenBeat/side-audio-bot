@@ -2,8 +2,8 @@
 
 The voice frontend is the realtime speech model the Gateway connects to. All
 settings on this page live in the user configuration file
-(`~/.config/qwaudio/config.env`, see [Configuration](../configuration.md));
-apply changes with `qwenaudio gateway restart`.
+(`~/.config/sideaudio/config.env`, see [Configuration](../configuration.md));
+apply changes with `sideaudio gateway restart`.
 
 ## Credentials and endpoint
 
@@ -24,7 +24,7 @@ A fully local frontend is available via `QWEN_AUDIO_REALTIME_PROVIDER=speech-to-
 see [Speech-to-Speech](../voice-frontends/speech-to-speech.md). A custom provider
 implements the provider contract; see [Custom Provider](../voice-frontends/custom-provider.md).
 
-Frontend tools are configured separately: Web Search (`QWEN_AUDIO_WEB_SEARCH_PROVIDER`,
+Frontend tools are configured separately: Web Search (`SIDE_AUDIO_WEB_SEARCH_PROVIDER`,
 see [Configuration](../configuration.md)), and general chatbot tools through the
 [Frontend MCP client](../reference/frontend-mcp.md), the
 [Frontend OpenAPI adapter](../reference/frontend-openapi.md), or a
@@ -36,9 +36,9 @@ One Gateway owns one active Realtime model. The Desktop settings page can config
 for a locally owned Gateway, and the CLI provides the equivalent commands:
 
 ```bash
-qwenaudio config show
-qwenaudio config set --realtime-model qwen3.5-omni-flash-realtime
-qwenaudio gateway restart
+sideaudio config show
+sideaudio config set --realtime-model qwen3.5-omni-flash-realtime
+sideaudio gateway restart
 ```
 
 The exact supported IDs are:

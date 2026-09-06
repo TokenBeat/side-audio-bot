@@ -14,7 +14,7 @@ does, users can attach it with configuration alone:
 AGENT_PROTOCOL=acp
 ACP_COMMAND=your-agent --acp
 # Optional: comma-separated environment names forwarded to the agent process
-QWEN_AUDIO_AGENT_ACP_FORWARD_ENV=MY_AGENT_API_KEY
+SIDE_AUDIO_BOT_ACP_FORWARD_ENV=MY_AGENT_API_KEY
 ```
 
 This is the full integration for many agents.
@@ -33,9 +33,9 @@ custom Gateway launchers; it does not add an `AGENT_PROTOCOL` value.
 
 Phone agents, hardware agents, HTTP services, or any non-ACP task runtime can
 implement `BackendPort` directly with the Backend Adapter SDK
-(`qwen-audio-agent/backend-adapter-sdk`). The SDK ships a shared conformance
+(`side-audio-bot/backend-adapter-sdk`). The SDK ships a shared conformance
 suite — the same one the built-in adapters run — and
-[`examples/backend-adapter/`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/backend-adapter)
+[`examples/backend-adapter/`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/backend-adapter)
 is a minimal working implementation.
 
 → [Backend Adapter SDK](../reference/backend-adapter-sdk.md)

@@ -185,9 +185,9 @@ export function resolveRealtimeFrontendConfiguration(env = process.env) {
     speechToSpeechAuthToken,
     speechToSpeechConfigured,
     missingConfigurationMessage: provider === 'dashscope'
-      ? '缺少 DASHSCOPE_API_KEY。请运行 qwenaudio config 查看配置文件位置。'
+      ? '缺少 DASHSCOPE_API_KEY。请运行 sideaudio config 查看配置文件位置。'
       : provider === 'stepfun'
-      ? '缺少 STEPFUN_API_KEY。请运行 qwenaudio config 查看配置文件位置。'
+      ? '缺少 STEPFUN_API_KEY。请运行 sideaudio config 查看配置文件位置。'
       : `无法使用 ${PROVIDERS[provider].label} 前台，请检查其服务地址和配置。`,
   }
 }

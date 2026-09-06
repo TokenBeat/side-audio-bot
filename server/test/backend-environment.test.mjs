@@ -10,9 +10,9 @@ const env = {
   DEEPSEEK_API_KEY: 'deepseek-secret',
   ANTHROPIC_API_KEY: 'anthropic-secret',
   OPENCLAW_GATEWAY_TOKEN: 'openclaw-secret',
-  QWEN_AUDIO_AGENT_AUTH_SECRET: 'identity-secret',
+  SIDE_AUDIO_BOT_AUTH_SECRET: 'identity-secret',
   QWEN_AUDIO_REALTIME_API_KEY: 'realtime-secret',
-  QWEN_AUDIO_MEMORY_API_KEY: 'memory-secret',
+  SIDE_AUDIO_MEMORY_API_KEY: 'memory-secret',
   SPEECH_TO_SPEECH_AUTH_TOKEN: 'speech-secret',
 }
 
@@ -22,9 +22,9 @@ test('projects only operating-system and selected backend environment', () => {
   assert.equal(deepseek.DEEPSEEK_API_KEY, 'deepseek-secret')
   assert.equal(deepseek.DASHSCOPE_API_KEY, undefined)
   assert.equal(deepseek.OPENCLAW_GATEWAY_TOKEN, undefined)
-  assert.equal(deepseek.QWEN_AUDIO_AGENT_AUTH_SECRET, undefined)
+  assert.equal(deepseek.SIDE_AUDIO_BOT_AUTH_SECRET, undefined)
   assert.equal(deepseek.QWEN_AUDIO_REALTIME_API_KEY, undefined)
-  assert.equal(deepseek.QWEN_AUDIO_MEMORY_API_KEY, undefined)
+  assert.equal(deepseek.SIDE_AUDIO_MEMORY_API_KEY, undefined)
   assert.equal(deepseek.SPEECH_TO_SPEECH_AUTH_TOKEN, undefined)
 })
 
@@ -52,10 +52,10 @@ test('generic ACP forwards additional names only when explicitly requested', () 
     env: {
       ...env,
       CUSTOM_AGENT_TOKEN: 'custom-secret',
-      QWEN_AUDIO_AGENT_ACP_FORWARD_ENV: 'CUSTOM_AGENT_TOKEN',
+      SIDE_AUDIO_BOT_ACP_FORWARD_ENV: 'CUSTOM_AGENT_TOKEN',
     },
   })
   assert.equal(projected.CUSTOM_AGENT_TOKEN, 'custom-secret')
   assert.equal(projected.DASHSCOPE_API_KEY, undefined)
-  assert.equal(projected.QWEN_AUDIO_AGENT_ACP_FORWARD_ENV, undefined)
+  assert.equal(projected.SIDE_AUDIO_BOT_ACP_FORWARD_ENV, undefined)
 })

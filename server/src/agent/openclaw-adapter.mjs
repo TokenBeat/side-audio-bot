@@ -104,7 +104,7 @@ class OpenClawGatewayRpc {
               maxProtocol: MAX_GATEWAY_PROTOCOL,
               client: {
                 id: 'gateway-client',
-                displayName: 'qwen-audio-agent',
+                displayName: 'side-audio-bot',
                 version: PACKAGE_VERSION,
                 platform: process.platform,
                 mode: 'backend',

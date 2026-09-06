@@ -1,13 +1,13 @@
 # Smart Cockpit
 
-[`examples/smart-cockpit/`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/smart-cockpit) is a runnable cockpit scenario built on qwen-audio-agent's foreground/backend boundary. It preserves the car UI, browser voice interaction, vehicle controls, navigation, music, weather, and flash-buy flow without maintaining a second Realtime server, conversation history, or Agent loop.
+[`examples/smart-cockpit/`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/smart-cockpit) is a runnable cockpit scenario built on side-audio-bot's foreground/backend boundary. It preserves the car UI, browser voice interaction, vehicle controls, navigation, music, weather, and flash-buy flow without maintaining a second Realtime server, conversation history, or Agent loop.
 
 ## Component mapping
 
 | Component | Example implementation | Replaceable boundary |
 |---|---|---|
 | `client/` | React cockpit UI + Browser Audio | GCP 6.0 / Gateway Client SDK |
-| `gateway/` | qwen-audio-agent Gateway + foreground Realtime Agent | Framework reuse and scenario composition |
+| `gateway/` | side-audio-bot Gateway + foreground Realtime Agent | Framework reuse and scenario composition |
 | `agent/` | Qwen3.8-Flash A2A cockpit Agent | BackendPort / A2A / ACP / custom Adapter |
 | `service/` | Cockpit environment, state, rules, tools, and external integrations | HTTP/SSE / MCP / customer protocols |
 
@@ -34,4 +34,4 @@ npm run example:smart-cockpit
 
 Open `http://localhost:5173`. The command starts service, agent, gateway, and client together.
 
-See [`examples/smart-cockpit/README.md`](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/README.md) for architecture, replacement, and test details.
+See [`examples/smart-cockpit/README.md`](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/README.md) for architecture, replacement, and test details.

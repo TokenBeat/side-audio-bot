@@ -1,8 +1,8 @@
 # 前台配置
 
 语音前台是 Gateway 连接的实时语音模型。本页设置都写在用户配置文件中
-（`~/.config/qwaudio/config.env`，见[配置总览](../configuration.zh.md)），
-修改后执行 `qwenaudio gateway restart` 生效。
+（`~/.config/sideaudio/config.env`，见[配置总览](../configuration.zh.md)），
+修改后执行 `sideaudio gateway restart` 生效。
 
 ## 凭据与端点
 
@@ -23,7 +23,7 @@ DASHSCOPE_API_KEY=your-key
 见 [Speech-to-Speech](../voice-frontends/speech-to-speech.zh.md)；自定义 Provider
 需实现 Provider 契约，见[自定义 Provider](../voice-frontends/custom-provider.zh.md)。
 
-前台工具单独配置：Web 搜索（`QWEN_AUDIO_WEB_SEARCH_PROVIDER`，见
+前台工具单独配置：Web 搜索（`SIDE_AUDIO_WEB_SEARCH_PROVIDER`，见
 [配置总览](../configuration.zh.md)）；通用对话工具见
 [前台 MCP 客户端](../reference/frontend-mcp.zh.md)、
 [前台 OpenAPI 适配器](../reference/frontend-openapi.zh.md)或
@@ -35,9 +35,9 @@ DASHSCOPE_API_KEY=your-key
 Gateway 的模型，CLI 提供等价命令：
 
 ```bash
-qwenaudio config show
-qwenaudio config set --realtime-model qwen3.5-omni-flash-realtime
-qwenaudio gateway restart
+sideaudio config show
+sideaudio config set --realtime-model qwen3.5-omni-flash-realtime
+sideaudio gateway restart
 ```
 
 精确支持的模型 ID 如下：

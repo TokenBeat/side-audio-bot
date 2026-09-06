@@ -1,6 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
-  <g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="18" cy="18" r="14.5" stroke-width="2.8"/>
-    <path d="M8 18h4l2.3-6.5 4.1 13 3.8-14 2.6 7.5H28" stroke-width="2.6"/>
+  <!-- Side Audio Bot tray glyph: an orb with wave arcs on its right ("audio from the side").
+       Regenerate the PNGs with: python3 branding/tools/gen-tray.py -->
+  <g fill="none" stroke="#000" stroke-linecap="round" stroke-width="3.2">
+    <circle cx="14" cy="18" r="9" fill="#000" stroke="none"/>
+    <path d="M23.19 8.81 A 13 13 0 0 1 23.19 27.19"/>
+    <path d="M26.02 5.98 A 17 17 0 0 1 26.02 30.02"/>
   </g>
 </svg>

@@ -14,8 +14,8 @@ import { join } from 'node:path'
 import test from 'node:test'
 import { WebSocket } from 'ws'
 
-process.env.QWAUDIO_CONFIG_DIR = mkdtempSync(join(tmpdir(), 'qwaudio-input-'))
-process.env.QWEN_AUDIO_AGENT_AUTH_SECRET = 'test-secret-that-is-long-enough-1234567890'
+process.env.SIDEAUDIO_CONFIG_DIR = mkdtempSync(join(tmpdir(), 'sideaudio-input-'))
+process.env.SIDE_AUDIO_BOT_AUTH_SECRET = 'test-secret-that-is-long-enough-1234567890'
 process.env.DASHSCOPE_API_KEY = 'sk-fake'
 
 const { attachRealtimeGateway } = await import('../src/voice/realtime-gateway.mjs')
@@ -47,7 +47,7 @@ async function startGateway() {
   const inputArbitration = new InputArbitration()
   attachRealtimeGateway(server, {
     identityManager: new IdentityManager({
-      secret: process.env.QWEN_AUDIO_AGENT_AUTH_SECRET,
+      secret: process.env.SIDE_AUDIO_BOT_AUTH_SECRET,
       mode: 'personal',
     }),
     memoryService: fakeMemoryStore(),

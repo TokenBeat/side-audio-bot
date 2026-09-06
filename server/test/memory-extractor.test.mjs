@@ -36,7 +36,7 @@ function extractor({
   audit = null,
   now = () => 1_000_000,
 } = {}) {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-extractor-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-extractor-'))
   const userStore = new MarkdownContextStore({
     filePath: join(directory, 'USER.md'),
     scope: 'user',

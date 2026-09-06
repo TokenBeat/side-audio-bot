@@ -1073,9 +1073,9 @@ export class AcpBackendAdapter {
     const sessionInstructions = clean(this.profile.sessionInstructions)
     if (!sessionInstructions) return message
     return transformPromptText(message, content => [
-      '<qwen_audio_agent_backend_profile>',
+      '<side_audio_bot_backend_profile>',
       sessionInstructions,
-      '</qwen_audio_agent_backend_profile>',
+      '</side_audio_bot_backend_profile>',
       '',
       content,
     ].join('\n'))

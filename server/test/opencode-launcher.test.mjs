@@ -13,9 +13,9 @@ const serverWrapper = readFileSync(
 )
 
 test('isolates XDG_CONFIG_HOME when explicitly enabled or auto-managed', () => {
-  assert.match(launcher, /QWEN_AUDIO_AGENT_OPENCODE_XDG_CONFIG_HOME/)
+  assert.match(launcher, /SIDE_AUDIO_BOT_OPENCODE_XDG_CONFIG_HOME/)
   assert.match(launcher, /runtime\/opencode-xdg/)
-  assert.match(launcher, /QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG/)
+  assert.match(launcher, /SIDE_AUDIO_BOT_OPENCODE_ISOLATE_USER_CONFIG/)
 })
 
 test('managed-backend wrapper delegates to opencode.mjs serve via process.execPath', () => {

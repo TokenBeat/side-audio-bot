@@ -18,7 +18,7 @@
 应用设置中更换。
 
 休眠超时与自动隐藏合并为统一的“自动休眠”设置：休眠期间麦克风保持本地监听，说出
-唤醒词“你好千问”即可恢复对话。后台 Agent 和已提交任务不会因休眠停止，任务结果
+唤醒词“你好煤球”即可恢复对话。后台 Agent 和已提交任务不会因休眠停止，任务结果
 会在唤醒后播报。首次启用唤醒词时会自动下载并校验约 33 MB 的
 [`sherpa-onnx`](https://github.com/k2-fsa/sherpa-onnx) 中英文 KWS 模型，之后直接使用本地缓存。
 检测完全在桌面客户端的独立 Worker 中运行；音频不会为了唤醒词发送给 Gateway，检测成功后客户端只发送标准 `wake` 事件。
@@ -76,7 +76,7 @@
 
 从发布页下载对应平台的安装包：
 
-- **macOS**：下载 `.dmg`，打开后将 **Qwen Audio Agent** 拖入"应用程序"。
+- **macOS**：下载 `.dmg`，打开后将 **Side Audio Bot** 拖入"应用程序"。
 - **Windows**：下载 `.exe` 安装程序，双击运行并按向导完成安装。
 
 从源码生成本机测试版：
@@ -91,12 +91,12 @@ npm run desktop:build:linux      # Linux（AppImage + deb，无需签名）
 
 ## 数据目录与隔离
 
-桌面版与 CLI 共享同一个用户目录（`~/.config/qwaudio`）：设置、身份、
+桌面版与 CLI 共享同一个用户目录（`~/.config/sideaudio`）：设置、身份、
 记忆与共享工作区在两者间一致。只有运行时状态——Gateway 进程、锁、
 日志、任务记录与皮肤——存放在桌面版自己的应用数据目录（macOS 为
-`~/Library/Application Support/Qwen Audio Agent`，Windows 为
-`%APPDATA%/Qwen Audio Agent`，Linux 为
-`~/.config/Qwen Audio Agent`），因此两者可以同时运行。首次启动时，
+`~/Library/Application Support/Side Audio Bot`，Windows 为
+`%APPDATA%/Side Audio Bot`，Linux 为
+`~/.config/Side Audio Bot`），因此两者可以同时运行。首次启动时，
 旧版桌面版的配置会迁移进共享的 CLI 目录（CLI 保留原件）。
 
 ## 自动更新与日志

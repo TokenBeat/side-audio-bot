@@ -204,7 +204,7 @@ test('starts only the Gateway and waits for its managed backend', async () => {
   assert.equal(runtime.ownsProcesses, true)
 })
 
-test('starts only qwen-audio-agent Gateway for an external OpenClaw Gateway', async () => {
+test('starts only side-audio-bot Gateway for an external OpenClaw Gateway', async () => {
   const calls = []
   let reads = 0
   const externalOptions = {
@@ -239,7 +239,7 @@ test('starts only qwen-audio-agent Gateway for an external OpenClaw Gateway', as
   assert.equal(calls.length, 1)
   assert.equal(calls[0][2].env.AGENT_PROTOCOL, 'openclaw')
   assert.equal(
-    calls[0][2].env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP,
+    calls[0][2].env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP,
     'external',
   )
   assert.equal(

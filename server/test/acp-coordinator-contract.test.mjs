@@ -26,7 +26,7 @@ test('projects Gateway Work into one natural ACP task instruction', () => {
 
   assert.match(prompt, /^继续修改此前讨论的首页/u)
   assert.match(prompt, /Start a new project Session only when the user explicitly asks/u)
-  assert.doesNotMatch(prompt, /qwen_audio_agent_request|coordination\.v2/u)
+  assert.doesNotMatch(prompt, /side_audio_bot_request|coordination\.v2/u)
   assert.doesNotMatch(prompt, /task_7|owner-one/u)
   assert.doesNotMatch(prompt, /继续改刚才那个页面|current-project|Asia\/Shanghai/u)
   assert.doesNotMatch(prompt, /我们在改首页|标题已调整|称呼用户为老大/u)

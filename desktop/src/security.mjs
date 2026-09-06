@@ -11,7 +11,7 @@ export function validateAppUrl(value) {
   const localHttp = url.protocol === 'http:' && LOOPBACK_HOSTS.has(url.hostname)
   if (url.protocol !== 'https:' && !localHttp) {
     throw new Error(
-      'QWEN_AUDIO_AGENT_URL must use HTTPS, or HTTP on localhost.',
+      'SIDE_AUDIO_BOT_URL must use HTTPS, or HTTP on localhost.',
     )
   }
   return url.origin

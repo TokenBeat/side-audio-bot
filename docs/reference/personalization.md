@@ -16,7 +16,7 @@ Saying “keep replies shorter from now on” or “call yourself Skiff from now
 current user's `USER.md`, not instance-wide `ASSISTANT.md`; a temporary request applies only to
 the current turn.
 
-User data is stored under the configuration directory (`~/.config/qwaudio/` for the CLI):
+User data is stored under the configuration directory (`~/.config/sideaudio/` for the CLI):
 
 | File | Description |
 | --- | --- |
@@ -37,7 +37,7 @@ On first launch, the packaged `config/frontend-agent/ASSISTANT.md` template is c
 local `ASSISTANT.md`; upgrades never overwrite it. Edit the local file to change the whole
 assistant instance's default name, personality, relationship stance, and expression style.
 Changes apply to the next voice session. You can also
-point `QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH` to another file.
+point `SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH` to another file.
 
 `ASSISTANT.md` is neither conversation memory nor runtime policy. The assistant never changes it
 through the `memory` tool. Statements about tools, permissions, safety, memory, task routing, or
@@ -51,13 +51,13 @@ user, how this user addresses the assistant, and explicitly requested language, 
 default behavior. It changes only for an explicit user setting or correction. Session-end
 reconciliation may recover such an explicit directive, but it never infers one.
 
-Classify by scope, not grammatical subject. “The assistant's default name is Qwen Audio” belongs
+Classify by scope, not grammatical subject. “The assistant's default name is Side Audio” belongs
 in `ASSISTANT.md`; when the current user says “call yourself Skiff from now on,” Skiff is that
 user's override and belongs in `USER.md`. Likewise, “continue project A by default” belongs in
 `USER.md`, while “project A uses React” is a fact for `MEMORY.md`. It is ordinary Markdown. Tool
 writes take effect immediately; direct edits apply to the next voice session. To store it elsewhere, set
-`QWEN_AUDIO_AGENT_USER_MODEL_PATH` (the legacy
-`QWEN_AUDIO_AGENT_USER_PROFILE_PATH` name is still accepted).
+`SIDE_AUDIO_BOT_USER_MODEL_PATH` (the legacy
+`SIDE_AUDIO_BOT_USER_PROFILE_PATH` name is still accepted).
 
 Do not store passwords, API Keys, verification codes, or tokens in this file.
 
@@ -66,7 +66,7 @@ Legacy `profile`, `rules`, and `user` records from `frontend-memory.json` are mi
 
 ## Preference Self-Update (off by default)
 
-With `QWEN_AUDIO_PREFERENCE_LEARNING=on`, the Gateway observes user traits from a
+With `SIDE_AUDIO_PREFERENCE_LEARNING=on`, the Gateway observes user traits from a
 finished session and writes them to `USER.md` only after enough cross-session
 confirmation. It is off by default because it adds one model call per session.
 

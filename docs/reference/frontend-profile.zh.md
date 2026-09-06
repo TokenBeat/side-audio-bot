@@ -34,7 +34,7 @@ research-profile/
 启用：
 
 ```dotenv
-QWEN_AUDIO_FRONTEND_PROFILE=/absolute/path/to/research-profile/frontend-profile.json
+SIDE_AUDIO_FRONTEND_PROFILE=/absolute/path/to/research-profile/frontend-profile.json
 ```
 
 `assistant`、`toolSources.mcp` 和 `toolSources.openapi` 都是可选项，但至少配置一项。
@@ -45,10 +45,10 @@ QWEN_AUDIO_FRONTEND_PROFILE=/absolute/path/to/research-profile/frontend-profile.
 
 原有单项设置拥有更高优先级，便于临时覆盖：
 
-1. `QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH`、`QWEN_AUDIO_FRONTEND_MCP_CONFIG`、
-   `QWEN_AUDIO_FRONTEND_OPENAPI_CONFIG`；
+1. `SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH`、`SIDE_AUDIO_FRONTEND_MCP_CONFIG`、
+   `SIDE_AUDIO_FRONTEND_OPENAPI_CONFIG`；
 2. Frontend Profile 中的引用；
-3. qwen-audio-agent 默认配置。
+3. side-audio-bot 默认配置。
 
 `/api/health` 的 `frontendProfile` 只报告是否启用、名称和描述，不暴露本地路径。
 

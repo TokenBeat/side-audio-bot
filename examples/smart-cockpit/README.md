@@ -1,17 +1,17 @@
-# Qwen Audio Agent Smart Cockpit Example
+# Side Audio Bot Smart Cockpit Example
 
 English | [中文](README_ZH.md)
 
 ![Smart cockpit framework architecture](docs/framework-architecture.svg)
 
-This is qwen-audio-agent's runnable smart-cockpit showcase. It reimplements the
+This is side-audio-bot's runnable smart-cockpit showcase. It reimplements the
 complete cockpit path through public framework APIs while reusing suitable UI
 code and visual assets from an earlier cockpit prototype to save implementation
 effort. It is not a migration or compatibility retrofit, and it does not
 maintain a second Realtime gateway or foreground conversation history. The
 backend model loop lives only in the replaceable `agent/` process.
 
-The base qwen-audio-agent boundary has two layers: foreground conversation and backend execution.
+The base side-audio-bot boundary has two layers: foreground conversation and backend execution.
 The cockpit UI is a replaceable client component inside the foreground, and the
 cockpit Agent is a replaceable backend example. Neither is a mandatory framework
 implementation. The reusable core is the Gateway, foreground realtime

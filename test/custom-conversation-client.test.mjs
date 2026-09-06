@@ -12,7 +12,7 @@ import {
 import {
   parseGatewayClientMessage,
   parseGatewayServerMessage,
-} from 'qwen-audio-agent/gateway-events'
+} from 'side-audio-bot/gateway-events'
 
 test('custom client builds messages accepted by the public Gateway schemas', () => {
   assert.equal(
@@ -85,8 +85,8 @@ test('custom client imports only public package entries', async () => {
     new URL('../examples/custom-conversation-client/client.mjs', import.meta.url),
     'utf8',
   )
-  assert.match(source, /from 'qwen-audio-agent\/realtime-events'/)
-  assert.match(source, /from 'qwen-audio-agent\/gateway-events'/)
-  assert.match(source, /from 'qwen-audio-agent\/gateway-client-protocol'/)
+  assert.match(source, /from 'side-audio-bot\/realtime-events'/)
+  assert.match(source, /from 'side-audio-bot\/gateway-events'/)
+  assert.match(source, /from 'side-audio-bot\/gateway-client-protocol'/)
   assert.doesNotMatch(source, /(?:server|shared|web|desktop|tui)\/(?:src|protocol)/)
 })

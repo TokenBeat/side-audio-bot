@@ -14,7 +14,7 @@ import {
 } from '../src/process-path.mjs'
 
 function tempCacheFile() {
-  const dir = mkdtempSync(join(tmpdir(), 'qwen-audio-path-'))
+  const dir = mkdtempSync(join(tmpdir(), 'side-audio-path-'))
   const file = join(dir, 'login-shell-path.json')
   return { dir, file, cleanup: () => rmSync(dir, { recursive: true, force: true }) }
 }
@@ -23,7 +23,7 @@ test('extracts PATH from login shell output with rc noise', () => {
   const path = loginShellPath({
     shell: '/bin/zsh',
     spawnImpl: () => ({
-      stdout: 'some rc banner\nQWEN_AUDIO_AGENT_PATH<<</Users/x/.nvm/bin:/usr/bin>>>\n',
+      stdout: 'some rc banner\nSIDE_AUDIO_BOT_PATH<<</Users/x/.nvm/bin:/usr/bin>>>\n',
     }),
   })
   assert.equal(path, '/Users/x/.nvm/bin:/usr/bin')
@@ -60,7 +60,7 @@ test('expands process PATH with login shell directories', () => {
     platform: 'darwin',
     cacheFile: '',
     spawnImpl: () => ({
-      stdout: 'QWEN_AUDIO_AGENT_PATH<<</Users/x/.kimi-code/bin:/usr/bin:/Users/x/.nvm/bin>>>',
+      stdout: 'SIDE_AUDIO_BOT_PATH<<</Users/x/.kimi-code/bin:/usr/bin:/Users/x/.nvm/bin>>>',
     }),
     existsImpl: () => true,
   })
@@ -78,7 +78,7 @@ test('skips duplicates and directories that do not exist', () => {
     platform: 'darwin',
     cacheFile: '',
     spawnImpl: () => ({
-      stdout: 'QWEN_AUDIO_AGENT_PATH<<</usr/bin:/missing:/tools/bin>>>',
+      stdout: 'SIDE_AUDIO_BOT_PATH<<</usr/bin:/missing:/tools/bin>>>',
     }),
     existsImpl: dir => dir !== '/missing',
   })
@@ -297,7 +297,7 @@ test('does nothing when PATH is already complete', () => {
       env: complete,
       platform: 'darwin',
       cacheFile: '',
-      spawnImpl: () => ({ stdout: 'QWEN_AUDIO_AGENT_PATH<<</usr/bin>>>' }),
+      spawnImpl: () => ({ stdout: 'SIDE_AUDIO_BOT_PATH<<</usr/bin>>>' }),
       existsImpl: () => true,
     }),
     false,
@@ -337,7 +337,7 @@ test('writes the login shell result to the cache on first launch', () => {
       platform: 'darwin',
       cacheFile: file,
       spawnImpl: () => ({
-        stdout: 'QWEN_AUDIO_AGENT_PATH<<</fresh/bin:/usr/bin>>>',
+        stdout: 'SIDE_AUDIO_BOT_PATH<<</fresh/bin:/usr/bin>>>',
       }),
       existsImpl: () => true,
     })
@@ -360,7 +360,7 @@ test('refreshProcessPath re-reads the shell and updates the cache', () => {
       platform: 'darwin',
       cacheFile: file,
       spawnImpl: () => ({
-        stdout: 'QWEN_AUDIO_AGENT_PATH<<</new/bin:/usr/bin>>>',
+        stdout: 'SIDE_AUDIO_BOT_PATH<<</new/bin:/usr/bin>>>',
       }),
       existsImpl: () => true,
     })

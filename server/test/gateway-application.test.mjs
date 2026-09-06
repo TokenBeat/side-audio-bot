@@ -508,7 +508,7 @@ test('leaves the new memory modules unwired unless explicitly enabled', async ()
 
 // 资料库是独立开关，而且资料本体必须落在后端读得到的目录里。
 test('wires the domain library on its own switch and imports a local file', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-domain-wire-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-domain-wire-'))
   const source = join(directory, '手册.md')
   writeFileSync(source, '# 信用卡业务手册\n\n## 年费规则\n普卡首年免年费。\n')
   const documents = join(directory, 'workspace', 'domain')
@@ -546,7 +546,7 @@ test('wires the domain library on its own switch and imports a local file', asyn
 // 早已不存在的 coordinator 变量，运行时必抛 ReferenceError，而全套测试照样全绿。
 // 所以这条测试要真的把 runner 跑起来，不能只断言接线。
 test('converts a PDF through the BackendPort and ingests what the backend wrote', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-domain-convert-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-domain-convert-'))
   const source = join(directory, 'manual.pdf')
   writeFileSync(source, '%PDF-1.7 pretend this is a PDF')
   const documents = join(directory, 'workspace', 'domain')
@@ -620,7 +620,7 @@ test('defaults the domain document directory into the shared backend workspace',
 
 // 会话摘要是独立开关：它不依赖偏好自更新，也不该被后者带起来。
 test('wires session digests and the summariser on their own switch', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-digest-wire-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-digest-wire-'))
   const app = createGatewayApplication({
     config: {
       ...config,
@@ -664,7 +664,7 @@ test('wires session digests and the summariser on their own switch', async () =>
 })
 
 test('wires rolling summary and preference learning when enabled', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-wire-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-wire-'))
   const app = createGatewayApplication({
     config: {
       ...config,

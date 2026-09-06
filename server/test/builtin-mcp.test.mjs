@@ -23,7 +23,7 @@ test('computer-use MCP server resolves as stdio descriptor by default', () => {
 test('computer-use MCP server can be disabled via environment', () => {
   for (const value of ['false', 'off', '0', 'no', 'disabled', 'OFF']) {
     assert.equal(
-      computerUseMcpServer({ QWEN_AUDIO_AGENT_COMPUTER_USE: value }),
+      computerUseMcpServer({ SIDE_AUDIO_BOT_COMPUTER_USE: value }),
       null,
       `expected null for ${value}`,
     )
@@ -33,7 +33,7 @@ test('computer-use MCP server can be disabled via environment', () => {
 test('computer-use MCP server stays enabled for truthy values', () => {
   for (const value of ['', 'true', 'on', '1', 'yes']) {
     assert.ok(
-      computerUseMcpServer({ QWEN_AUDIO_AGENT_COMPUTER_USE: value }),
+      computerUseMcpServer({ SIDE_AUDIO_BOT_COMPUTER_USE: value }),
       `expected descriptor for "${value}"`,
     )
   }
@@ -44,7 +44,7 @@ test('builtinMcpServers returns descriptor list and filters disabled entries', (
   assert.equal(enabled.length, 1)
   assert.equal(enabled[0].name, 'open-computer-use')
 
-  const disabled = builtinMcpServers({ QWEN_AUDIO_AGENT_COMPUTER_USE: 'off' })
+  const disabled = builtinMcpServers({ SIDE_AUDIO_BOT_COMPUTER_USE: 'off' })
   assert.deepEqual(disabled, [])
 })
 

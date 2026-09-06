@@ -26,6 +26,6 @@ main(process.argv.slice(2)).then(code => {
     durationMs: Date.now() - startedAt,
     error,
   })
-  process.stderr.write(`qwenaudio: ${error.message}\n`)
+  process.stderr.write(`sideaudio: ${error.message}\n`)
   process.exitCode = 1
 })

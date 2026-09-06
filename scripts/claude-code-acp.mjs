@@ -4,7 +4,7 @@ import { spawnAndProxy, commandAvailable, findExecutable } from './lib/launcher.
 
 const RUNTIME = process.env.CLAUDE_CODE_ACP_RUNTIME || 'auto'
 const PKG = process.env.CLAUDE_CODE_ACP_PACKAGE || '@zed-industries/claude-code-acp@0.16.2'
-const DESKTOP_INSTALLED_ONLY = process.env.QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY
+const DESKTOP_INSTALLED_ONLY = process.env.SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY
 const ARGS = process.argv.slice(2)
 
 function fatal(msg) { console.error(msg); process.exit(1) }

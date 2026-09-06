@@ -2,13 +2,13 @@
 
 > 状态：提案
 >
-> GitHub 跟踪：[#251](https://github.com/QwenAudio/qwen-audio-agent/issues/251)
+> GitHub 跟踪：[#251](https://github.com/TokenBeat/side-audio-bot/issues/251)
 >
 > 协议：[Gateway Client Protocol](../gateway-protocol.zh.md)
 
 ## 目标
 
-完成 qwen-audio-agent 尚未固化的公开架构边界。`BackendPort` 已经把 Gateway 与 ACP、A2A、自定义 Backend Agent 隔离；本 Roadmap 继续把 Gateway Core 与 TUI、WebUI、桌面悬浮球及未来 Client Environment 隔离。
+完成 side-audio-bot 尚未固化的公开架构边界。`BackendPort` 已经把 Gateway 与 ACP、A2A、自定义 Backend Agent 隔离；本 Roadmap 继续把 Gateway Core 与 TUI、WebUI、桌面悬浮球及未来 Client Environment 隔离。
 
 最终形成三个可替换边界：
 

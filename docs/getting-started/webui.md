@@ -8,7 +8,7 @@ pages on its own origin — no separate frontend service to deploy.
 With the Gateway running, open the WebUI in another terminal:
 
 ```bash
-qwenaudio webui
+sideaudio webui
 ```
 
 This prints the page URL (default `http://127.0.0.1:3101`) and opens it in your

@@ -1,13 +1,13 @@
 # 智能座舱
 
-[`examples/smart-cockpit/`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/smart-cockpit) 是基于 qwen-audio-agent 前后台边界的可运行座舱参考场景。它保留车机界面、浏览器语音、车控、导航、音乐、天气和闪购体验，但不再维护独立 Realtime Server 或前台对话历史；后台模型循环位于可替换的 `agent/` 进程。
+[`examples/smart-cockpit/`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/smart-cockpit) 是基于 side-audio-bot 前后台边界的可运行座舱参考场景。它保留车机界面、浏览器语音、车控、导航、音乐、天气和闪购体验，但不再维护独立 Realtime Server 或前台对话历史；后台模型循环位于可替换的 `agent/` 进程。
 
 ## 组件对应关系
 
 | 组件 | 示例实现 | 可替换边界 |
 |---|---|---|
 | `client/` | React 座舱 UI + Browser Audio | GCP 6.0 / Gateway Client SDK |
-| `gateway/` | qwen-audio-agent Gateway + 前台 Realtime Agent | 复用框架核心并进行场景装配 |
+| `gateway/` | side-audio-bot Gateway + 前台 Realtime Agent | 复用框架核心并进行场景装配 |
 | `agent/` | Qwen3.8-Flash 驱动的 A2A 座舱 Agent | BackendPort / A2A / ACP / 定制 Adapter |
 | `service/` | 座舱环境、状态、规则、工具和外部服务适配 | HTTP/SSE / MCP / 客户协议 |
 
@@ -32,4 +32,4 @@ npm run example:smart-cockpit
 
 打开 `http://localhost:5173`。一条命令会同时启动 service、agent、gateway 和 client。
 
-完整架构、组件替换方式和测试矩阵见 [`examples/smart-cockpit/README_ZH.md`](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/README_ZH.md)。
+完整架构、组件替换方式和测试矩阵见 [`examples/smart-cockpit/README_ZH.md`](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/README_ZH.md)。

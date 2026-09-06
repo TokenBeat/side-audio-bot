@@ -35,14 +35,14 @@ export function replaySession(records, { sessionId } = {}) {
         messages[existingIndex] = { ...messages[existingIndex], ...message }
       }
     }
-    if (event.type === 'qwaudio/task/event' && event.taskId && event.payload?.task) {
+    if (event.type === 'sideaudio/task/event' && event.taskId && event.payload?.task) {
       tasks.set(event.taskId, {
         ...event.payload.task,
         journalSeq: event.seq,
         domainType: event.payload.domainType || null,
       })
     }
-    if (event.type === 'qwaudio/delivery/event') deliveries.push({ ...event })
+    if (event.type === 'sideaudio/delivery/event') deliveries.push({ ...event })
   }
   return {
     header: { ...header },

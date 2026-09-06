@@ -5,7 +5,7 @@ import {
   assertMemoryProvider,
   describeMemoryProvider,
   normalizeMemoryProviderHealth,
-} from 'qwen-audio-agent/memory-provider'
+} from 'side-audio-bot/memory-provider'
 
 test('exports one stable optional Memory Provider contract', () => {
   assert.equal(MEMORY_PROVIDER_PROTOCOL_VERSION, 1)

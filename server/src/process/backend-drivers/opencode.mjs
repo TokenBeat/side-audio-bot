@@ -19,13 +19,13 @@ function inlineConfig(value) {
 
 function configuredAgent(env) {
   const selected = String(
-    env.QWEN_AUDIO_AGENT_BACKEND_AGENT
+    env.SIDE_AUDIO_BOT_BACKEND_AGENT
     || env.OPENCODE_COORDINATOR_AGENT
     || '',
   ).trim()
   return [
-    'qwen-audio-agent-backend',
-    'qwen-audio-agent-coordinator',
+    'side-audio-bot-backend',
+    'side-audio-bot-coordinator',
   ].includes(selected) ? '' : selected
 }
 

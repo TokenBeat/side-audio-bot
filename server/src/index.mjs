@@ -9,7 +9,7 @@ import { assertGatewaySetup } from '../../shared/gateway-setup.mjs'
 import { startManagedBackend } from './process/managed-backend.mjs'
 
 const sourceRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
-const root = process.env.QWEN_AUDIO_AGENT_RUNTIME_ROOT || sourceRoot
+const root = process.env.SIDE_AUDIO_BOT_RUNTIME_ROOT || sourceRoot
 const runtimeEnvironment = loadRuntimeEnvironment({ root })
 
 const logger = createLogger({
@@ -49,15 +49,15 @@ try {
   // than a refusal the user can act on.
   assertGatewaySetup()
   gatewayLease = acquireGatewayLease(runtimeEnvironment.configDirectory, {
-    owner: process.env.QWEN_AUDIO_GATEWAY_OWNER
-      || (process.env.QWEN_AUDIO_AGENT_DESKTOP === '1' ? 'desktop' : 'cli'),
+    owner: process.env.SIDE_AUDIO_GATEWAY_OWNER
+      || (process.env.SIDE_AUDIO_BOT_DESKTOP === '1' ? 'desktop' : 'cli'),
   })
-  process.env.QWEN_AUDIO_GATEWAY_INSTANCE_ID = gatewayLease.instanceId
-  process.env.QWEN_AUDIO_GATEWAY_STARTED_AT = new Date().toISOString()
+  process.env.SIDE_AUDIO_GATEWAY_INSTANCE_ID = gatewayLease.instanceId
+  process.env.SIDE_AUDIO_GATEWAY_STARTED_AT = new Date().toISOString()
   logger.info('gateway.lease_acquired', {
     instanceId: gatewayLease.instanceId,
-    owner: process.env.QWEN_AUDIO_GATEWAY_OWNER
-      || (process.env.QWEN_AUDIO_AGENT_DESKTOP === '1' ? 'desktop' : 'cli'),
+    owner: process.env.SIDE_AUDIO_GATEWAY_OWNER
+      || (process.env.SIDE_AUDIO_BOT_DESKTOP === '1' ? 'desktop' : 'cli'),
   })
   // 切换/新装后台后把已装技能补齐。日常是毫秒级本地 diff；仅确实
   // 缺失时同步跑一次 skills.sh，保证后台首次扫描前技能已就位。

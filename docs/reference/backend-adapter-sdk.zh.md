@@ -1,6 +1,6 @@
 # Backend Adapter SDK
 
-Backend Adapter SDK 用于把非 ACP 办事系统接到 qwen-audio-agent。手机 Agent、硬件
+Backend Adapter SDK 用于把非 ACP 办事系统接到 side-audio-bot。手机 Agent、硬件
 Agent、HTTP 服务或其他任务运行时只需实现统一 `BackendPort`；前台语音、Task 队列、
 权限转述和结果交付不需要修改。
 
@@ -11,7 +11,7 @@ import {
   createBackendAgentHost,
   defineBackendAdapter,
   verifyBackendAdapterConformance,
-} from 'qwen-audio-agent/backend-adapter-sdk'
+} from 'side-audio-bot/backend-adapter-sdk'
 ```
 
 SDK 公开：
@@ -107,8 +107,8 @@ Adapter 可以发布协议无关的可选观测信息，无需扩展 `BackendPor
 ## 接入 Gateway
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
-import { createBackendAgentHost } from 'qwen-audio-agent/backend-adapter-sdk'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
+import { createBackendAgentHost } from 'side-audio-bot/backend-adapter-sdk'
 import { MyBackendAdapter } from './my-backend.mjs'
 
 const agent = createBackendAgentHost(new MyBackendAdapter())
@@ -119,7 +119,7 @@ process.once('SIGTERM', () => application.close())
 
 这个入口用于自定义 Node 启动器；现有 `AGENT_PROTOCOL` 仍选择项目内置后台，不会动态
 加载任意代码。完整的非 ACP 内存示例位于
-[`examples/backend-adapter`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/backend-adapter)。
+[`examples/backend-adapter`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/backend-adapter)。
 
 ## Conformance
 

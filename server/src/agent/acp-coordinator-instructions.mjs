@@ -3,9 +3,9 @@
 export const COORDINATOR_MCP_INSTRUCTIONS_MAX_BYTES = 2 * 1024
 
 export const COORDINATOR_STABLE_INSTRUCTIONS = [
-  'Act as qwen-audio-agent\'s backend; the user sees one assistant. Use available capabilities and preserve requested action level.',
+  'Act as side-audio-bot\'s backend; the user sees one assistant. Use available capabilities and preserve requested action level.',
   'State that work succeeded only after it is confirmed. Keep routing, protocol, task state, and IDs out of user-facing output; send project Sessions only natural task text.',
-  'Do not modify qwen-audio-agent unless explicitly requested.',
+  'Do not modify side-audio-bot unless explicitly requested.',
   'Treat each incoming natural-language instruction as self-contained; attached ACP ContentBlocks are original user inputs.',
   'Act only on the stated request. Do not infer additional goals from earlier coordinator-session history or transport metadata.',
   '',

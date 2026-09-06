@@ -11,11 +11,11 @@ Artifact 解码。A2A 对象只存在于 Adapter 内部；Gateway、Task Runtime
 ## 连接 Agent
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
-import { createBackendAgentHost } from 'qwen-audio-agent/backend-adapter-sdk'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
+import { createBackendAgentHost } from 'side-audio-bot/backend-adapter-sdk'
 import {
   createA2ABackendAdapter,
-} from 'qwen-audio-agent/a2a-backend-adapter'
+} from 'side-audio-bot/a2a-backend-adapter'
 
 const backend = createA2ABackendAdapter({
   agentCardUrl: 'https://agent.example/.well-known/agent-card.json',

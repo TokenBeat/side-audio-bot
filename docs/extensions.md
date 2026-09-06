@@ -1,4 +1,4 @@
-# Extending qwen-audio-agent
+# Extending side-audio-bot
 
 The runtime is generic; every scenario-specific behavior enters through a
 declared seam. This page maps the seams and points to the guide for each.
@@ -53,7 +53,7 @@ config directory, editable while the gateway keeps its constrained write path.
 The Gateway speaks typed events over a single WebSocket. Build a custom client
 against the client protocol, or embed the assistant into a host page through
 the stability contract — the same channel the desktop orb, TUI, and WebUI use.
-[`examples/custom-conversation-client/`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/custom-conversation-client)
+[`examples/custom-conversation-client/`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/custom-conversation-client)
 is a minimal starting point.
 
 → [Gateway Client Protocol](gateway-protocol.md) ·

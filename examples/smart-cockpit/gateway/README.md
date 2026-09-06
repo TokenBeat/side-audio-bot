@@ -1,7 +1,7 @@
 # Cockpit foreground composition
 
 This directory is the smart-cockpit foreground composition root. It uses the
-public qwen-audio-agent Gateway API and contains no vehicle, navigation, media,
+public side-audio-bot Gateway API and contains no vehicle, navigation, media,
 or order execution logic.
 
 - `server.mjs` wires the Gateway to the replaceable A2A backend Agent.

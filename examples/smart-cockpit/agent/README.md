@@ -3,7 +3,7 @@
 This directory contains the example's real backend Agent. Qwen3.8-Flash interprets
 the task, chooses standard function tools, and can execute multiple cockpit MCP
 calls in sequence. The implementation stays deliberately replaceable: it is not
-the qwen-audio-agent framework, and tool calls remain private to the backend.
+the side-audio-bot framework, and tool calls remain private to the backend.
 
 The service exposes an A2A 1.0 Agent Card and JSON-RPC endpoint. Its Agent loop
 discovers tools from the backend MCP surface and feeds tool results back to the

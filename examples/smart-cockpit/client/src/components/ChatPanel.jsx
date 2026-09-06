@@ -145,7 +145,7 @@ export default function ChatPanel({
   return (
     <div className="chat-panel" ref={panelRef} style={{ left: position.x, top: position.y }}>
       <div className="chat-header" onMouseDown={handleDragStart}>
-        <span className="chat-title">Qwen Audio Agent Smart Cockpit · 调试</span>
+        <span className="chat-title">Side Audio Bot Smart Cockpit · 调试</span>
         <div className="chat-header-actions">
           <button
             className="chat-clear"

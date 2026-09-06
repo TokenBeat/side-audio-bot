@@ -6,13 +6,13 @@ import {
 } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { z } from 'zod'
 
-export const ACP_SESSION_TOOL_SERVER = 'qwen_audio_agent'
+export const ACP_SESSION_TOOL_SERVER = 'side_audio_bot'
 export const ACP_SESSION_TOOL_NAMES = [
-  'qwen_audio_agent_sessions_list',
-  'qwen_audio_agent_session_start',
-  'qwen_audio_agent_session_send',
-  'qwen_audio_agent_session_status',
-  'qwen_audio_agent_session_cancel',
+  'side_audio_bot_sessions_list',
+  'side_audio_bot_session_start',
+  'side_audio_bot_session_send',
+  'side_audio_bot_session_status',
+  'side_audio_bot_session_cancel',
 ]
 
 function jsonResult(value, isError = false) {
@@ -31,7 +31,7 @@ function errorResult(error) {
 
 function registerTools(server, context) {
   server.registerTool(
-    'qwen_audio_agent_sessions_list',
+    'side_audio_bot_sessions_list',
     {
       title: 'List Agent Sessions',
       description: 'List existing project Sessions. Use this to find the exact Session when the user asks to continue previous work.',
@@ -53,7 +53,7 @@ function registerTools(server, context) {
     },
   )
   server.registerTool(
-    'qwen_audio_agent_session_start',
+    'side_audio_bot_session_start',
     {
       title: 'Start Agent Session',
       description: 'Start a new Session asynchronously in the same project as the coordinator Session. Call it directly without creating or choosing a directory. Send only the natural task text.',
@@ -71,7 +71,7 @@ function registerTools(server, context) {
     },
   )
   server.registerTool(
-    'qwen_audio_agent_session_send',
+    'side_audio_bot_session_send',
     {
       title: 'Continue Agent Session',
       description: 'Continue an existing project Session asynchronously. Use the exact session_id returned by the Session list; the Gateway restores its original project directory.',
@@ -89,7 +89,7 @@ function registerTools(server, context) {
     },
   )
   server.registerTool(
-    'qwen_audio_agent_session_status',
+    'side_audio_bot_session_status',
     {
       title: 'Query Agent Session',
       description: 'Read the Gateway-managed status, recent ACP activity, and latest known result of a delegated project Session.',
@@ -111,7 +111,7 @@ function registerTools(server, context) {
     },
   )
   server.registerTool(
-    'qwen_audio_agent_session_cancel',
+    'side_audio_bot_session_cancel',
     {
       title: 'Cancel Agent Session',
       description: 'Cancel a delegated project Session.',

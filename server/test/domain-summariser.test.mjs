@@ -22,7 +22,7 @@ function harness({
   reply = '{"title":"信用卡业务手册","gist":"覆盖开卡与年费两类流程","sections":["开卡与激活","年费规则"]}',
   audit = [],
 } = {}) {
-  const root = mkdtempSync(join(tmpdir(), 'qwaudio-domsum-'))
+  const root = mkdtempSync(join(tmpdir(), 'sideaudio-domsum-'))
   const source = join(root, 'manual.md')
   writeFileSync(source, content)
   const library = new DomainLibrary({
@@ -176,7 +176,7 @@ test('catchUp summarises what a previous run left pending', async () => {
     const second = kit.library.import({
       ownerId: OWNER,
       sourcePath: (() => {
-        const extra = join(mkdtempSync(join(tmpdir(), 'qwaudio-extra-')), 'other.md')
+        const extra = join(mkdtempSync(join(tmpdir(), 'sideaudio-extra-')), 'other.md')
         writeFileSync(extra, '# 另一份\n\n## 某节\n内容\n')
         return extra
       })(),

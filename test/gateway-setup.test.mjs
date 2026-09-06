@@ -36,7 +36,7 @@ test('names the service address for the speech-to-speech provider', () => {
 
 test('refuses an unconfigured start with a coded, listable error', () => {
   assert.throws(() => assertGatewaySetup({}), error => {
-    assert.equal(error.code, 'QWAUDIO_GATEWAY_SETUP_REQUIRED')
+    assert.equal(error.code, 'SIDEAUDIO_GATEWAY_SETUP_REQUIRED')
     assert.equal(error.missing[0].key, 'DASHSCOPE_API_KEY')
     assert.match(error.message, /DASHSCOPE_API_KEY/)
     return true
@@ -48,6 +48,6 @@ test('a configured start and the explicit opt-out both pass the gate', () => {
   // Debugging and harness setups that never open a voice connection can skip
   // the gate explicitly.
   assert.doesNotThrow(() => assertGatewaySetup({
-    QWEN_AUDIO_ALLOW_UNCONFIGURED: '1',
+    SIDE_AUDIO_ALLOW_UNCONFIGURED: '1',
   }))
 })

@@ -17,7 +17,7 @@
 桌面上的悬浮球亮起来："好，我让后台去处理。"你继续问别的事，
 十分钟后它自然地说一句："已经好了。"
 
-这就是 qwen-audio-agent 想做的事：Agent 始终在场。
+这就是 side-audio-bot 想做的事：Agent 始终在场。
 
 ### 中间：三个核心能力
 
@@ -36,8 +36,8 @@
 ### 结尾
 
 项目开源（Apache-2.0），一个全双工实时语音的社区开源项目：
-- GitHub：https://github.com/QwenAudio/qwen-audio-agent
-- 安装：npm install -g qwen-audio-agent
+- GitHub：https://github.com/TokenBeat/side-audio-bot
+- 安装：npm install -g side-audio-bot
 - 扫码加入交流群（放 wechat-group-qr.png）
 
 ## 排版注意

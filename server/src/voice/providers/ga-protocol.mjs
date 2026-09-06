@@ -22,7 +22,7 @@ const ID_PREFIXES = Object.freeze({
   function_call_output: 'fco',
 })
 
-const RESPONSE_CORRELATION_KEY = 'qwen_audio_request_id'
+const RESPONSE_CORRELATION_KEY = 'side_audio_request_id'
 
 /**
  * Wire adapter for providers that speak the GA (2025+) dialect of the OpenAI

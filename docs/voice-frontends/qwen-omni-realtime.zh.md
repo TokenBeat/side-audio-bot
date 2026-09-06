@@ -22,7 +22,7 @@ QWEN_AUDIO_REALTIME_MODEL=qwen3.5-omni-flash-realtime
 
 凭据与端点配置与 [Qwen Audio 3.0 Realtime](qwen-audio-realtime.zh.md)
 完全一致——无论哪个系列，一个 Gateway 同一时刻只生效一个模型；在桌面版
-设置页或 `qwenaudio config set --realtime-model <id>` 切换后重启 Gateway。
+设置页或 `sideaudio config set --realtime-model <id>` 切换后重启 Gateway。
 
 ## 音色与话轮检测
 
@@ -38,14 +38,14 @@ QWEN_AUDIO_REALTIME_MODEL=qwen3.5-omni-flash-realtime
 | 输入 | 文本、音频、**图像** | 文本、音频 |
 | 输出 | 文本、音频 | 文本、音频 |
 
-模型本身接受图像输入，但本版本的 qwen-audio-agent 尚未实现对应的客户端
+模型本身接受图像输入，但本版本的 side-audio-bot 尚未实现对应的客户端
 与网关链路：JPEG 观察帧与原生视频传输保持关闭，直到链路落地——客户端会
 把图像能力如实显示为不可用，而不是假装在发送画面。上表与网关通过健康
 检查接口下发给客户端的能力完全一致，UI 呈现的是同一个边界。
 
 ## 两个系列怎么选？
 
-- **Audio**（`qwen-audio-3.0-realtime-*`）——默认选择；语音优先的对话，
+- **Audio**（`side-audio-3.0-realtime-*`）——默认选择；语音优先的对话，
   无其他依赖。
 - **Omni**（`qwen3.5-omni-*-realtime`）——想今天就站在具备图像能力的模型
   系列上时选它，同时知晓图像传输仍处于关闭状态。

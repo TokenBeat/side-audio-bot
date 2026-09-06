@@ -65,7 +65,7 @@ test('lets an adapter suppress configuration when it configures automatically', 
   const adapter = backendOnboardingAdapter('opencode', {
     env: {
       DASHSCOPE_API_KEY: 'key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3-coder-plus',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3-coder-plus',
     },
     platform: 'darwin',
   })

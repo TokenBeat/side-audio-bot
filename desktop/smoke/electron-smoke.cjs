@@ -15,18 +15,18 @@ app.whenReady().then(async () => {
       sandbox: true,
     },
   })
-  await window.loadURL('data:text/html,<title>qwen-audio-agent smoke</title>')
+  await window.loadURL('data:text/html,<title>side-audio-bot smoke</title>')
   const icon = nativeImage.createFromPath(resolve(
     __dirname,
     '../build/trayTemplate.png',
   ))
   icon.setTemplateImage(true)
   tray = new Tray(icon)
-  tray.setContextMenu(Menu.buildFromTemplate([{ label: 'Qwen Audio Agent' }]))
+  tray.setContextMenu(Menu.buildFromTemplate([{ label: 'Side Audio Bot' }]))
   window.showInactive()
   window.hide()
   window.showInactive()
-  process.stdout.write('QWEN_AUDIO_DESKTOP_SMOKE_OK\n')
+  process.stdout.write('SIDE_AUDIO_DESKTOP_SMOKE_OK\n')
   tray.destroy()
   tray = null
   window.destroy()

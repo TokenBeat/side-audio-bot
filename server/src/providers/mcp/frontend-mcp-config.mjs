@@ -262,7 +262,7 @@ export function normalizeFrontendMcpConfiguration(value, { env = process.env } =
 }
 
 export function loadFrontendMcpConfiguration({
-  filePath = process.env.QWEN_AUDIO_FRONTEND_MCP_CONFIG,
+  filePath = process.env.SIDE_AUDIO_FRONTEND_MCP_CONFIG,
   env = process.env,
 } = {}) {
   const configuredPath = clean(filePath, 2_048)

@@ -1,6 +1,6 @@
 # 知识检索 Provider
 
-qwen-audio-agent 只定义轻量的知识检索边界，不内置一套具体 RAG。仓库不替用户选择
+side-audio-bot 只定义轻量的知识检索边界，不内置一套具体 RAG。仓库不替用户选择
 向量数据库、Embedding 模型、文档解析器、切分策略、索引或入库流程；应用可以接入自己
 已经使用的知识系统。
 
@@ -39,7 +39,7 @@ API。两者不互相侵入。
 ```js
 import {
   KNOWLEDGE_PROVIDER_PROTOCOL_VERSION,
-} from 'qwen-audio-agent/knowledge-provider'
+} from 'side-audio-bot/knowledge-provider'
 ```
 
 Provider 只强制要求 `describe()` 和 `retrieve()`：
@@ -142,7 +142,7 @@ Trace、超时和取消上下文只能由 Gateway 注入。Provider 不能从模
 在应用 Composition Root 注入：
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 
 const gateway = createGatewayApplication({
   knowledgeProvider: provider,
@@ -176,7 +176,7 @@ Gateway、语音层或客户端代码。
 ## 内置的本机资料库 Provider
 
 仓库自带一个可选实现 `LocalDomainKnowledgeProvider`，用途是「用户指一份本机文件，
-助手以后能查到它」。设 `QWEN_AUDIO_DOMAIN_LIBRARY=on` 即启用；此时若宿主没有另外
+助手以后能查到它」。设 `SIDE_AUDIO_DOMAIN_LIBRARY=on` 即启用；此时若宿主没有另外
 注入 Provider，它会自动成为那一个。
 
 它按本文的分层拆成两半：
@@ -220,7 +220,7 @@ const composite = {
 ### 两个已知限制
 
 - **没配记忆凭据时只能按文件名或标题检索。** 章节与说明由一次模型调用产出，
-  没有 `QWEN_AUDIO_MEMORY_API_KEY` 时它们为空。此时搜「年费」（只出现在正文里）
+  没有 `SIDE_AUDIO_MEMORY_API_KEY` 时它们为空。此时搜「年费」（只出现在正文里）
   找不到，搜文件名里的词能找到。
 - **答不了「我有哪些资料」。** 检索要求 `query` 非空且始终作为过滤条件，列出属于
   管理扩展的职责（Web 面板已提供列表与删除）。

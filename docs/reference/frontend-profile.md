@@ -36,7 +36,7 @@ research-profile/
 Enable it:
 
 ```dotenv
-QWEN_AUDIO_FRONTEND_PROFILE=/absolute/path/to/research-profile/frontend-profile.json
+SIDE_AUDIO_FRONTEND_PROFILE=/absolute/path/to/research-profile/frontend-profile.json
 ```
 
 `assistant`, `toolSources.mcp`, and `toolSources.openapi` are optional, but at
@@ -50,10 +50,10 @@ protocols.
 Existing focused settings have higher priority and can temporarily override a
 profile:
 
-1. `QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH`, `QWEN_AUDIO_FRONTEND_MCP_CONFIG`,
-   and `QWEN_AUDIO_FRONTEND_OPENAPI_CONFIG`;
+1. `SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH`, `SIDE_AUDIO_FRONTEND_MCP_CONFIG`,
+   and `SIDE_AUDIO_FRONTEND_OPENAPI_CONFIG`;
 2. references in the Frontend Profile;
-3. qwen-audio-agent defaults.
+3. side-audio-bot defaults.
 
 `frontendProfile` in `/api/health` reports only enablement, name, and
 description. It never exposes local paths.

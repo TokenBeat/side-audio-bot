@@ -8,7 +8,7 @@
 // contracts through dynamic import (which CommonJS has always had), and caches
 // the result so every caller shares one module instance.
 //
-//   const audioAgent = require('qwen-audio-agent/electron')
+//   const audioAgent = require('side-audio-bot/electron')
 //   const api = await audioAgent.load()
 //   if (!api.createSettingsStore({ configDir }).ready()) { … }
 //   const gateway = api.createGatewayProcess({ configDir, wakeWord: false })

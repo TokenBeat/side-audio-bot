@@ -1,5 +1,5 @@
 {
-  "name": "qwen-audio-agent-smart-cockpit-client",
+  "name": "side-audio-bot-smart-cockpit-client",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,7 +13,7 @@
     "@amap/amap-jsapi-loader": "^1.0.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
-    "qwen-audio-agent": "file:../../..",
+    "side-audio-bot": "file:../../..",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "three": "^0.184.0"

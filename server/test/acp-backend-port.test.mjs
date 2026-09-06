@@ -104,7 +104,7 @@ test('ACP submit exposes Work values while Session details stay private', async 
     type: 'image',
     mimeType: 'image/png',
     data: 'aGVsbG8=',
-    uri: 'qwen-audio-agent://input/reference.png',
+    uri: 'side-audio-bot://input/reference.png',
   })
 
   client.gate.resolve()

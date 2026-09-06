@@ -10,7 +10,7 @@ import {
 } from '../src/gateway-service.mjs'
 
 function temporaryDirectory() {
-  return mkdtempSync(resolve(tmpdir(), 'qwen-audio-agent-service-'))
+  return mkdtempSync(resolve(tmpdir(), 'side-audio-bot-service-'))
 }
 
 test('builds a launchd user service that runs the Gateway in foreground', () => {
@@ -95,7 +95,7 @@ test('installs a systemd user service with restart protection', async () => {
       installed.servicePath,
       resolve(
         root,
-        'xdg/systemd/user/qwen-audio-agent-gateway.service',
+        'xdg/systemd/user/side-audio-bot-gateway.service',
       ),
     )
     const unit = readFileSync(installed.servicePath, 'utf8')
@@ -108,7 +108,7 @@ test('installs a systemd user service with restart protection', async () => {
       '--user',
       'enable',
       '--now',
-      'qwen-audio-agent-gateway.service',
+      'side-audio-bot-gateway.service',
     ])
   } finally {
     rmSync(root, { recursive: true, force: true })

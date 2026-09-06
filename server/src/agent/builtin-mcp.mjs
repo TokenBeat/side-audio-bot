@@ -14,7 +14,7 @@ import { dirname, join, sep } from 'node:path'
 import { existsSync } from 'node:fs'
 
 const require = createRequire(import.meta.url)
-const lifecycleMetadata = Symbol('qwen-audio-agent.builtin-mcp-lifecycle')
+const lifecycleMetadata = Symbol('side-audio-bot.builtin-mcp-lifecycle')
 const APP_AGENT_MARKER = '__open-computer-use-app-agent'
 const APP_AGENT_DISCOVERY_MS = 500
 const APP_AGENT_POLL_MS = 50
@@ -51,7 +51,7 @@ function resolvePackageBin(specifier, binName) {
 }
 
 export function computerUseMcpServer(env = process.env) {
-  if (!settingEnabled(env.QWEN_AUDIO_AGENT_COMPUTER_USE)) return null
+  if (!settingEnabled(env.SIDE_AUDIO_BOT_COMPUTER_USE)) return null
   const binPath = resolvePackageBin(
     '@qwen-code/open-computer-use',
     'open-computer-use',

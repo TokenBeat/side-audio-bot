@@ -139,7 +139,7 @@ export class So360WebSearchProvider {
         method: 'GET',
         headers: {
           accept: 'text/html',
-          'user-agent': 'qwen-audio-agent web-search',
+          'user-agent': 'side-audio-bot web-search',
         },
         redirect: 'error',
         signal,

@@ -5,15 +5,15 @@ import WebSocket from 'ws'
 import {
   GatewayClientEvent,
   GatewayServerEvent,
-} from 'qwen-audio-agent/realtime-events'
-import { parseGatewayServerMessage } from 'qwen-audio-agent/gateway-events'
+} from 'side-audio-bot/realtime-events'
+import { parseGatewayServerMessage } from 'side-audio-bot/gateway-events'
 import {
   GatewayClientCapability,
   GatewayClientProtocolEvent,
   createGatewayClientProtocolMessage,
   createGatewaySessionHello,
   parseGatewayServerProtocolMessage,
-} from 'qwen-audio-agent/gateway-client-protocol'
+} from 'side-audio-bot/gateway-client-protocol'
 
 export function conversationSocketUrl(origin, sessionId = 'custom-client') {
   const url = new URL('/api/realtime', origin)

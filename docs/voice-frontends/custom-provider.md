@@ -3,10 +3,10 @@
 A product host can inject a custom Realtime Provider without changing the Gateway voice session or backend Agent logic.
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 import {
   createRealtimeProviderRegistry,
-} from 'qwen-audio-agent/realtime-provider'
+} from 'side-audio-bot/realtime-provider'
 import { privateRealtimeProvider } from './private-realtime-provider.mjs'
 
 const realtimeProviderRegistry = createRealtimeProviderRegistry({

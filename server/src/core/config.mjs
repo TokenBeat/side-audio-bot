@@ -21,7 +21,7 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url))
 const sourceRoot = resolve(here, '../../..')
-const root = process.env.QWEN_AUDIO_AGENT_RUNTIME_ROOT || sourceRoot
+const root = process.env.SIDE_AUDIO_BOT_RUNTIME_ROOT || sourceRoot
 const runtimeEnvironment = loadRuntimeEnvironment({ root })
 
 export function numberSetting(value, fallback, {
@@ -77,7 +77,7 @@ function backendModelName(value) {
 
 export function resolveBackendModels(env = process.env) {
   const configured = String(
-    env.QWEN_AUDIO_AGENT_BACKEND_MODEL || '',
+    env.SIDE_AUDIO_BOT_BACKEND_MODEL || '',
   ).trim()
   const common = configured.toLowerCase() === 'auto' ? '' : configured
   const name = backendModelName(common)
@@ -102,10 +102,10 @@ export function resolveBackendModels(env = process.env) {
 
 export function resolveWebSearchConfiguration(env = process.env) {
   const bailianMcpUrl = 'https://dashscope.aliyuncs.com/api/v1/mcps/WebSearch/mcp'
-  const explicitMcpUrl = String(env.QWEN_AUDIO_WEB_SEARCH_MCP_URL || '').trim()
+  const explicitMcpUrl = String(env.SIDE_AUDIO_WEB_SEARCH_MCP_URL || '').trim()
   const dashscopeApiKey = String(env.DASHSCOPE_API_KEY || '').trim()
   const requestedProvider = String(
-    env.QWEN_AUDIO_WEB_SEARCH_PROVIDER || '',
+    env.SIDE_AUDIO_WEB_SEARCH_PROVIDER || '',
   ).trim().toLowerCase()
   const provider = requestedProvider || (explicitMcpUrl ? 'mcp' : 'so360')
   if (!['bailian', 'bing', 'mcp', 'none', 'so360'].includes(provider)) {
@@ -120,10 +120,10 @@ export function resolveWebSearchConfiguration(env = process.env) {
     provider,
     mcpUrl,
     mcpToken: String(
-      env.QWEN_AUDIO_WEB_SEARCH_MCP_TOKEN
+      env.SIDE_AUDIO_WEB_SEARCH_MCP_TOKEN
       || (usesBailianMcp ? dashscopeApiKey : ''),
     ).trim(),
-    mcpTool: String(env.QWEN_AUDIO_WEB_SEARCH_MCP_TOOL || '').trim()
+    mcpTool: String(env.SIDE_AUDIO_WEB_SEARCH_MCP_TOOL || '').trim()
       || (usesBailianMcp ? 'bailian_web_search' : 'web_search'),
   }
 }
@@ -146,7 +146,7 @@ const backendOwnership = configuredAgentProtocol
           process.env[configuredBackendDefinition.baseUrlEnvironment] || '',
         ).trim()
       ),
-      requestedOwnership: process.env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP,
+      requestedOwnership: process.env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP,
     })
   : 'owned'
 const backendModels = resolveBackendModels()
@@ -157,7 +157,7 @@ const managedOpenClawBailian = (
   && !process.env.OPENCLAW_CONFIG_PATH
 )
 const requestedBackendPermissionMode = String(
-  process.env.QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE || 'native',
+  process.env.SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE || 'native',
 ).toLowerCase()
 if (
   configuredAgentProtocol
@@ -175,29 +175,29 @@ const backendPermissionMode = effectiveBackendPermissionMode(
 )
 const requestedAgentProtocol = configuredAgentProtocol
 const sharedBackendAgent = String(
-  process.env.QWEN_AUDIO_AGENT_BACKEND_AGENT || '',
+  process.env.SIDE_AUDIO_BOT_BACKEND_AGENT || '',
 ).trim()
 function legacyBackendAgent(value, legacyDefault) {
   const selected = String(value || '').trim()
-  return selected === legacyDefault ? 'qwen-audio-agent-backend' : selected
+  return selected === legacyDefault ? 'side-audio-bot-backend' : selected
 }
 
 export function resolveOpenCodeCoordinatorAgent(env = process.env) {
   const selected = String(
-    env.QWEN_AUDIO_AGENT_BACKEND_AGENT
+    env.SIDE_AUDIO_BOT_BACKEND_AGENT
     || env.OPENCODE_COORDINATOR_AGENT
     || '',
   ).trim()
   return [
-    'qwen-audio-agent-backend',
-    'qwen-audio-agent-coordinator',
+    'side-audio-bot-backend',
+    'side-audio-bot-coordinator',
   ].includes(selected) ? '' : selected
 }
 
 const realtimeFrontend = resolveRealtimeFrontendConfiguration(process.env)
 const webSearch = resolveWebSearchConfiguration(process.env)
 const loadedFrontendProfile = loadFrontendProfile({
-  filePath: process.env.QWEN_AUDIO_FRONTEND_PROFILE,
+  filePath: process.env.SIDE_AUDIO_FRONTEND_PROFILE,
 })
 const frontendProfileConfiguration = resolveFrontendProfileConfiguration({
   profile: loadedFrontendProfile,
@@ -246,15 +246,15 @@ export const config = {
   frontendProfile: frontendProfileConfiguration.frontendProfile,
   frontendMcpConfigPath: frontendProfileConfiguration.frontendMcpConfigPath,
   frontendOpenApiConfigPath: frontendProfileConfiguration.frontendOpenApiConfigPath,
-  allowedOrigins: String(process.env.QWEN_AUDIO_AGENT_ALLOWED_ORIGINS || '')
+  allowedOrigins: String(process.env.SIDE_AUDIO_BOT_ALLOWED_ORIGINS || '')
     .split(',')
     .map(value => value.trim())
     .filter(Boolean),
-  authSecret: process.env.QWEN_AUDIO_AGENT_AUTH_SECRET || '',
+  authSecret: process.env.SIDE_AUDIO_BOT_AUTH_SECRET || '',
   identityMode: (
-    process.env.QWEN_AUDIO_AGENT_IDENTITY_MODE || 'personal'
+    process.env.SIDE_AUDIO_BOT_IDENTITY_MODE || 'personal'
   ).toLowerCase() === 'browser' ? 'browser' : 'personal',
-  personalOwnerId: process.env.QWEN_AUDIO_AGENT_PERSONAL_OWNER_ID || 'user_personal',
+  personalOwnerId: process.env.SIDE_AUDIO_BOT_PERSONAL_OWNER_ID || 'user_personal',
   agentProtocol: requestedAgentProtocol,
   backendOwnership,
   backendPermissionMode,
@@ -297,7 +297,7 @@ export const config = {
           process.env.OPENCLAW_COORDINATOR_AGENT,
           'voice-coordinator',
         )
-        || (managedOpenClawBailian ? 'qwen-audio-agent-backend' : '')
+        || (managedOpenClawBailian ? 'side-audio-bot-backend' : '')
       ),
     },
     qoder: {
@@ -376,110 +376,110 @@ export const config = {
     },
   },
   announceIntoContext: (
-    String(process.env.QWEN_AUDIO_AGENT_ANNOUNCE_INTO_CONTEXT || 'true').toLowerCase()
+    String(process.env.SIDE_AUDIO_BOT_ANNOUNCE_INTO_CONTEXT || 'true').toLowerCase()
     === 'true'
   ),
   resultContextMaxChars: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_RESULT_CONTEXT_MAX_CHARS,
+    process.env.SIDE_AUDIO_BOT_RESULT_CONTEXT_MAX_CHARS,
     6000,
     { min: 256 },
   ),
   announcementBatchMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_ANNOUNCEMENT_BATCH_MS,
+    process.env.SIDE_AUDIO_BOT_ANNOUNCEMENT_BATCH_MS,
     120,
     { min: 0, max: 1000 },
   ),
   announcementMaxBatchItems: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_ANNOUNCEMENT_MAX_BATCH_ITEMS,
+    process.env.SIDE_AUDIO_BOT_ANNOUNCEMENT_MAX_BATCH_ITEMS,
     8,
     { min: 1, max: 32 },
   ),
   announcementQuietMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_ANNOUNCEMENT_QUIET_MS,
+    process.env.SIDE_AUDIO_BOT_ANNOUNCEMENT_QUIET_MS,
     350,
     { min: 0, max: 2000 },
   ),
   announcementAcknowledgementTimeoutMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_ANNOUNCEMENT_ACK_TIMEOUT_MS,
+    process.env.SIDE_AUDIO_BOT_ANNOUNCEMENT_ACK_TIMEOUT_MS,
     120_000,
     { min: 10_000 },
   ),
   announcementMaxRetryAttempts: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_ANNOUNCEMENT_MAX_RETRIES,
+    process.env.SIDE_AUDIO_BOT_ANNOUNCEMENT_MAX_RETRIES,
     8,
     { min: 1, max: 32 },
   ),
-  frontendPromptDir: process.env.QWEN_AUDIO_AGENT_FRONTEND_PROMPT_DIR
-    ? resolve(root, process.env.QWEN_AUDIO_AGENT_FRONTEND_PROMPT_DIR)
+  frontendPromptDir: process.env.SIDE_AUDIO_BOT_FRONTEND_PROMPT_DIR
+    ? resolve(root, process.env.SIDE_AUDIO_BOT_FRONTEND_PROMPT_DIR)
     : resolve(root, 'config/frontend-agent'),
   assistantProfilePath: frontendProfileConfiguration.assistantProfilePath,
-  frontendMemoryPath: process.env.QWEN_AUDIO_AGENT_MEMORY_PATH
-    ? resolve(root, process.env.QWEN_AUDIO_AGENT_MEMORY_PATH)
-    : process.env.QWEN_AUDIO_AGENT_FRONTEND_MEMORY_PATH
-      ? resolve(root, process.env.QWEN_AUDIO_AGENT_FRONTEND_MEMORY_PATH)
+  frontendMemoryPath: process.env.SIDE_AUDIO_BOT_MEMORY_PATH
+    ? resolve(root, process.env.SIDE_AUDIO_BOT_MEMORY_PATH)
+    : process.env.SIDE_AUDIO_BOT_FRONTEND_MEMORY_PATH
+      ? resolve(root, process.env.SIDE_AUDIO_BOT_FRONTEND_MEMORY_PATH)
     : runtimeEnvironment.frontendMemoryPath,
-  frontendNotesPath: process.env.QWEN_AUDIO_AGENT_FRONTEND_NOTES_PATH
-    ? resolve(root, process.env.QWEN_AUDIO_AGENT_FRONTEND_NOTES_PATH)
+  frontendNotesPath: process.env.SIDE_AUDIO_BOT_FRONTEND_NOTES_PATH
+    ? resolve(root, process.env.SIDE_AUDIO_BOT_FRONTEND_NOTES_PATH)
     : runtimeEnvironment.frontendNotesPath,
-  userModelPath: process.env.QWEN_AUDIO_AGENT_USER_MODEL_PATH
-    ? resolve(root, process.env.QWEN_AUDIO_AGENT_USER_MODEL_PATH)
-    : process.env.QWEN_AUDIO_AGENT_USER_PROFILE_PATH
-      ? resolve(root, process.env.QWEN_AUDIO_AGENT_USER_PROFILE_PATH)
+  userModelPath: process.env.SIDE_AUDIO_BOT_USER_MODEL_PATH
+    ? resolve(root, process.env.SIDE_AUDIO_BOT_USER_MODEL_PATH)
+    : process.env.SIDE_AUDIO_BOT_USER_PROFILE_PATH
+      ? resolve(root, process.env.SIDE_AUDIO_BOT_USER_PROFILE_PATH)
     : runtimeEnvironment.userModelPath,
-  taskStatePath: process.env.QWEN_AUDIO_AGENT_TASK_STATE_PATH
-    ? resolve(root, process.env.QWEN_AUDIO_AGENT_TASK_STATE_PATH)
+  taskStatePath: process.env.SIDE_AUDIO_BOT_TASK_STATE_PATH
+    ? resolve(root, process.env.SIDE_AUDIO_BOT_TASK_STATE_PATH)
     : runtimeEnvironment.taskStatePath,
-  backendSessionStatePath: process.env.QWEN_AUDIO_AGENT_BACKEND_SESSION_STATE_PATH
-    ? resolve(root, process.env.QWEN_AUDIO_AGENT_BACKEND_SESSION_STATE_PATH)
+  backendSessionStatePath: process.env.SIDE_AUDIO_BOT_BACKEND_SESSION_STATE_PATH
+    ? resolve(root, process.env.SIDE_AUDIO_BOT_BACKEND_SESSION_STATE_PATH)
     : resolve(runtimeEnvironment.configDirectory, 'state/acp-sessions.json'),
   taskTerminalTtlMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_TASK_TERMINAL_TTL_MS,
+    process.env.SIDE_AUDIO_BOT_TASK_TERMINAL_TTL_MS,
     86_400_000,
     { min: 60_000 },
   ),
   taskPendingNotificationTtlMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_TASK_NOTIFICATION_TTL_MS,
+    process.env.SIDE_AUDIO_BOT_TASK_NOTIFICATION_TTL_MS,
     604_800_000,
     { min: 60_000 },
   ),
   taskNotificationClaimTtlMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_TASK_NOTIFICATION_CLAIM_TTL_MS,
+    process.env.SIDE_AUDIO_BOT_TASK_NOTIFICATION_CLAIM_TTL_MS,
     60_000,
     { min: 5_000 },
   ),
   maxTerminalTasksPerOwner: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_MAX_TERMINAL_TASKS_PER_OWNER,
+    process.env.SIDE_AUDIO_BOT_MAX_TERMINAL_TASKS_PER_OWNER,
     100,
     { min: 10 },
   ),
   taskMaxConcurrent: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_TASK_MAX_CONCURRENT,
+    process.env.SIDE_AUDIO_BOT_TASK_MAX_CONCURRENT,
     4,
     { min: 1, max: 64 },
   ),
   taskMaxConcurrentPerOwner: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_TASK_MAX_CONCURRENT_PER_OWNER,
+    process.env.SIDE_AUDIO_BOT_TASK_MAX_CONCURRENT_PER_OWNER,
     2,
     { min: 1, max: 16 },
   ),
   conversationSessionTtlMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_SESSION_TTL_MS,
+    process.env.SIDE_AUDIO_BOT_SESSION_TTL_MS,
     21_600_000,
     { min: 60_000 },
   ),
   maxConversationSessions: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_MAX_SESSIONS,
+    process.env.SIDE_AUDIO_BOT_MAX_SESSIONS,
     500,
     { min: 10 },
   ),
   // Zero keeps explicit personal memories until the user removes them.
   frontendMemoryOwnerTtlMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_MEMORY_OWNER_TTL_MS,
+    process.env.SIDE_AUDIO_BOT_MEMORY_OWNER_TTL_MS,
     0,
     { min: 0 },
   ),
   maxFrontendMemoryOwners: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_MAX_MEMORY_OWNERS,
+    process.env.SIDE_AUDIO_BOT_MAX_MEMORY_OWNERS,
     1000,
     { min: 10 },
   ),
@@ -488,15 +488,15 @@ export const config = {
   // model after a voice session closes; silently disabled without an API key
   // so local speech-to-speech setups degrade without a sound.
   memoryAutoEnabled: String(
-    process.env.QWEN_AUDIO_MEMORY_AUTO || 'on',
+    process.env.SIDE_AUDIO_MEMORY_AUTO || 'on',
   ).toLowerCase() !== 'off',
-  memoryModel: String(process.env.QWEN_AUDIO_MEMORY_MODEL || '').trim()
+  memoryModel: String(process.env.SIDE_AUDIO_MEMORY_MODEL || '').trim()
     || 'qwen-flash',
   memoryBaseUrl: (
-    process.env.QWEN_AUDIO_MEMORY_BASE_URL
+    process.env.SIDE_AUDIO_MEMORY_BASE_URL
     || 'https://dashscope.aliyuncs.com/compatible-mode/v1'
   ).replace(/\/+$/, ''),
-  memoryApiKey: process.env.QWEN_AUDIO_MEMORY_API_KEY
+  memoryApiKey: process.env.SIDE_AUDIO_MEMORY_API_KEY
     || process.env.DASHSCOPE_API_KEY
     || '',
   memoryAuditPath: resolve(
@@ -507,7 +507,7 @@ export const config = {
   // 的观察推断段。默认关闭 —— 它会自动改写用户档案，先让愿意尝试的用户显式开启。
   // 复用 memoryModel / memoryBaseUrl / memoryApiKey，不额外要一套凭据。
   preferenceLearningEnabled: String(
-    process.env.QWEN_AUDIO_PREFERENCE_LEARNING || 'off',
+    process.env.SIDE_AUDIO_PREFERENCE_LEARNING || 'off',
   ).toLowerCase() === 'on',
   preferenceCandidatePath: resolve(
     runtimeEnvironment.configDirectory,
@@ -517,7 +517,7 @@ export const config = {
   // 「前几天我们聊的那个」时用 recall 工具查。默认关闭 —— 它留存的是
   // 对话内容的概括，属于需要用户显式同意的一档。只存话题与一句要点，不存转写。
   sessionDigestEnabled: String(
-    process.env.QWEN_AUDIO_SESSION_DIGEST || 'off',
+    process.env.SIDE_AUDIO_SESSION_DIGEST || 'off',
   ).toLowerCase() === 'on',
   sessionDigestPath: resolve(
     runtimeEnvironment.configDirectory,
@@ -527,7 +527,7 @@ export const config = {
   // 后端拿到路径就能自己 grep / read —— 前端只维护一份带摘要的清单。
   // 默认关闭：它会把用户的文件复制到另一个位置，需要用户显式同意。
   domainLibraryEnabled: String(
-    process.env.QWEN_AUDIO_DOMAIN_LIBRARY || 'off',
+    process.env.SIDE_AUDIO_DOMAIN_LIBRARY || 'off',
   ).toLowerCase() === 'on',
   domainDocumentDirectory: resolve(
     defaultBackendWorkspace(runtimeEnvironment.configDirectory),
@@ -538,33 +538,33 @@ export const config = {
     'domain-index.json',
   ),
   reminderSchedulerEnabled: String(
-    process.env.QWEN_AUDIO_AGENT_REMINDER_SCHEDULER || 'true'
+    process.env.SIDE_AUDIO_BOT_REMINDER_SCHEDULER || 'true'
   ).toLowerCase() === 'true',
   reminderMaxPerOwner: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_REMINDER_MAX_PER_OWNER,
+    process.env.SIDE_AUDIO_BOT_REMINDER_MAX_PER_OWNER,
     50,
     { min: 1, max: 500 },
   ),
   scheduledTaskTimeoutMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_SCHEDULED_TASK_TIMEOUT_MS,
+    process.env.SIDE_AUDIO_BOT_SCHEDULED_TASK_TIMEOUT_MS,
     1_800_000,
     { min: 60_000 },
   ),
   offlineNotificationDelayMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_OFFLINE_NOTIFICATION_DELAY_MS,
+    process.env.SIDE_AUDIO_BOT_OFFLINE_NOTIFICATION_DELAY_MS,
     5_000,
     { min: 1_000, max: 120_000 },
   ),
   reminderStaggerMs: numberSetting(
-    process.env.QWEN_AUDIO_AGENT_REMINDER_STAGGER_MS,
+    process.env.SIDE_AUDIO_BOT_REMINDER_STAGGER_MS,
     30_000,
     { min: 0, max: 300_000 },
   ),
   // The sleep timeout mirrors the desktop auto-hide timeout: the orb hides
   // and the gateway enters sleep mode at the same threshold. The legacy
-  // QWEN_AUDIO_SLEEP_TIMEOUT_SECONDS is ignored to avoid divergence.
+  // SIDE_AUDIO_SLEEP_TIMEOUT_SECONDS is ignored to avoid divergence.
   sleepTimeoutMs: numberSetting(
-    process.env.QWEN_AUDIO_DESKTOP_AUTO_HIDE_SECONDS,
+    process.env.SIDE_AUDIO_DESKTOP_AUTO_HIDE_SECONDS,
     0,
     { min: 0, max: 86_400 },
   ) * 1000,

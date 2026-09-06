@@ -4,17 +4,17 @@ The frontend OpenAPI adapter connects selected REST operations to the chatbot
 without coupling them to a realtime provider or a backend Agent. It uses the
 same dynamic tool source and execution limits as the frontend MCP client.
 
-The OpenAPI document describes the API. A separate qwen-audio-agent policy
+The OpenAPI document describes the API. A separate side-audio-bot policy
 decides which `operationId` values are model-visible; no operation is enabled
 automatically.
 
 ## Configuration
 
-Set `QWEN_AUDIO_FRONTEND_OPENAPI_CONFIG` to a versioned JSON file. OpenAPI
+Set `SIDE_AUDIO_FRONTEND_OPENAPI_CONFIG` to a versioned JSON file. OpenAPI
 documents may use JSON or YAML and are resolved relative to this config file:
 
 ```dotenv
-QWEN_AUDIO_FRONTEND_OPENAPI_CONFIG=/absolute/path/to/frontend-openapi.json
+SIDE_AUDIO_FRONTEND_OPENAPI_CONFIG=/absolute/path/to/frontend-openapi.json
 WEATHER_AUTHORIZATION=Bearer replace-me
 ```
 

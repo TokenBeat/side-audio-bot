@@ -8,7 +8,7 @@ import { SessionJournal } from '../src/session/session-journal.mjs'
 import { replaySession } from '../src/session/session-replay.mjs'
 
 async function journalFixture() {
-  const directory = await mkdtemp(join(tmpdir(), 'qwaudio-session-'))
+  const directory = await mkdtemp(join(tmpdir(), 'sideaudio-session-'))
   return new SessionJournal({ filePath: join(directory, 'session.jsonl'), sessionId: 'session-1' })
 }
 

@@ -203,7 +203,7 @@ export class AcpProcessClient {
       Writable.toWeb(child.stdin),
       Readable.toWeb(child.stdout),
     )
-    const app = acp.client({ name: 'qwen-audio-agent' })
+    const app = acp.client({ name: 'side-audio-bot' })
       .onRequest(
         acp.methods.client.session.requestPermission,
         context => this.handlePermission(context.params, context.signal),
@@ -255,8 +255,8 @@ export class AcpProcessClient {
               elicitation: { form: {} },
             },
             clientInfo: {
-              name: 'qwen-audio-agent',
-              title: 'qwen-audio-agent Gateway',
+              name: 'side-audio-bot',
+              title: 'side-audio-bot Gateway',
               version: PACKAGE_VERSION,
             },
           },

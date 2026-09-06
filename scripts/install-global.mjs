@@ -11,7 +11,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const stagingDirectory = mkdtempSync(join(tmpdir(), 'qwen-audio-agent-install-'))
+const stagingDirectory = mkdtempSync(join(tmpdir(), 'side-audio-bot-install-'))
 
 function runNpm(args) {
   const npmExecutable = process.env.npm_execpath
@@ -52,11 +52,11 @@ try {
   const archives = readdirSync(stagingDirectory)
     .filter(name => name.endsWith('.tgz'))
   if (archives.length !== 1) {
-    throw new Error('无法确定 qwen-audio-agent 安装包')
+    throw new Error('无法确定 side-audio-bot 安装包')
   }
   runNpm(['install', '--global', join(stagingDirectory, archives[0])])
   process.stdout.write(
-    'qwen-audio-agent 已作为独立成品安装；运行 qwenaudio config 开始配置。\n',
+    'side-audio-bot 已作为独立成品安装；运行 sideaudio config 开始配置。\n',
   )
 } catch (error) {
   process.stderr.write(`全局安装失败：${error.message}\n`)

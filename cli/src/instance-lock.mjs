@@ -52,7 +52,7 @@ export function acquireCliInstance(
         existing = null
       }
       if (processIsAlive(Number(existing?.pid), killImpl)) {
-        throw new Error('另一个 qwenaudio CLI 已在运行')
+        throw new Error('另一个 sideaudio CLI 已在运行')
       }
       try {
         unlinkSync(path)
@@ -61,5 +61,5 @@ export function acquireCliInstance(
       }
     }
   }
-  throw new Error('无法获取 qwenaudio CLI 实例锁')
+  throw new Error('无法获取 sideaudio CLI 实例锁')
 }

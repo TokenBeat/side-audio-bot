@@ -88,11 +88,11 @@ test('commandAvailable returns false for nonexistent commands', () => {
 
 // ── loadDotEnv ───────────────────────────────────────────────────────────
 
-test('loadDotEnv sets QWEN_AUDIO_AGENT_ENV_LOADED guard', () => {
-  assert.equal(process.env.QWEN_AUDIO_AGENT_ENV_LOADED, undefined)
+test('loadDotEnv sets SIDE_AUDIO_BOT_ENV_LOADED guard', () => {
+  assert.equal(process.env.SIDE_AUDIO_BOT_ENV_LOADED, undefined)
   // loadDotEnv is idempotent — should not throw
   loadDotEnv(process.cwd())
-  delete process.env.QWEN_AUDIO_AGENT_ENV_LOADED
+  delete process.env.SIDE_AUDIO_BOT_ENV_LOADED
 })
 
 // ── spawnAndProxy ────────────────────────────────────────────────────────

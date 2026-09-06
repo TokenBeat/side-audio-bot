@@ -8,7 +8,7 @@ import {
   validateAppUrl,
 } from '../src/security.mjs'
 
-test('allows local HTTP and remote HTTPS qwen-audio-agent origins', () => {
+test('allows local HTTP and remote HTTPS side-audio-bot origins', () => {
   assert.equal(validateAppUrl('http://127.0.0.1:3101'), 'http://127.0.0.1:3101')
   assert.equal(validateAppUrl('http://localhost:3101'), 'http://localhost:3101')
   assert.equal(validateAppUrl('https://voice.example.com/app'), 'https://voice.example.com')

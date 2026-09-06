@@ -31,7 +31,7 @@ const [code, signal] = await new Promise(resolvePromise => {
   child.once('exit', (...result) => resolvePromise(result))
 })
 clearTimeout(timer)
-if (code !== 0 || !stdout.includes('QWEN_AUDIO_DESKTOP_SMOKE_OK')) {
+if (code !== 0 || !stdout.includes('SIDE_AUDIO_DESKTOP_SMOKE_OK')) {
   throw new Error(
     `Electron desktop smoke test failed (${signal || code})\n${stdout}\n${stderr}`,
   )

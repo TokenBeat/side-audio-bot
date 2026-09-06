@@ -15,7 +15,7 @@ export function installOfflineNotifications({
       if (!current) return
       if (current.notificationStatus !== 'pending') return
       parentPort?.postMessage({
-        type: 'qwen-audio-agent:offline-notification',
+        type: 'side-audio-bot:offline-notification',
         task: {
           id: current.id,
           objective: current.objective,

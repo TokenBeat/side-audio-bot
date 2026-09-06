@@ -8,8 +8,8 @@
         api: "anthropic-messages",
         models: [
           {
-            id: "${QWEN_AUDIO_AGENT_OPENCLAW_MODEL_ID}",
-            name: "${QWEN_AUDIO_AGENT_OPENCLAW_MODEL_ID}",
+            id: "${SIDE_AUDIO_BOT_OPENCLAW_MODEL_ID}",
+            name: "${SIDE_AUDIO_BOT_OPENCLAW_MODEL_ID}",
             reasoning: false,
             input: ["text"],
             contextWindow: 128000,
@@ -24,15 +24,15 @@
   agents: {
     defaults: {
       skipBootstrap: true,
-      model: { primary: "${QWEN_AUDIO_AGENT_OPENCLAW_MODEL}" },
-      models: { "${QWEN_AUDIO_AGENT_OPENCLAW_MODEL}": {} },
+      model: { primary: "${SIDE_AUDIO_BOT_OPENCLAW_MODEL}" },
+      models: { "${SIDE_AUDIO_BOT_OPENCLAW_MODEL}": {} },
     },
     list: [
       {
-        id: "qwen-audio-agent-backend",
+        id: "side-audio-bot-backend",
         default: true,
-        name: "qwen-audio-agent Backend Agent",
-        workspace: "${QWEN_AUDIO_AGENT_OPENCLAW_WORKSPACE}",
+        name: "side-audio-bot Backend Agent",
+        workspace: "${SIDE_AUDIO_BOT_OPENCLAW_WORKSPACE}",
       },
     ],
   },

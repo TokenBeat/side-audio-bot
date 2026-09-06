@@ -30,8 +30,8 @@ const definitions = new Map([
     environment: {
       names: [
         'DASHSCOPE_API_KEY',
-        'QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG',
-        'QWEN_AUDIO_AGENT_OPENCODE_XDG_CONFIG_HOME',
+        'SIDE_AUDIO_BOT_OPENCODE_ISOLATE_USER_CONFIG',
+        'SIDE_AUDIO_BOT_OPENCODE_XDG_CONFIG_HOME',
       ],
       prefixes: ['OPENCODE_'],
     },
@@ -39,7 +39,7 @@ const definitions = new Map([
   ['openclaw', {
     id: 'openclaw',
     label: 'OpenClaw',
-    workspaceEnvironment: 'QWEN_AUDIO_AGENT_OPENCLAW_WORKSPACE',
+    workspaceEnvironment: 'SIDE_AUDIO_BOT_OPENCLAW_WORKSPACE',
     skills: { installer: 'openclaw' },
     setup: {
       command: 'openclaw',
@@ -66,11 +66,11 @@ const definitions = new Map([
       names: [
         'DASHSCOPE_API_KEY',
         'AGENT_API_KEY',
-        'QWAUDIO_CONFIG_DIR',
-        'QWEN_AUDIO_AGENT_OPENCLAW_MODEL',
-        'QWEN_AUDIO_AGENT_OPENCLAW_MODEL_ID',
-        'QWEN_AUDIO_AGENT_OPENCLAW_STATE_DIR',
-        'QWEN_AUDIO_AGENT_OPENCLAW_WORKSPACE',
+        'SIDEAUDIO_CONFIG_DIR',
+        'SIDE_AUDIO_BOT_OPENCLAW_MODEL',
+        'SIDE_AUDIO_BOT_OPENCLAW_MODEL_ID',
+        'SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR',
+        'SIDE_AUDIO_BOT_OPENCLAW_WORKSPACE',
       ],
       prefixes: ['OPENCLAW_'],
     },
@@ -384,7 +384,7 @@ const definitions = new Map([
     supportsFullPermission: false,
     environment: {
       prefixes: ['ACP_'],
-      explicitListEnvironment: 'QWEN_AUDIO_AGENT_ACP_FORWARD_ENV',
+      explicitListEnvironment: 'SIDE_AUDIO_BOT_ACP_FORWARD_ENV',
     },
   }],
 ])

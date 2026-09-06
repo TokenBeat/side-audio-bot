@@ -282,9 +282,9 @@ function inspectAdapter(spec, env, find) {
   if (!spec.adapterCommand) {
     return { ready: true, source: spec.integration }
   }
-  // 桌面版（QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY）运行时禁止 npx
+  // 桌面版（SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY）运行时禁止 npx
   // 按需回退，检测口径必须与之一致，只认已安装的 Adapter。
-  const installedOnly = clean(env.QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY) === '1'
+  const installedOnly = clean(env.SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY) === '1'
   const runtime = clean(
     env[spec.adapterRuntimeEnvironment] || 'auto',
   ).toLowerCase()
@@ -364,11 +364,11 @@ function inspectBackend(id, {
   const automaticBailian = (
     ['opencode', 'openclaw'].includes(id)
     && Boolean(clean(env.DASHSCOPE_API_KEY))
-    && Boolean(clean(env.QWEN_AUDIO_AGENT_BACKEND_MODEL))
-    && clean(env.QWEN_AUDIO_AGENT_BACKEND_MODEL).toLowerCase() !== 'auto'
+    && Boolean(clean(env.SIDE_AUDIO_BOT_BACKEND_MODEL))
+    && clean(env.SIDE_AUDIO_BOT_BACKEND_MODEL).toLowerCase() !== 'auto'
   )
   // 桌面版运行时不做 npx 自动部署，检测同样关闭 managed 回退分支。
-  const installedOnly = clean(env.QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY) === '1'
+  const installedOnly = clean(env.SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY) === '1'
   let backend = explicitRuntime(id, env, find)
   if (!backend) {
     const path = find(command)
@@ -401,7 +401,7 @@ function inspectBackend(id, {
         }
       } else if (npx) {
         backend.issue = `未找到 ${definition.label}；自动部署需要 `
-          + 'DASHSCOPE_API_KEY 和 QWEN_AUDIO_AGENT_BACKEND_MODEL'
+          + 'DASHSCOPE_API_KEY 和 SIDE_AUDIO_BOT_BACKEND_MODEL'
       }
     }
   }
@@ -426,7 +426,7 @@ function inspectBackend(id, {
         backend.ready = false
         backend.issue = npx
           ? `OpenCode ${version || '版本未知'} 不兼容；自动部署需要 `
-            + 'DASHSCOPE_API_KEY 和 QWEN_AUDIO_AGENT_BACKEND_MODEL'
+            + 'DASHSCOPE_API_KEY 和 SIDE_AUDIO_BOT_BACKEND_MODEL'
           : version
             ? `OpenCode ${version} 低于最低版本 ${spec.minimumVersion}`
             : '无法确认 OpenCode 版本'

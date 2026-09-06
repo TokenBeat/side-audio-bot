@@ -4,7 +4,7 @@ import test from 'node:test'
 import {
   ClientEventDefinitionRegistry,
   GatewayEventRouter,
-} from 'qwen-audio-agent/client-events'
+} from 'side-audio-bot/client-events'
 import {
   COCKPIT_ASSISTANT_PROFILE_EVENT as CLIENT_ASSISTANT_PROFILE_EVENT,
   COCKPIT_PERSONA_IDS,

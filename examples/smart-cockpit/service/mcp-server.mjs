@@ -21,7 +21,7 @@ export function createCockpitMcpServer({
   if (!service?.execute) throw new TypeError('Cockpit MCP server requires a cockpit service')
   if (!Array.isArray(tools)) throw new TypeError('Cockpit MCP server requires a scoped tool list')
   const server = new Server({
-    name: 'qwen-audio-agent-cockpit',
+    name: 'side-audio-bot-cockpit',
     version: '1.0.0',
   }, {
     capabilities: { tools: {} },

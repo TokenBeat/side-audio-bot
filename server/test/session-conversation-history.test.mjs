@@ -8,7 +8,7 @@ import { SessionConversationHistory } from '../src/app/session-conversation-hist
 import { SessionJournalRegistry } from '../src/session/session-journal-registry.mjs'
 
 test('restores the same recent messages for the UI and Realtime after restart', async t => {
-  const directory = await mkdtemp(join(tmpdir(), 'qwaudio-conversation-history-'))
+  const directory = await mkdtemp(join(tmpdir(), 'sideaudio-conversation-history-'))
   t.after(() => rm(directory, { recursive: true, force: true }))
   const firstRegistry = new SessionJournalRegistry({ directory })
   const firstSync = new ConversationSync()
@@ -57,7 +57,7 @@ test('restores the same recent messages for the UI and Realtime after restart', 
 })
 
 test('keeps internal task results out of the durable frontend projection', async t => {
-  const directory = await mkdtemp(join(tmpdir(), 'qwaudio-conversation-projection-'))
+  const directory = await mkdtemp(join(tmpdir(), 'sideaudio-conversation-projection-'))
   t.after(() => rm(directory, { recursive: true, force: true }))
   const registry = new SessionJournalRegistry({ directory })
   const sync = new ConversationSync()

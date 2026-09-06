@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: Qwen Audio Agent
+  name: Side Audio Bot
   text: Agent Presence
   tagline: "A realtime voice runtime that keeps your agent in the conversation while work continues in the background."
   actions:
@@ -14,7 +14,7 @@ hero:
       link: /architecture/overview
     - theme: alt
       text: GitHub
-      link: https://github.com/QwenAudio/qwen-audio-agent
+      link: https://github.com/TokenBeat/side-audio-bot
 
 features:
   - title: Conversation stays responsive

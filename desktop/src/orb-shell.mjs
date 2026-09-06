@@ -9,20 +9,20 @@
 // passes its ipcMain in, so the contract stays testable without Electron and
 // usable from both CommonJS and ESM Electron mains.
 export const ORB_CHANNELS = Object.freeze({
-  dragStart: 'qwen-audio-agent:drag-start',
-  dragMove: 'qwen-audio-agent:drag-move',
-  dragEnd: 'qwen-audio-agent:drag-end',
-  openSettings: 'qwen-audio-agent:open-settings',
-  enterHide: 'qwen-audio-agent:enter-hide',
-  wake: 'qwen-audio-agent:wake',
-  lifecycleReady: 'qwen-audio-agent:lifecycle-ready',
-  lifecycleLoad: 'qwen-audio-agent:lifecycle-load',
-  lifecycle: 'qwen-audio-agent:lifecycle',
-  taskCardPlacement: 'qwen-audio-agent:task-card-placement',
-  surfaceLoad: 'qwen-audio-agent:surface-load',
-  surfaceSet: 'qwen-audio-agent:surface-set',
-  conversationSessionSet: 'qwen-audio-agent:conversation-session-set',
-  quit: 'qwen-audio-agent:quit',
+  dragStart: 'side-audio-bot:drag-start',
+  dragMove: 'side-audio-bot:drag-move',
+  dragEnd: 'side-audio-bot:drag-end',
+  openSettings: 'side-audio-bot:open-settings',
+  enterHide: 'side-audio-bot:enter-hide',
+  wake: 'side-audio-bot:wake',
+  lifecycleReady: 'side-audio-bot:lifecycle-ready',
+  lifecycleLoad: 'side-audio-bot:lifecycle-load',
+  lifecycle: 'side-audio-bot:lifecycle',
+  taskCardPlacement: 'side-audio-bot:task-card-placement',
+  surfaceLoad: 'side-audio-bot:surface-load',
+  surfaceSet: 'side-audio-bot:surface-set',
+  conversationSessionSet: 'side-audio-bot:conversation-session-set',
+  quit: 'side-audio-bot:quit',
 })
 
 function validPoint(point) {
