@@ -26,8 +26,8 @@ tells you:
 
 ## News
 
-- **2026-08-25 · [v1.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v1.11.0)**
-  Initial release of side-audio-bot with realtime voice runtime, desktop app, and backend Agent support.
+- **2026-09-06 · [v0.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.0)**
+  First public release, based on the upstream v1.11.0 baseline: brand-new **Bloub orb skin** (hot-applied appearance settings) and the **StepFun StepAudio realtime voice** frontend, alongside the realtime voice runtime, desktop app, and backend Agent support.
 
 ## Conversation Continues, Tasks Too
 
