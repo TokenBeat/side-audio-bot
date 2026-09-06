@@ -7,9 +7,10 @@
 # --config.extraMetadata.version 注入，保证产物名、latest-*.yml 自动更新
 # 元数据与 v<version> tag 三者一致。
 #
-# 发布说明：branding/release-notes/<version>.md 存在则用作双语 release
-# notes，否则退回 GitHub 自动生成。重复触发幂等：release 已存在时仅
-# 覆盖上传产物（--clobber），便于失败重跑。
+# 发布说明：必须提前在 dev 写好 branding/release-notes/<version>.md（双语），
+# gate 阶段缺失即失败，不会发出自动生成描述的发布。重复触发幂等：release
+# 已存在时仅覆盖上传产物（--clobber），便于失败重跑。
+# 完整发版流程与防呆清单见 branding/RELEASE.md（一条命令：npm run release <版本号>）。
 #
 # macOS 构建为免签名 universal 包（无 Apple 证书要求）；Windows 为 NSIS
 # 安装包。二者均不带代码签名，release notes 需说明首次打开方式。
@@ -37,6 +38,9 @@ jobs:
     outputs:
       version: ${{ steps.validate.outputs.version }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Validate and normalize the version input
         id: validate
         env:
@@ -49,6 +53,21 @@ jobs:
             exit 1
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+      # 防呆：双语 release notes 必须提前写在 brand 层。缺失就在构建前失败，
+      # 避免发出只有自动生成描述的残缺发布。
+      - name: Require curated bilingual release notes
+        env:
+          RELEASE_VERSION: ${{ steps.validate.outputs.version }}
+        run: |
+          set -eu
+          NOTES_FILE="branding/release-notes/${RELEASE_VERSION}.md"
+          if [ ! -f "$NOTES_FILE" ]; then
+            echo "${NOTES_FILE} is missing on the public branch." >&2
+            echo "Write it on dev (bilingual, template: branding/release-notes/0.11.0.md)," >&2
+            echo "commit, run 'npm run brand:publish --push', then dispatch again." >&2
+            exit 1
+          fi
+          echo "notes=${NOTES_FILE}" >> "$GITHUB_OUTPUT"
 
   build-macos:
     needs: gate
@@ -128,39 +147,21 @@ jobs:
         with:
           name: windows-exe
           path: artifacts/windows
-      - name: Resolve bilingual release notes
-        id: notes
-        env:
-          RELEASE_VERSION: ${{ needs.gate.outputs.version }}
-        run: |
-          set -eu
-          NOTES_FILE="branding/release-notes/${RELEASE_VERSION}.md"
-          if [ -f "$NOTES_FILE" ]; then
-            echo "file=${NOTES_FILE}" >> "$GITHUB_OUTPUT"
-          else
-            echo "file=" >> "$GITHUB_OUTPUT"
-            echo "no curated notes at ${NOTES_FILE}; falling back to auto-generated notes" >&2
-          fi
       - name: Create the GitHub release and upload artifacts
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: v${{ needs.gate.outputs.version }}
           RELEASE_VERSION: ${{ needs.gate.outputs.version }}
-          RELEASE_NOTES_FILE: ${{ steps.notes.outputs.file }}
+          RELEASE_NOTES_FILE: branding/release-notes/${{ needs.gate.outputs.version }}.md
         run: |
           set -eu
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             echo "release ${RELEASE_TAG} already exists — re-uploading artifacts with --clobber"
-          elif [ -n "$RELEASE_NOTES_FILE" ]; then
-            gh release create "$RELEASE_TAG" \
-              --target "$GITHUB_SHA" \
-              --title "Side Audio Bot v${RELEASE_VERSION}" \
-              --notes-file "$RELEASE_NOTES_FILE"
           else
             gh release create "$RELEASE_TAG" \
               --target "$GITHUB_SHA" \
               --title "Side Audio Bot v${RELEASE_VERSION}" \
-              --generate-notes
+              --notes-file "$RELEASE_NOTES_FILE"
           fi
           gh release upload "$RELEASE_TAG" artifacts/macos/* artifacts/windows/* --clobber

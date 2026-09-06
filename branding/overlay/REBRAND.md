@@ -152,4 +152,6 @@
 - `npm run brand:publish`：从 dev 重建对外 `public` 分支（品牌态唯一落库处，永不手改、永不合并）
 - 本地调试/打包需品牌态时，在临时 worktree 里执行 `node scripts/brand/apply.mjs`，禁止在主 checkout 直接套用
 
+日常操作、发版流程与防呆清单见 `branding/RELEASE.md`（一条命令 `npm run release <版本号>`）。
+
 上游新增内容若含品牌词，`brand:check` 会以非零退出列出文件，按提示补充 rules / keep / overlay 即可。
