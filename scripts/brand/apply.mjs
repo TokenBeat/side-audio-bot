@@ -15,6 +15,7 @@ import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { rules, keep, skipPaths, removeList } from '../../branding/rules.mjs';
+import { brandVersion } from '../../branding/config.mjs';
 
 const force = process.argv.includes('--force');
 
@@ -125,7 +126,42 @@ for (const rel of tracked) {
   }
 }
 
-// 2. CLI bin：上游入口已在上一步完成改名，复制出品牌态入口
+// 2. 版本号盖写：brandVersion → 全部 workspace 清单与 lockfile（结构化改写，
+//    不依赖具体版本字符串，上游升版也不会失配）
+const stamped = [];
+const workspacePkgs = ['', 'cli', 'desktop', 'server', 'tui', 'web'];
+for (const ws of workspacePkgs) {
+  const rel = ws ? `${ws}/package.json` : 'package.json';
+  const abs = path.join(targetRoot, ...rel.split('/'));
+  if (!fs.existsSync(abs)) continue;
+  const pkg = JSON.parse(fs.readFileSync(abs, 'utf8'));
+  if (pkg.version !== brandVersion) {
+    pkg.version = brandVersion;
+    fs.writeFileSync(abs, `${JSON.stringify(pkg, null, 2)}\n`);
+    stamped.push(rel);
+  }
+}
+const lockAbs = path.join(targetRoot, 'package-lock.json');
+if (fs.existsSync(lockAbs)) {
+  const lock = JSON.parse(fs.readFileSync(lockAbs, 'utf8'));
+  let lockTouched = false;
+  const setVersion = (entry) => {
+    if (entry && entry.version !== brandVersion) {
+      entry.version = brandVersion;
+      lockTouched = true;
+    }
+  };
+  setVersion(lock);
+  for (const [key, entry] of Object.entries(lock.packages ?? {})) {
+    if (key === '' || workspacePkgs.includes(key)) setVersion(entry);
+  }
+  if (lockTouched) {
+    fs.writeFileSync(lockAbs, `${JSON.stringify(lock, null, 2)}\n`);
+    stamped.push('package-lock.json');
+  }
+}
+
+// 3. CLI bin：上游入口已在上一步完成改名，复制出品牌态入口
 const binSrc = path.join(targetRoot, 'cli', 'bin', 'qwenaudio.mjs');
 if (fs.existsSync(binSrc)) {
   const binDest = path.join(targetRoot, 'cli', 'bin', 'sideaudio.mjs');
@@ -133,7 +169,7 @@ if (fs.existsSync(binSrc)) {
   copied.push('cli/bin/sideaudio.mjs');
 }
 
-// 3. overlay：人工维护的品牌文件整树覆盖（原样复制，不再做文本替换）
+// 4. overlay：人工维护的品牌文件整树覆盖（原样复制，不再做文本替换）
 const overlayDir = path.join(brandRepo, 'branding', 'overlay');
 if (fs.existsSync(overlayDir)) {
   for (const file of walk(overlayDir)) {
@@ -145,7 +181,7 @@ if (fs.existsSync(overlayDir)) {
   }
 }
 
-// 4. removeList：品牌态需要移除的上游文件
+// 5. removeList：品牌态需要移除的上游文件
 for (const rel of removeList) {
   const abs = path.join(targetRoot, ...rel.split('/'));
   if (fs.existsSync(abs)) {
@@ -154,11 +190,12 @@ for (const rel of removeList) {
   }
 }
 
-// 5. manifest（确定性输出，便于幂等校验）
+// 6. manifest（确定性输出，便于幂等校验）
 const manifest = {
   base: git(['rev-parse', 'HEAD']),
   rulesReplaced: modified.length,
   modified,
+  stamped,
   copied,
   removed,
 };

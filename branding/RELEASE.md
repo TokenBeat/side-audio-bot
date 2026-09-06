@@ -38,6 +38,8 @@ npm run release 0.12.0        # 支持带 v 前缀：npm run release v0.12.0
 
 脚本按顺序做以下检查，**任何一步不过就退出**，不会发出残缺发布：
 
+0. 版本号与 `branding/config.mjs` 的 `brandVersion` 一致 —— 升版本先改这里（apply 会把
+   它盖写到 public 的全部 package.json / package-lock.json，设置页版本号也随之更新）；
 1. 当前在 dev、工作树干净、与 origin/dev 同步（本地领先会自动推送）；
 2. `branding/release-notes/<版本>.md` **存在** —— 双语描述正本，没有就拒绝（可复制 `0.11.0.md` 当模板）；
 3. `branding/overlay/README.md` 与 `README_ZH.md` 的 News 区**已包含 v<版本>** 条目（`--skip-news` 可跳过此检查）；
@@ -50,6 +52,7 @@ npm run release 0.12.0        # 支持带 v 前缀：npm run release v0.12.0
 
 | 文件 | 用途 | 忘了会怎样 |
 | --- | --- | --- |
+| `branding/config.mjs` 的 `brandVersion` | 对外版本号（盖写全部清单） | release 脚本与流水线 gate 都会拒绝 |
 | `branding/release-notes/<版本>.md` | Release 页描述（双语） | 本地 release 脚本拒绝；直接在 Actions 触发时流水线也会在 gate 阶段失败 |
 | `branding/overlay/README*.md` 的 News 区 | 仓库首页快讯 | release 脚本拒绝（`--skip-news` 可跳过） |
 

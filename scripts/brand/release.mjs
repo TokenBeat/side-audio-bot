@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { brandVersion } from '../../branding/config.mjs';
 
 const args = process.argv.slice(2);
 const rawVersion = args.find((a) => !a.startsWith('--'));
@@ -28,6 +29,12 @@ if (!rawVersion) {
 const version = rawVersion.replace(/^v/, '');
 if (!/^\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$/.test(version)) {
   console.error(`[release] ✗ invalid version '${rawVersion}' (expected e.g. 0.12.0 or v0.12.0)`);
+  process.exit(1);
+}
+if (version !== brandVersion) {
+  console.error(
+    `[release] ✗ branding/config.mjs 的 brandVersion 还是 ${brandVersion} —— 先改成 '${version}' 并提交，再重新发版`
+  );
   process.exit(1);
 }
 

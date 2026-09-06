@@ -68,6 +68,19 @@ jobs:
             exit 1
           fi
           echo "notes=${NOTES_FILE}" >> "$GITHUB_OUTPUT"
+      # 防呆：dispatch 的版本号必须与品牌层盖写的版本一致（单一事实来源：
+      # branding/config.mjs 的 brandVersion）。
+      - name: Require the dispatch version to match the brand version stamp
+        env:
+          RELEASE_VERSION: ${{ steps.validate.outputs.version }}
+        run: |
+          set -eu
+          TREE_VERSION=$(node -p "require('./package.json').version")
+          if [ "$TREE_VERSION" != "$RELEASE_VERSION" ]; then
+            echo "public package.json version is $TREE_VERSION, requested $RELEASE_VERSION." >&2
+            echo "Bump brandVersion in branding/config.mjs on dev, run 'npm run brand:publish --push', then dispatch again." >&2
+            exit 1
+          fi
 
   build-macos:
     needs: gate
