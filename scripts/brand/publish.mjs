@@ -72,10 +72,21 @@ try {
   const tip = git(['log', '-1', '--format=%h %s'], tmp);
   console.log(`[brand:publish] public => ${tip}`);
   if (push) {
-    execFileSync('git', ['push', '--force-with-lease', 'origin', 'public'], {
-      cwd: brandRepo,
-      stdio: 'inherit',
-    });
+    // 到 GitHub 的链路偶发抖动，失败重试几次再放弃
+    let pushed = false;
+    for (let attempt = 1; attempt <= 3 && !pushed; attempt += 1) {
+      try {
+        execFileSync('git', ['push', '--force-with-lease', 'origin', 'public'], {
+          cwd: brandRepo,
+          stdio: 'inherit',
+        });
+        pushed = true;
+      } catch (err) {
+        console.error(`[brand:publish] push attempt ${attempt} failed`);
+        if (attempt === 3) throw err;
+        execFileSync('sleep', ['3']);
+      }
+    }
     console.log('[brand:publish] pushed origin/public');
   }
 } finally {
