@@ -1,0 +1,166 @@
+# public 分支专用发布流水线：桌面版打包 + GitHub Release。
+#
+# 触发：纯手动 —— GitHub Actions 页面（Public Release → Run workflow，输入
+# 版本号），或 `gh workflow run public-release.yml --ref public -f version=0.11.0`。
+#
+# 不发 npm 包；不修改 package.json 版本 —— 构建期通过
+# --config.extraMetadata.version 注入，保证产物名、latest-*.yml 自动更新
+# 元数据与 v<version> tag 三者一致。
+#
+# 发布说明：branding/release-notes/<version>.md 存在则用作双语 release
+# notes，否则退回 GitHub 自动生成。重复触发幂等：release 已存在时仅
+# 覆盖上传产物（--clobber），便于失败重跑。
+#
+# macOS 构建为免签名 universal 包（无 Apple 证书要求）；Windows 为 NSIS
+# 安装包。二者均不带代码签名，release notes 需说明首次打开方式。
+
+name: Public Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version without the leading "v" (e.g. 0.11.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.validate.outputs.version }}
+    steps:
+      - name: Validate and normalize the version input
+        id: validate
+        env:
+          RELEASE_REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          set -eu
+          VERSION="${RELEASE_REQUESTED_VERSION#v}"
+          if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$'; then
+            echo "Invalid version '${RELEASE_REQUESTED_VERSION}' (expected e.g. 0.11.0 or v0.11.0)." >&2
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+  build-macos:
+    needs: gate
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Build unsigned universal macOS DMG
+        run: |
+          set -eu
+          npm run build
+          npx electron-builder \
+            --config desktop/electron-builder.yml \
+            --mac dmg zip \
+            --universal \
+            --config.mac.identity=- \
+            --config.mac.hardenedRuntime=false \
+            --config.mac.notarize=false \
+            --config.extraMetadata.version=${{ needs.gate.outputs.version }} \
+            --publish never
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: macos-dmg
+          path: |
+            dist/desktop/*.dmg
+            dist/desktop/*.zip
+            dist/desktop/*.blockmap
+            dist/desktop/latest-mac.yml
+          if-no-files-found: error
+
+  build-windows:
+    needs: gate
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Build Windows NSIS installer
+        run: npm run desktop:build:win -- --config.extraMetadata.version=${{ needs.gate.outputs.version }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-exe
+          path: |
+            dist/desktop/*.exe
+            dist/desktop/*.blockmap
+            dist/desktop/latest.yml
+          if-no-files-found: error
+
+  github-release:
+    needs: [gate, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: macos-dmg
+          path: artifacts/macos
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: windows-exe
+          path: artifacts/windows
+      - name: Resolve bilingual release notes
+        id: notes
+        env:
+          RELEASE_VERSION: ${{ needs.gate.outputs.version }}
+        run: |
+          set -eu
+          NOTES_FILE="branding/release-notes/${RELEASE_VERSION}.md"
+          if [ -f "$NOTES_FILE" ]; then
+            echo "file=${NOTES_FILE}" >> "$GITHUB_OUTPUT"
+          else
+            echo "file=" >> "$GITHUB_OUTPUT"
+            echo "no curated notes at ${NOTES_FILE}; falling back to auto-generated notes" >&2
+          fi
+      - name: Create the GitHub release and upload artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: v${{ needs.gate.outputs.version }}
+          RELEASE_VERSION: ${{ needs.gate.outputs.version }}
+          RELEASE_NOTES_FILE: ${{ steps.notes.outputs.file }}
+        run: |
+          set -eu
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "release ${RELEASE_TAG} already exists — re-uploading artifacts with --clobber"
+          elif [ -n "$RELEASE_NOTES_FILE" ]; then
+            gh release create "$RELEASE_TAG" \
+              --target "$GITHUB_SHA" \
+              --title "Side Audio Bot v${RELEASE_VERSION}" \
+              --notes-file "$RELEASE_NOTES_FILE"
+          else
+            gh release create "$RELEASE_TAG" \
+              --target "$GITHUB_SHA" \
+              --title "Side Audio Bot v${RELEASE_VERSION}" \
+              --generate-notes
+          fi
+          gh release upload "$RELEASE_TAG" artifacts/macos/* artifacts/windows/* --clobber

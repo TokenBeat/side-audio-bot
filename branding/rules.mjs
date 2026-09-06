@@ -18,6 +18,9 @@ export const rules = [
   // 仓库路径 / 组织名
   { from: 'QwenAudio/qwen-audio-agent', to: 'TokenBeat/side-audio-bot' },
   { from: 'QwenAudio 组织', to: 'TokenBeat 组织' },
+  // 特例：electron-builder 发布指向真实仓库（影响桌面端 electron-updater 自动
+  // 更新与 release 上传位置；故意偏离 archive/rebrand-branch 的 SideAudio）
+  { from: 'owner: QwenAudio', to: 'owner: TokenBeat' },
   // 架构图引用映射：rebrand 用新图替换 docs/ 前缀的旧图引用
   // （presentation 里的相对路径引用走 overlay，两处映射不同）
   { from: 'docs/qwen-audio-agent-three-layer-architecture.png', to: 'docs/architecture-overview.html' },
