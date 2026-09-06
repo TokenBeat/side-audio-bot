@@ -35,7 +35,8 @@ const brandRepo = findRoot(path.dirname(fileURLToPath(import.meta.url)));
 const git = (args2, cwd = brandRepo) =>
   execFileSync('git', args2, { cwd, encoding: 'utf8' }).replace(/\n$/, '');
 
-if (git(['status', '--porcelain']) !== '') {
+// 只关心已跟踪内容的改动；未跟踪文件（本地工具目录等）不影响重建
+if (git(['status', '--porcelain', '--untracked-files=no']) !== '') {
   console.error('[brand:publish] checkout is dirty — commit or stash first.');
   process.exit(1);
 }
