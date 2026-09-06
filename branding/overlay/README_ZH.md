@@ -21,7 +21,7 @@
 ## News
 
 - **2026-09-06 · [v0.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.0)**
-  首个公开发布版本，基于上游 v1.11.0 代码基线：全新 **Bloub 悬浮球外观**（外观设置热更新）与 **StepFun StepAudio 实时语音**前台，延续实时语音运行时、桌面端应用以及后台 Agent 支持。
+  side-audio-bot 首个正式版本，提供实时语音运行时、桌面端应用以及后台 Agent 支持。在此之上新增全新 **Bloub 悬浮球外观**（外观设置热更新）与 **StepFun StepAudio 实时语音**前台，可与内置 DashScope 前台按需切换。
 
 ## 对话继续，任务也在继续
 
