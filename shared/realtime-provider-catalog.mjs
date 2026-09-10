@@ -27,6 +27,7 @@ export const DEFAULT_SPEECH_TO_SPEECH_REALTIME_URL = 'ws://127.0.0.1:8765/v1/rea
 // StepFun 开放平台按量计费端点；Step Plan 订阅端点（/step_plan/v1）不支持
 // step-audio-2 系列模型，不要作为默认值。
 export const DEFAULT_STEPFUN_REALTIME_URL = 'wss://api.stepfun.com/v1/realtime'
+export const DEFAULT_MINICPM_O_REALTIME_URL = 'ws://127.0.0.1:8006/v1/realtime?mode=audio'
 
 const PROVIDERS = Object.freeze({
   dashscope: Object.freeze({
@@ -41,8 +42,13 @@ const PROVIDERS = Object.freeze({
   }),
   'speech-to-speech': Object.freeze({
     key: 'speech-to-speech',
-    label: 'Hugging Face Speech-to-Speech',
+    label: 'Speech-to-Speech',
     aliases: Object.freeze(['s2s']),
+  }),
+  'minicpm-o': Object.freeze({
+    key: 'minicpm-o',
+    label: 'ModelBest',
+    aliases: Object.freeze(['minicpmo']),
   }),
 })
 
@@ -138,11 +144,21 @@ export function resolveRealtimeFrontendConfiguration(env = process.env) {
     || clean(env.S2S_REALTIME_URL)
     || provider === 'speech-to-speech'
   )
+  const miniCpmORealtimeUrl = withoutTrailing(
+    env.MINICPM_O_REALTIME_URL || DEFAULT_MINICPM_O_REALTIME_URL,
+    /\/+$/,
+  )
+  const miniCpmOAuthToken = clean(env.MINICPM_O_AUTH_TOKEN)
+  const miniCpmOConfigured = Boolean(
+    clean(env.MINICPM_O_REALTIME_URL) || provider === 'minicpm-o'
+  )
   const configured = provider === 'dashscope'
     ? Boolean(dashscopeApiKey)
     : provider === 'stepfun'
     ? Boolean(stepfunApiKey)
-    : speechToSpeechConfigured
+    : provider === 'speech-to-speech'
+      ? speechToSpeechConfigured
+      : miniCpmOConfigured
   const identity = provider === 'dashscope'
     ? {
         provider,
@@ -159,11 +175,17 @@ export function resolveRealtimeFrontendConfiguration(env = process.env) {
         voice: stepfunVoice,
         credential: stepfunApiKey,
       }
-    : {
-        provider,
-        endpoint: speechToSpeechRealtimeUrl,
-        credential: speechToSpeechAuthToken,
-      }
+    : provider === 'speech-to-speech'
+      ? {
+          provider,
+          endpoint: speechToSpeechRealtimeUrl,
+          credential: speechToSpeechAuthToken,
+        }
+      : {
+          provider,
+          endpoint: miniCpmORealtimeUrl,
+          credential: miniCpmOAuthToken,
+        }
   const signature = createHash('sha256')
     .update(JSON.stringify(identity))
     .digest('hex')
@@ -184,6 +206,9 @@ export function resolveRealtimeFrontendConfiguration(env = process.env) {
     speechToSpeechRealtimeUrl,
     speechToSpeechAuthToken,
     speechToSpeechConfigured,
+    miniCpmORealtimeUrl,
+    miniCpmOAuthToken,
+    miniCpmOConfigured,
     missingConfigurationMessage: provider === 'dashscope'
       ? '缺少 DASHSCOPE_API_KEY。请运行 qwenaudio config 查看配置文件位置。'
       : provider === 'stepfun'

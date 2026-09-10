@@ -19,6 +19,10 @@ import {
   voiceConversationMessageId,
   voiceEventBelongsToTurn,
 } from './projections/voice-transcript'
+import {
+  mergeToolCallDebug,
+  shouldRefreshMemoryForToolCall,
+} from './projections/tool-call-debug'
 import { cockpitScreenForProgress } from './projections/cockpit-activity'
 import {
   COCKPIT_VOICE_IDS,
@@ -36,8 +40,15 @@ const INITIAL_CAR_STATE = {
   windowRR: 0,
   sunroof: 0,
   headlights: 0,
+  flashLightsCount: 0,
+  frontTrunk: 0,
+  rearTrunk: 0,
+  chargePort: 0,
+  charging: 0,
   ac: 1,
   acTemp: 25.0,
+  passengerTemp: 25.0,
+  rearTemp: 25.0,
   acMode: 'cool',
   acFan: 3,
 }
@@ -76,6 +87,12 @@ function createClientId() {
   return id
 }
 
+function cockpitIdFromLocation() {
+  return new URLSearchParams(window.location.search).get('cockpitId')
+    || import.meta.env.VITE_COCKPIT_ID
+    || 'default'
+}
+
 function getStoredChoice(key, fallback, validValues) {
   const value = localStorage.getItem(key)
   return validValues.includes(value) ? value : fallback
@@ -94,7 +111,7 @@ function parseHash() {
 
 export default function App() {
   const [clientId, setClientId] = useState(() => getClientId())
-  const cockpitId = import.meta.env.VITE_COCKPIT_ID || 'default'
+  const cockpitId = cockpitIdFromLocation()
   const {
     state: cockpitState,
     progress: cockpitProgress,
@@ -205,7 +222,7 @@ export default function App() {
     } else if (part === 'sunroof') {
       runCockpitCommand('vehicle_sunroof_control', { action })
     } else if (part === 'headlights') {
-      runCockpitCommand('vehicle_headlights_control', { action })
+      runCockpitCommand('vehicle_light_control', { action, light: 'headlights' })
     }
   }, [carState, runCockpitCommand])
 
@@ -270,9 +287,15 @@ export default function App() {
         thinkingMs: msg.thinkingMs || 1,
         debug: {
           ...(msg.debug || {}),
-          tool_calls: [...(msg.debug?.tool_calls || []), event.toolCall],
+          tool_calls: mergeToolCallDebug(
+            msg.debug?.tool_calls || [],
+            event.toolCall,
+          ),
         },
       }))
+      if (shouldRefreshMemoryForToolCall(event.toolCall)) {
+        void loadMemories()
+      }
       return
     }
 
@@ -341,7 +364,7 @@ export default function App() {
         voiceAssistantMessageIdRef.current = null
       }
     }
-  }, [])
+  }, [loadMemories])
 
   const handleConversationRecovery = useCallback((messages) => {
     voiceAssistantMessageIdRef.current = null

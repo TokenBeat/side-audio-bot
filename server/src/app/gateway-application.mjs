@@ -1,9 +1,10 @@
 import express from 'express'
+import { PERMISSION_DECISIONS } from '../core/work-authorization.mjs'
 import { createServer } from 'http'
 import { randomUUID } from 'node:crypto'
 import { resolve } from 'path'
 import { agent as defaultAgent } from '../agent/agent-client.mjs'
-import { BackendAvailability } from '../agent/backend-availability.mjs'
+import { BackendAvailability } from '../backend/availability.mjs'
 import { BackendWorkRuntime } from '../backend/backend-work-runtime.mjs'
 import { config as defaultConfig } from '../core/config.mjs'
 import { logger as defaultLogger, runWithLogContext } from '../core/logger.mjs'
@@ -12,27 +13,31 @@ import { InputAssetRegistry } from '../voice/input-asset-registry.mjs'
 import { IdentityManager } from '../core/identity.mjs'
 import { FrontendNotesStore } from '../conversation/frontend-notes.mjs'
 import { MemoryAudit } from '../conversation/memory-audit.mjs'
-import {
-  MemoryExtractor,
-  createExtractorLlmCall,
-} from '../conversation/memory-extractor.mjs'
-import { FrontendMemoryService } from '../conversation/frontend-memory-service.mjs'
-import { MarkdownContextStore } from '../conversation/markdown-context-store.mjs'
-import { FrontendMemoryRuntime } from '../conversation/memory-runtime.mjs'
+import { MemoryExtractor } from '../conversation/memory/learning/extractor.mjs'
+import { PreferenceCandidateStore } from '../conversation/memory/learning/preference-candidate-store.mjs'
+import { PreferenceCandidatePool } from '../conversation/memory/learning/preference-candidates.mjs'
+import { PreferencePromoter } from '../conversation/memory/learning/preference-promoter.mjs'
+import { ProfileObserver } from '../conversation/memory/learning/profile-observer.mjs'
+import { FrontendMemoryRuntime } from '../conversation/memory/runtime.mjs'
+import { createConfiguredMemoryProvider } from './memory-provider-factory.mjs'
 import { SessionConversationHistory } from './session-conversation-history.mjs'
-import { PreferenceCandidateStore } from '../conversation/preference-candidate-store.mjs'
-import { PreferenceCandidatePool } from '../conversation/preference-candidates.mjs'
-import { PreferencePromoter } from '../conversation/preference-promoter.mjs'
-import { ProfileObserver } from '../conversation/profile-observer.mjs'
 import { SessionDigestPool } from '../conversation/session-digest.mjs'
 import { SessionSummariser } from '../conversation/session-summariser.mjs'
 import {
-  DomainImportError,
-  DomainLibrary,
-  classifySource,
-} from '../domain/domain-library.mjs'
-import { DomainSummariser } from '../domain/domain-summariser.mjs'
-import { enforceSameOrigin } from '../core/request-security.mjs'
+  createOpenAiCompatibleTextCall,
+} from '../providers/llm/openai-compatible-chat.mjs'
+import {
+  KnowledgeLibrary,
+} from '../knowledge/local-library.mjs'
+import { KnowledgeSummariser } from '../knowledge/local-summariser.mjs'
+import { enforceSameOrigin, isAllowedOrigin } from '../core/request-security.mjs'
+import {
+  GatewayAccessManager,
+  GatewayDeviceRegistry,
+  parseGatewayAccessKeys,
+} from '../access/gateway-access.mjs'
+import { gatewayBrowserPairingPage } from '../access/browser-pairing-page.mjs'
+import { GatewayPublicEndpointService } from '../access/gateway-public-endpoint.mjs'
 import {
   GATEWAY_CAPABILITIES,
   GATEWAY_PROTOCOL_VERSION,
@@ -43,12 +48,10 @@ import {
   describeActiveRealtime,
 } from '../voice/realtime-provider.mjs'
 import { InputArbitration } from '../voice/input-arbitration.mjs'
-import { SessionPermissionPolicy } from '../voice/session-permission-policy.mjs'
-import {
-  taskManager as defaultTaskManager,
-  taskStore as defaultTaskStore,
-  taskSessionJournal as defaultTaskSessionJournal,
-} from '../task/task-manager.mjs'
+import { PermissionPolicy } from '../task/permission-policy.mjs'
+import { TaskManager } from '../task/task-manager.mjs'
+import { TaskStore } from '../task/task-store.mjs'
+import { SessionJournalRegistry } from '../session/session-journal-registry.mjs'
 import { ReminderScheduler } from '../task/reminder-scheduler.mjs'
 import { webDistributionPath } from '../core/install-paths.mjs'
 import { installOfflineNotifications } from './offline-notifications.mjs'
@@ -56,8 +59,11 @@ import {
   FrontendRetrievalRuntime,
 } from '../frontend/retrieval/frontend-retrieval-runtime.mjs'
 import { createWebSearchProvider } from '../providers/search/factory.mjs'
-import { FrontendKnowledgeRuntime } from '../frontend/knowledge/knowledge-runtime.mjs'
-import { LocalDomainKnowledgeProvider } from '../frontend/knowledge/local-domain-provider.mjs'
+import { FrontendKnowledgeRuntime } from '../frontend/knowledge/runtime.mjs'
+import { LocalKnowledgeProvider } from './knowledge/local-provider.mjs'
+import { AgentDocumentConverter } from './knowledge/document-converter.mjs'
+import { KnowledgeLibraryService } from './knowledge/library-service.mjs'
+import { supportsKnowledgeManagement } from '../frontend/knowledge/provider.mjs'
 import { assertFrontendToolSource } from '../frontend/tools/frontend-tool-source.mjs'
 import { FrontendMcpClient } from '../providers/mcp/frontend-mcp-client.mjs'
 import {
@@ -76,6 +82,10 @@ import {
 import {
   projectGatewayTaskEventForFormat,
 } from '../transport/agui-event-projector.mjs'
+import {
+  gatewayDeviceConnectionResponse,
+  parseGatewayConnectionEndpoint,
+} from '../access/device-connection.mjs'
 import { replaySession } from '../session/session-replay.mjs'
 import { GatewayClientCommandRuntime } from '../client/client-command-runtime.mjs'
 import {
@@ -90,8 +100,8 @@ export function createGatewayApplication({
   backendRuntime = null,
   conversationSync = defaultConversationSync,
   inputAssets = null,
-  taskManager = defaultTaskManager,
-  taskStore = defaultTaskStore,
+  taskManager = null,
+  taskStore = null,
   logger = defaultLogger,
   parentPort = process.parentPort,
   autoStart = true,
@@ -106,6 +116,7 @@ export function createGatewayApplication({
   // Compatibility alias for embedders that adopted the original injection name.
   knowledgeRetrievalProvider = null,
   frontendKnowledge = null,
+  knowledgeRuntimeOptions = {},
   frontendMcp = undefined,
   frontendOpenApi = undefined,
   sessionJournal = null,
@@ -115,9 +126,34 @@ export function createGatewayApplication({
   clientEventRouter = null,
   clientEventDefinitions = [],
   spawnThinkingDescription = '',
+  gatewayAccess = null,
+  publicEndpoint = undefined,
 } = {}) {
 const workBackend = backendRuntime || new BackendWorkRuntime({ backend: agent })
-const sessionJournalRuntime = sessionJournal || defaultTaskSessionJournal
+const sessionJournalRuntime = sessionJournal || new SessionJournalRegistry({
+  directory: resolve(config.stateDirectory, 'sessions'), logger,
+})
+taskStore ||= taskManager?.repository?.store || new TaskStore({
+  filePath: config.taskStatePath,
+  onWarning: warning => logger.warn('task.persistence_warning', { warning }),
+})
+taskManager ||= new TaskManager({
+  store: taskStore, logger, sessionJournal: sessionJournalRuntime,
+  maxConcurrent: config.taskMaxConcurrent,
+  maxConcurrentPerOwner: config.taskMaxConcurrentPerOwner,
+  terminalTtlMs: config.taskTerminalTtlMs,
+  pendingNotificationTtlMs: config.taskPendingNotificationTtlMs,
+  maxTerminalTasksPerOwner: config.maxTerminalTasksPerOwner,
+  scheduledTaskTimeoutMs: config.scheduledTaskTimeoutMs,
+})
+const permissionPolicy = new PermissionPolicy({
+  taskManager,
+  ttlMs: config.conversationSessionTtlMs,
+  maxSessions: config.maxConversationSessions,
+})
+const respondAuthorization = (taskId, id, decision, options) => (
+  agent.respondAuthorization(taskId, id, decision, options)
+)
 const conversationHistoryRuntime = conversationHistory || new SessionConversationHistory({
   conversationSync,
   sessionJournal: sessionJournalRuntime,
@@ -144,6 +180,7 @@ const frontendMcpRuntime = frontendMcp === undefined
       configuration: loadFrontendMcpConfiguration({
         filePath: config.frontendMcpConfigPath || '',
       }),
+      logger,
     })
   : frontendMcp
 const frontendOpenApiRuntime = frontendOpenApi === undefined
@@ -187,6 +224,20 @@ const identityManager = new IdentityManager({
   mode: config.identityMode,
   personalOwnerId: config.personalOwnerId,
 })
+const gatewayAccessRuntime = gatewayAccess || new GatewayAccessManager({
+  identityManager,
+  secret: config.authSecret,
+  configuredKeys: parseGatewayAccessKeys({
+    accessToken: config.gatewayAccessToken,
+    accessKeys: config.gatewayAccessKeys,
+    personalOwnerId: config.personalOwnerId,
+  }),
+  deviceRegistry: new GatewayDeviceRegistry({
+    filePath: config.gatewayDeviceStatePath,
+    onWarning: warning => logger.warn('gateway_access.persistence_warning', { warning }),
+  }),
+  personalOwnerId: config.personalOwnerId,
+})
 // 麦克风抢占控制面：外部宿主（输入法、平台应用）需要录音时通过
 // /api/input/suspend 宣告，Gateway 责成所有客户端停采；持有过期自动恢复。
 const inputArbitration = new InputArbitration({ logger })
@@ -227,30 +278,11 @@ conversationSync.configureRetention({
   sessionTtlMs: config.conversationSessionTtlMs,
   maxSessions: config.maxConversationSessions,
 })
-// The built-in Markdown provider preserves the existing USER.md/MEMORY.md
-// behaviour. Embedders can replace the entire persistence boundary without
-// changing Realtime, extraction, or tool handling code.
 let defaultMemoryProvider = null
 if (memoryProvider === undefined && !frontendMemory) {
-  const userDocuments = new MarkdownContextStore({
-    filePath: config.userModelPath,
-    scope: 'user',
-    personalOwnerId: config.personalOwnerId,
-    maxChars: 6000,
-    template: '# USER',
-    onWarning: warning => logger.warn('user_model.persistence_warning', { warning }),
-  })
-  const memoryDocuments = new MarkdownContextStore({
-    filePath: config.frontendMemoryPath,
-    scope: 'memory',
-    personalOwnerId: config.personalOwnerId,
-    maxChars: 8000,
-    template: '# MEMORY',
-    onWarning: warning => logger.warn('memory.persistence_warning', { warning }),
-  })
-  defaultMemoryProvider = new FrontendMemoryService({
-    userStore: userDocuments,
-    memoryStore: memoryDocuments,
+  defaultMemoryProvider = createConfiguredMemoryProvider({
+    config,
+    logger,
   })
 }
 const memoryProviderRuntime = memoryProvider === undefined
@@ -270,7 +302,9 @@ taskManager.configureScheduledTaskRunner(
     turnId: context.turnId,
     taskId: context.taskId,
     signal: context.signal,
-    onEvent: context.onEvent,
+    onEvent: event => permissionPolicy.forwardBackendEvent(
+      context, event, context.onEvent, respondAuthorization,
+    ),
   }),
 )
 // ReminderScheduler: setTimeout-driven, no polling. Handles overdue
@@ -290,32 +324,39 @@ const notesStore = new FrontendNotesStore({
   ownerTtlMs: config.frontendMemoryOwnerTtlMs,
   onWarning: warning => logger.warn('notes.persistence_warning', { warning }),
 })
-// Invisible memory (issue #92): after a voice session closes, a lightweight
-// text model reconciles explicit user directives and durable facts through the
-// same context service used by the realtime memory tool.
-// Without an API key createExtractorLlmCall returns null
+// Invisible memory (issue #92): the default Markdown provider uses a
+// lightweight text model after a voice session closes. Providers advertising
+// sessionObservation own that lifecycle themselves, so two independent
+// learners can never write conflicting memories from the same conversation.
+// Without an API key createOpenAiCompatibleTextCall returns null
 // and the extractor stays silently disabled; explicit memories are
 // unaffected. ASSISTANT.md is never exposed as a writable document.
 const memoryAudit = new MemoryAudit({
   filePath: config.memoryAuditPath,
   onWarning: warning => logger.warn('memory.audit_warning', { warning }),
 })
-// 记忆类模型调用共用一套凭据与轻量文本模型；没有 API key 时为 null，
-// 依赖它的模块各自静默禁用，本地纯语音链路不受影响。
-const memoryLlmCall = config.memoryAutoEnabled
-  ? createExtractorLlmCall({
+// 后台轻量分析共用一套文本模型调用；没有 API key 时为 null，依赖它的
+// 记忆学习、会话摘要和资料摘要模块各自静默禁用，本地纯语音链路不受影响。
+const textModelCall = config.memoryAutoEnabled
+  ? createOpenAiCompatibleTextCall({
       baseUrl: config.memoryBaseUrl,
       apiKey: config.memoryApiKey,
       model: config.memoryModel,
     })
   : null
-const memoryExtractor = new MemoryExtractor({
-  memoryService: frontendMemoryRuntime,
-  conversationSync,
-  audit: memoryAudit,
-  llmCall: memoryLlmCall,
-  logger,
-})
+const providerOwnsSessionObservation = (
+  typeof frontendMemoryRuntime?.ownsSessionObservation === 'function'
+  && frontendMemoryRuntime.ownsSessionObservation() === true
+)
+const memoryExtractor = providerOwnsSessionObservation
+  ? null
+  : new MemoryExtractor({
+      memoryService: frontendMemoryRuntime,
+      conversationSync,
+      audit: memoryAudit,
+      llmCall: textModelCall,
+      logger,
+    })
 // 偏好自更新：观察器从刚结束的会话里推断画像信号 → 槽位池积累跨会话确认 →
 // 攒够后由晋升器写入 USER.md 的观察推断段。槽位池必须落盘，否则重启即清零、
 // 跨会话确认永远攒不满。观察器需要模型，没有 API key 时它为 null，
@@ -323,7 +364,7 @@ const memoryExtractor = new MemoryExtractor({
 let preferenceCandidates = null
 let preferencePromoter = null
 let profileObserver = null
-if (config.preferenceLearningEnabled) {
+if (config.preferenceLearningEnabled && !providerOwnsSessionObservation) {
   preferenceCandidates = new PreferenceCandidatePool({
     store: new PreferenceCandidateStore({
       filePath: config.preferenceCandidatePath,
@@ -339,12 +380,12 @@ if (config.preferenceLearningEnabled) {
     audit: memoryAudit,
     logger,
   })
-  profileObserver = memoryLlmCall
+  profileObserver = textModelCall
     ? new ProfileObserver({
         candidatePool: preferenceCandidates,
         conversationSync,
         audit: memoryAudit,
-        llmCall: memoryLlmCall,
+        llmCall: textModelCall,
         logger,
       })
     : null
@@ -360,12 +401,12 @@ if (config.sessionDigestEnabled) {
     filePath: config.sessionDigestPath,
     onWarning: warning => logger.warn('session_digest.persistence_warning', { warning }),
   })
-  sessionSummariser = memoryLlmCall
+  sessionSummariser = textModelCall
     ? new SessionSummariser({
         digestPool: sessionDigests,
         conversationSync,
         audit: memoryAudit,
-        llmCall: memoryLlmCall,
+        llmCall: textModelCall,
         logger,
         // 把本场派过的活沉淀进摘要。排除 control（「查一下那个任务的进展」这个
         // 动作本身）与 reminder（未来要做的事，不属于「做过什么」）。
@@ -377,119 +418,66 @@ if (config.sessionDigestEnabled) {
       })
     : null
 }
-// 领域资料库：用户导入的手册 / 规章 / 教材。资料本体复制到后端共享 workspace
-// 下的 domain/，前端只留一份带摘要的清单 —— 检索与读原文由后端拿着路径自己做。
-// 摘要器没有 API key 时为 null：资料照样能导入并交给后端，只是清单里没有
-// 「这是什么」那一句，这是刻意的降级顺序。
+// 内置资料存储：用户导入的手册 / 规章 / 教材。资料本体保存在共享 knowledge/documents/
+// 目录，Provider 直接读取 Markdown 片段完成基础检索；后台 Agent 只可作为复杂
+// 文档入库时的隔离转换器。
 let domainLibrary = null
 let domainSummariser = null
 if (config.domainLibraryEnabled) {
-  domainLibrary = new DomainLibrary({
+  domainLibrary = new KnowledgeLibrary({
     documentDirectory: config.domainDocumentDirectory,
     indexPath: config.domainIndexPath,
     onWarning: warning => logger.warn('domain.persistence_warning', { warning }),
   })
-  domainSummariser = memoryLlmCall
-    ? new DomainSummariser({
+  domainSummariser = textModelCall
+    ? new KnowledgeSummariser({
         library: domainLibrary,
         audit: memoryAudit,
-        llmCall: memoryLlmCall,
+        llmCall: textModelCall,
         logger,
       })
     : null
 }
 
 // 知识检索 Provider 的装配放在资料库之后，因为本机资料库可以直接作为一个
-// Provider 用（见 frontend/knowledge/local-domain-provider.mjs）。
+// Provider 使用（见 app/knowledge/local-provider.mjs）。
 //
 // 优先级：宿主显式注入 > 本机资料库兜底。一个 Gateway 只挂一个 Provider ——
 // 这是 Provider 模式的正常语义：用户配了企业知识服务说明他已有更完整的方案，
 // 那时不该再用这个轻量实现去覆盖它。真要两者并存，宿主自己写一层把两个
 // Provider 包起来（按 knowledgeBaseIds 路由或合并结果），那是应用层的自由。
+const canConvertDocuments = typeof workBackend.runIsolated === 'function'
+  && (backendRuntime != null || agent.describe?.()?.enabled !== false)
 const knowledgeProviderRuntime = knowledgeProvider
   || knowledgeRetrievalProvider
-  || (domainLibrary ? new LocalDomainKnowledgeProvider({ library: domainLibrary }) : null)
+  || (domainLibrary ? new LocalKnowledgeProvider({
+      library: domainLibrary,
+      summariser: domainSummariser,
+      documentConverter: canConvertDocuments
+        ? new AgentDocumentConverter({ backendRuntime: workBackend })
+        : null,
+    }) : null)
 const frontendKnowledgeRuntime = frontendKnowledge || (knowledgeProviderRuntime
-  ? new FrontendKnowledgeRuntime({ provider: knowledgeProviderRuntime })
+  ? new FrontendKnowledgeRuntime({
+      ...(knowledgeRuntimeOptions && typeof knowledgeRuntimeOptions === 'object'
+        ? knowledgeRuntimeOptions
+        : {}),
+      provider: knowledgeProviderRuntime,
+    })
   : null)
+const knowledgeLibrary = knowledgeProviderRuntime
+  && supportsKnowledgeManagement(knowledgeProviderRuntime)
+  ? new KnowledgeLibraryService({
+      provider: knowledgeProviderRuntime,
+      taskManager,
+    })
+  : null
 const app = express()
-// 资料条目对外的形状。fingerprint 是内部去重用的，不该出现在 API 里；
-// path 要给出来 —— 它就是交给后端 Agent 的那个地址，是这套机制的用处所在。
-const publicDomainEntry = entry => ({
-  id: entry.id,
-  title: entry.title,
-  gist: entry.gist,
-  sections: entry.sections,
-  path: entry.path,
-  filename: entry.filename,
-  bytes: entry.bytes,
-  imported_at: entry.importedAt,
-  source: entry.source,
-  summarised: entry.summarised,
-})
-
-// 派一次后台转换：后端把 PDF / Word 的文字提取出来写成 Markdown，写完由这里
-// 收录。走普通后台任务，因此进度、通知、取消全部复用既有机制。
-//
-// 收录这一步刻意放在 runner 里而不是任务完成事件里：这样「转换成功」与
-// 「已收录」是同一件事，不存在转好了但没收进来的中间态。
-function enqueueDomainConversion({ ownerId, sourcePath, target }) {
-  const objective = [
-    `把「${sourcePath}」里的文字内容完整提取出来，原样写入「${target.path}」。`,
-    '要求：保留原文措辞、标题层级与条目顺序，不要概括、不要改写、不要补充说明、不要翻译。',
-    '若文件是扫描件或加密件而无法提取文字，不要编造内容，直接说明原因。',
-    '写好之后只回复一句确认，不要把提取到的正文贴回来。',
-  ].join('\n')
-  return taskManager.create({
-    objective,
-    ownerId,
-    // 与后台活共用一条泳道：转换是一次普通的后台执行，不该和用户派的活抢并发。
-    laneKey: `backend:${ownerId}`,
-    laneLimit: 1,
-    runner: async (_ignored, { onEvent, signal, taskId }) => {
-      // 必须经 BackendPort（workBackend）而不是直接摸具体后台实现 —— 换适配器时
-      // 这里不该跟着改。参数形状与上面的 configureScheduledTaskRunner 保持一致。
-      //
-      // 不传 workingDirectory：BackendPort 的 submit 契约只接受
-      // { id, ownerId, objective, instruction, inputParts }，没有工作目录这一项。
-      // 目标位置靠 objective 里的绝对路径表达（conversionTarget 返回的 path 是
-      // join(documentDirectory, filename)），所以后端不依赖 cwd 也能写对地方。
-      const result = await workBackend.run({
-        objective,
-      }, { ownerId, taskId, signal, onEvent })
-
-      // 后端说完成不等于真的写了 —— 以文件系统为准，不以它的回话为准。
-      let entry
-      try {
-        entry = domainLibrary.import({ ownerId, sourcePath: target.path })
-      } catch (error) {
-        throw new Error(
-          `后台没有产出可用的文本文件（${error.message}）。`
-          + '这个文件可能是扫描件或加密件，请先自行转成 Markdown 再导入。',
-        )
-      }
-      const summarised = domainSummariser
-        ? await domainSummariser.maybeRun({ ownerId, id: entry.id })
-        : null
-      const document = publicDomainEntry(summarised || entry)
-      return {
-        content: `已把《${document.title}》收进资料库。`,
-        metadata: { domainDocument: document, backendReply: result?.content || '' },
-      }
-    },
-  })
-}
-const permissionPolicy = new SessionPermissionPolicy({
-  ttlMs: config.conversationSessionTtlMs,
-  maxSessions: config.maxConversationSessions,
-})
 const runtimeCommands = clientCommandRuntime || new GatewayClientCommandRuntime({
   taskManager,
   backendRuntime: workBackend,
   conversationHistory: conversationHistoryRuntime,
-  respondAuthorization: (taskId, id, decision, options) => (
-    agent.respondAuthorization(taskId, id, decision, options)
-  ),
+  respondAuthorization,
   respondInput: (taskId, id, response, options) => (
     agent.respondInput(taskId, id, response, options)
   ),
@@ -504,11 +492,98 @@ const gatewayEventRouter = clientEventRouter || new GatewayEventRouter({
     ],
   }),
 })
+const publicEndpointRuntime = publicEndpoint === undefined
+  ? new GatewayPublicEndpointService({
+      lan: config.lan,
+      lanHost: config.gatewayLanHost,
+      tailnet: config.tailnet,
+      logger,
+    })
+  : publicEndpoint
 
 app.disable('x-powered-by')
-app.use(enforceSameOrigin)
+app.use(express.json({ limit: '1mb' }))
+
+// This shell contains no Gateway data. It is the only application page that
+// can load before authentication; the pairing code remains in the URL fragment
+// and is therefore never sent in an HTTP request or access log.
+app.get('/c', (_req, res) => {
+  res.setHeader('cache-control', 'no-store')
+  res.setHeader('content-security-policy', "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'")
+  res.setHeader('referrer-policy', 'no-referrer')
+  return res.type('html').send(gatewayBrowserPairingPage())
+})
+
+// Legacy pairing authenticates with a short-lived, one-time ticket created by
+// a local Client. Native clients may omit Origin; browser Origins are checked
+// before the ticket is redeemed.
+app.post('/api/access/pair', (req, res) => {
+  if (req.headers.origin !== undefined && !isAllowedOrigin(req, {
+    allowedOrigins: config.allowedOrigins,
+    allowSecureSameOrigin: true,
+  })) {
+    return res.status(403).json({ error: 'origin not allowed' })
+  }
+  const paired = gatewayAccessRuntime.redeemPairingTicket(req.body?.code, {
+    device: req.body?.device,
+  })
+  if (!paired) {
+    return res.status(401).json({
+      error: 'pairing ticket is invalid or expired',
+      code: 'pairing_invalid',
+    })
+  }
+  const identity = {
+    ownerId: paired.device.ownerId,
+    access: 'remote',
+    credentialId: paired.credentialId,
+  }
+  gatewayAccessRuntime.issueCookie(res, identity, req)
+  return res.json({
+    access_token: paired.token,
+    owner_id: paired.device.ownerId,
+    device: paired.device,
+  })
+})
+
+// A direct connection QR opens the browser shell with the credential in the
+// fragment. Exchange it once for an HttpOnly cookie so the token never enters
+// browser storage, application URLs, or subsequent WebSocket messages.
+app.post('/api/access/session', (req, res) => {
+  if (!isAllowedOrigin(req, {
+    allowedOrigins: config.allowedOrigins,
+    allowSecureSameOrigin: true,
+    allowLanSameOrigin: true,
+  })) {
+    return res.status(403).json({ error: 'origin not allowed' })
+  }
+  const token = String(req.body?.token || '').trim()
+  const credential = token ? gatewayAccessRuntime.findCredential(token) : null
+  if (!credential) {
+    return res.status(401).json({
+      error: 'device credential is invalid or revoked',
+      code: 'device_credential_invalid',
+    })
+  }
+  const identity = {
+    ownerId: credential.ownerId,
+    access: 'remote',
+    credentialId: credential.tokenId || credential.id,
+    clientType: credential.type || '',
+  }
+  gatewayAccessRuntime.issueCookie(res, identity, req)
+  res.setHeader('cache-control', 'no-store')
+  return res.status(204).end()
+})
+
 app.use((req, res, next) => {
-  req.identity = identityManager.resolveHttp(req, res)
+  req.identity = gatewayAccessRuntime.resolveHttp(req, res)
+  if (!req.identity) {
+    return res.status(401).json({
+      error: 'Gateway access authentication required',
+      code: 'access_required',
+    })
+  }
   const requestId = randomUUID()
   res.setHeader('X-Request-Id', requestId)
   runWithLogContext({
@@ -516,6 +591,7 @@ app.use((req, res, next) => {
     ownerId: req.identity?.ownerId,
   }, next)
 })
+app.use(enforceSameOrigin)
 app.use((req, res, next) => {
   const startedAt = Date.now()
   res.once('finish', () => {
@@ -533,9 +609,91 @@ app.use((req, res, next) => {
   })
   next()
 })
-app.use(express.json({ limit: '1mb' }))
-
 let realtimeGateway
+
+app.post('/api/access/pairing-tickets', (req, res) => {
+  if (req.identity.access !== 'local') {
+    return res.status(403).json({ error: 'pairing tickets can only be created locally' })
+  }
+  const endpoint = publicEndpointRuntime?.status?.().endpoint?.url
+  if (!endpoint) {
+    return res.status(409).json({
+      error: '旧版配对需要使用 --lan 或 --tailnet 启动 Gateway',
+      code: 'gateway_public_url_required',
+    })
+  }
+  return res.status(201).json({
+    ...gatewayAccessRuntime.createPairingTicket({
+      ownerId: req.identity.ownerId,
+    }),
+    gatewayUrl: endpoint,
+  })
+})
+
+app.get('/api/access/devices', (req, res) => {
+  if (req.identity.access !== 'local') {
+    return res.status(403).json({ error: 'paired devices can only be managed locally' })
+  }
+  return res.json({ devices: gatewayAccessRuntime.deviceRegistry.list() })
+})
+
+app.post('/api/access/devices', (req, res) => {
+  if (req.identity.access !== 'local') {
+    return res.status(403).json({ error: 'device credentials can only be issued locally' })
+  }
+  let endpoint
+  try {
+    endpoint = req.body?.endpoint
+      ? parseGatewayConnectionEndpoint(req.body.endpoint)
+      : publicEndpointRuntime?.status?.().endpoint?.url
+  } catch (error) {
+    return res.status(400).json({
+      error: error.message,
+      code: error.code || 'gateway_connection_endpoint_invalid',
+    })
+  }
+  if (!endpoint) {
+    return res.status(409).json({
+      error: 'Gateway 没有可供客户端访问的 Endpoint；请使用 --lan、--tailnet，或在 pair 时传入 --endpoint',
+      code: 'gateway_connection_endpoint_required',
+    })
+  }
+  const issued = gatewayAccessRuntime.issueDeviceCredential({
+    ownerId: req.identity.ownerId,
+    // Direct issuance always allocates a fresh device identity. A caller may
+    // describe the client, but cannot rotate an existing record by reusing ID.
+    device: {
+      type: req.body?.device?.type,
+      label: req.body?.device?.label,
+    },
+  })
+  return res.status(201).json(gatewayDeviceConnectionResponse({ endpoint, issued }))
+})
+
+app.delete('/api/access/devices/:id', (req, res) => {
+  if (req.identity.access !== 'local') {
+    return res.status(403).json({ error: 'paired devices can only be managed locally' })
+  }
+  const credentialId = gatewayAccessRuntime.deviceRegistry.credentialId(req.params.id)
+  if (!gatewayAccessRuntime.deviceRegistry.revoke(req.params.id)) {
+    return res.status(404).json({ error: 'paired device not found' })
+  }
+  realtimeGateway?.disconnectCredential(credentialId)
+  return res.status(204).end()
+})
+
+function localGatewayOrigin(address) {
+  const configuredHost = String(config.host || '').trim().toLowerCase()
+  const host = ['localhost', '127.0.0.1', '::1'].includes(configuredHost)
+    ? configuredHost
+    : '127.0.0.1'
+  return new URL(`http://${host}:${address.port}`).origin
+}
+
+app.delete('/api/access/session', (req, res) => {
+  gatewayAccessRuntime.clearCookie(res, req)
+  return res.status(204).end()
+})
 
 app.get('/livez', (req, res) => {
   res.json({ ok: true, status: 'live' })
@@ -560,6 +718,12 @@ app.get('/api/health', (req, res) => {
     capabilities: GATEWAY_CAPABILITIES,
     gatewayInstanceId: process.env.QWEN_AUDIO_GATEWAY_INSTANCE_ID || null,
     gatewayStartedAt: process.env.QWEN_AUDIO_GATEWAY_STARTED_AT || null,
+    publicEndpoint: publicEndpointRuntime?.status?.() || {
+      mode: 'none',
+      state: 'disabled',
+      endpoint: null,
+      error: null,
+    },
     inputSuspension: inputArbitration.status(),
     voiceConfigured: realtime.configured,
     realtimeProvider: realtime.provider,
@@ -607,6 +771,7 @@ app.get('/api/health', (req, res) => {
     notes: notesStore.health(),
     taskStore: taskStore.health(),
     identityMode: config.identityMode,
+    gatewayAccess: gatewayAccessRuntime.describe(),
     voiceClients: realtimeGateway?.status() || {
       connected: 0,
       activeOwners: 0,
@@ -720,76 +885,58 @@ app.get('/api/tasks', (req, res) => {
 // 资料库。入口是「给一条本机路径」而不是上传字节流 —— 这是本地服务，用户手上
 // 本来就有文件，复制一份比经 base64 中转再落盘简单得多。web 端的按钮只要把
 // 选中文件的路径 POST 过来即可。
-app.get('/api/domain', (req, res) => {
-  if (!domainLibrary) {
+app.get('/api/domain', async (req, res, next) => {
+  if (!knowledgeLibrary) {
     res.status(404).json({ error: 'domain_library_disabled' })
     return
   }
-  res.json({
-    documents: domainLibrary.list(req.identity.ownerId).map(publicDomainEntry),
-  })
+  try {
+    res.json({
+      documents: await knowledgeLibrary.list({ ownerId: req.identity.ownerId }),
+    })
+  } catch (error) {
+    next(error)
+  }
 })
 
-app.post('/api/domain/import', async (req, res, next) => {
-  if (!domainLibrary) {
+app.post('/api/domain/import', (req, res, next) => {
+  if (!knowledgeLibrary) {
     res.status(404).json({ error: 'domain_library_disabled' })
     return
   }
-  const ownerId = req.identity.ownerId
-  const sourcePath = req.body?.path
+  try {
+    const { task, target } = knowledgeLibrary.startIngestion({
+      ownerId: req.identity.ownerId,
+      sourcePath: req.body?.path,
+    })
+    res.status(202).json({
+      status: 'ingesting',
+      task_id: task.id,
+      target,
+    })
+  } catch (error) {
+    next(error)
+  }
+})
 
-  // PDF / Word 先交给后端提取文字。刻意不让它把全文回传：模型的输出上限装不下
-  // 一份手册，而且「原样复述」正是它最不可靠的事 —— 结果会是摘要或改写，而我们
-  // 要的恰恰是原文保真。后端的 cwd 就是这个 workspace，让它直接写文件，
-  // 回一句写好了即可。
-  if (classifySource(sourcePath) === 'convertible') {
-    let target
-    try {
-      target = domainLibrary.conversionTarget({ ownerId, sourcePath })
-    } catch (error) {
-      if (error instanceof DomainImportError) {
-        res.status(400).json({ error: error.code, message: error.message })
-        return
-      }
-      return next(error)
-    }
-    const task = enqueueDomainConversion({ ownerId, sourcePath, target })
-    res.status(202).json({ status: 'converting', task_id: task.id, target: target.filename })
+app.delete('/api/domain/:id', async (req, res, next) => {
+  if (!knowledgeLibrary) {
+    res.status(404).json({ error: 'domain_library_disabled' })
     return
   }
-
-  let entry
   try {
-    entry = domainLibrary.import({ ownerId, sourcePath })
-  } catch (error) {
-    if (error instanceof DomainImportError) {
-      res.status(400).json({ error: error.code, message: error.message })
+    const result = await knowledgeLibrary.remove({
+      ownerId: req.identity.ownerId,
+      documentId: req.params.id,
+    })
+    if (!result?.removed) {
+      res.status(404).json({ error: 'not_found' })
       return
     }
-    return next(error)
+    res.json({ removed: result.document })
+  } catch (error) {
+    next(error)
   }
-  // 摘要要等：导入是用户点一下按钮的动作，它愿意等一次模型调用换一句
-  // 「这是什么」，而且紧接着的问答就可能用到。失败也照常返回已收下的条目。
-  const summarised = domainSummariser
-    ? await domainSummariser.maybeRun({ ownerId, id: entry.id })
-    : null
-  res.json({ document: publicDomainEntry(summarised || entry) })
-})
-
-app.delete('/api/domain/:id', (req, res) => {
-  if (!domainLibrary) {
-    res.status(404).json({ error: 'domain_library_disabled' })
-    return
-  }
-  const removed = domainLibrary.remove({
-    ownerId: req.identity.ownerId,
-    id: req.params.id,
-  })
-  if (!removed) {
-    res.status(404).json({ error: 'not_found' })
-    return
-  }
-  res.json({ removed: publicDomainEntry(removed) })
 })
 
 app.get('/api/timeline', (req, res) => {
@@ -885,9 +1032,9 @@ app.delete('/api/tasks/:id', async (req, res, next) => {
 
 app.post('/api/permissions/:id', async (req, res, next) => {
   const decision = String(req.body?.decision || '')
-  if (!['once', 'always', 'reject'].includes(decision)) {
+  if (!PERMISSION_DECISIONS.includes(decision)) {
     return res.status(400).json({
-      error: 'decision must be once, always, or reject',
+      error: 'decision must be task, always, or reject',
     })
   }
   try {
@@ -927,17 +1074,18 @@ app.get('/api/tasks/:id/events', (req, res) => {
 })
 
 const webDist = webDistributionPath()
-// Imported orb skins live under the config directory. The orb page fetches
-// `skins/<id>/...` relative to its own origin, so serving them here means a
-// host that points a window at the Gateway needs no separate asset server.
-// Static assets only, no fallback to index.html for missing files.
-app.use('/skins', express.static(resolve(config.configDirectory, 'skins'), {
-  index: false,
-  redirect: false,
-  dotfiles: 'ignore',
-  // Imports and removals must be visible on the next orb reload.
-  setHeaders: response => response.setHeader('cache-control', 'no-store'),
-}), (req, res) => res.status(404).json({ error: 'not found' }))
+// Desktop serves its own skins. An embedding host may explicitly share a
+// client-owned asset directory for read-only web hosting; Gateway never owns
+// or discovers skins in its data directories.
+if (config.webSkinsDirectory) {
+  app.use('/skins', express.static(config.webSkinsDirectory, {
+    index: false,
+    redirect: false,
+    dotfiles: 'ignore',
+    setHeaders: response => response.setHeader('cache-control', 'no-store'),
+  }))
+}
+app.use('/skins', (req, res) => res.status(404).json({ error: 'not found' }))
 app.use(express.static(webDist))
 app.get('*', (req, res) => res.sendFile(resolve(webDist, 'index.html')))
 app.use((error, req, res, next) => {
@@ -970,7 +1118,7 @@ const backendAvailability = new BackendAvailability({
 })
 backendAvailability.refresh()
 realtimeGateway = attachRealtimeGateway(server, {
-  identityManager,
+  identityManager: gatewayAccessRuntime,
   memoryService: frontendMemoryRuntime,
   memoryExtractor,
   preferencePromoter,
@@ -981,9 +1129,7 @@ realtimeGateway = attachRealtimeGateway(server, {
   notesStore,
   backendRuntime: workBackend,
   backendAvailability,
-  respondAuthorization: (taskId, id, decision, options) => (
-    agent.respondAuthorization(taskId, id, decision, options)
-  ),
+  respondAuthorization,
   respondInput: (taskId, id, response, options) => (
     agent.respondInput(taskId, id, response, options)
   ),
@@ -999,6 +1145,10 @@ realtimeGateway = attachRealtimeGateway(server, {
   taskAnnouncementFactory,
   clientCommandRuntime: runtimeCommands,
   clientEventRouter: gatewayEventRouter,
+  taskManager,
+  conversationSync,
+  config,
+  logger,
 })
 const start = ({ host = config.host, port = config.port } = {}) => {
   if (server.listening) return server
@@ -1023,6 +1173,7 @@ const start = ({ host = config.host, port = config.port } = {}) => {
       backend: agent.describe?.()?.protocol || config.agentProtocol || 'none',
       realtimeProvider,
     }, `qwen-audio-agent running at ${origin}`)
+    void publicEndpointRuntime?.start?.(localGatewayOrigin(address))
   })
   return server
 }
@@ -1034,6 +1185,7 @@ const close = () => {
     backendAvailability.close()
     unsubscribeOfflineNotifications?.()
     reminderScheduler?.close()
+    permissionPolicy.close()
     // A Gateway that stops serving cannot honour a resume, so held state must
     // not survive into the next run.
     inputArbitration.close()
@@ -1042,6 +1194,7 @@ const close = () => {
     await frontendOpenApiRuntime?.close?.()
     await frontendKnowledgeRuntime?.close?.()
     await frontendMemoryRuntime?.close?.()
+    await publicEndpointRuntime?.close?.()
     unsubscribeSessionTaskJournal?.()
     conversationHistoryRuntime.close?.()
     await sessionJournalRuntime.flush()
@@ -1081,7 +1234,9 @@ return {
     frontendOpenApi: frontendOpenApiRuntime,
     runtimeCommands,
     gatewayEventRouter,
+    publicEndpoint: publicEndpointRuntime,
     knowledgeProvider: knowledgeProviderRuntime,
+    knowledgeLibrary,
     identityManager,
     inputArbitration,
     inputAssets: inputAssetRegistry,

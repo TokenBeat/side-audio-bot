@@ -49,7 +49,8 @@ button:disabled {
 
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
+select:focus-visible,
+dialog:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -419,6 +420,12 @@ select {
 
 input::placeholder {
   color: var(--text-note);
+}
+
+input.fixed-model {
+  color: var(--text-secondary);
+  background: var(--page);
+  cursor: default;
 }
 
 input[type="search"]::-webkit-search-cancel-button {

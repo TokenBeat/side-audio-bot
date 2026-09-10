@@ -15,14 +15,14 @@ runtime behavior.
 The user talks to one qwen-audio assistant. Internally there are two qwen-audio-agent
 layers:
 
-1. **Realtime frontend** — full-duplex speech, simple direct answers, and basic
-   local time/memory tools.
+1. **Realtime frontend** — full-duplex speech, natural conversation, time and
+   memory, plus configurable lightweight tools such as retrieval.
 2. **Backend Agent** — one configured action Agent that handles requests
-   requiring tools, files, applications, code, device control, or multi-step
-   execution.
+   requiring operations in the user's environment, sustained execution, or
+   deliverable creation.
 
 The backend may be an ACP Agent such as OpenCode, OpenClaw, Qoder, Qwen Code,
-Kimi Code, or Pi; a remote A2A Agent; or a custom BackendPort adapter.
+MiniMax Code, Kimi Code, or Pi; a remote A2A Agent; or a custom BackendPort adapter.
 It may internally use tools, skills, agents, or other Sessions. Those are
 backend-private implementation details and do not create additional
 qwen-audio-agent layers. Protocol details remain inside ACP, A2A, or custom
@@ -60,23 +60,35 @@ item is sent into the configured BackendPort at a time.
 
 ## 3. Realtime boundary
 
-Realtime keeps a deliberately small tool set — few tools, low latency, no
-multi-step orchestration. The base tools are:
+Realtime may combine available tools to fulfill a bounded request; multiple
+tool calls alone do not require backend execution. Tools have two prompt-ownership categories:
 
-```text
-spawn_thinking
-schedule_reminder
-cancel_agent_task
-get_agent_task_status
-get_current_time
-memory
-notes
-```
+| Contract | Tools |
+| --- | --- |
+| Core contract | `spawn_thinking`, `get_agent_task_status`, `cancel_agent_task`, `respond_permission`, `respond_agent_input`, `get_current_time`, `memory` |
+| Optional capabilities | `web_search`, `fetch_url`, `knowledge`, `recall`, `notes`, `schedule_reminder`, `enter_sleep`; dynamic MCP tools are also configuration-dependent |
 
-The Gateway exposes one `respond_permission` tool for pending backend
-permissions and frontend external-tool approvals. The model answers the
-permission request; the Gateway routes `permission_id` to the backend Task or
-the frontend tool execution queue.
+The fixed `config/frontend-agent/PROMPT.md` may name only core-contract tools.
+It owns stable dialogue, work acknowledgement and results, cancellation,
+confirmation, and memory-persistence workflows. Optional tools carry their own
+purposes and invocation conditions; neither the fixed prompt nor core tools
+may refer back to them. Optional tools must not hard-code each other's names either.
+Field meanings and input rules belong in tool schemas; receipt- or delivery-specific
+instructions belong to the corresponding event. The Gateway enforces availability,
+permissions, and execution validation independently of model compliance.
+
+Core versus optional is a prompt-maintenance convention, not a runtime classification;
+the core-tool allowlist lives only in boundary tests. The registry stores tool definitions
+and optional, effective runtime policies such as capability requirements, result-size
+limits, and repeat handling. Tools need no group or execution-mode label. An unconfigured
+backend hides `spawn_thinking`; confirmation tools are exposed only for real pending
+requests. Even core-contract tools cannot be called when unavailable. Tests check the
+fixed prompt, tool references, and capability switches to keep new optional features
+out of core rules.
+
+The Gateway exposes `respond_permission` for pending backend permissions.
+The model answers the permission request; the Gateway resolves the request
+and its associated Task before forwarding the decision.
 
 `memory` maintains two ordinary Markdown documents through one flat interface. Each call is one
 atomic `read`, `append`, or `replace` operation. `replace` locates a unique source fragment, and
@@ -134,15 +146,21 @@ decision for a pending, owner-scoped permission request supplied by the
 Gateway. It may understand natural affirmative or negative wording such as
 “可以” or “不允许”, but it cannot invent consent without a current-turn user
 utterance, create a request, choose a tool, or modify a backend permission
-policy. The model replies with the Gateway-issued `permission_id`; backend
-requests also carry the public `task_id`. Raw backend authorization IDs and the
-permission source remain internal to the Gateway and Adapter.
-Replies use `once`, `always`, or `reject`: allow only the current operation,
-allow throughout the current frontend session, or reject only the current
-operation. `always` still uses the Gateway's frontend-session policy.
-The adapter selects the narrowest safe per-request backend option, and the
-Gateway automatically approves later requests in the same frontend session.
-This does not create a persistent backend authorization rule.
+policy. The model, cards, and Gateway share one short `permission_id`, without
+a separate model-facing alias. With one pending request, only `decision` is
+required; multiple requests require an explicit `permission_id`. An invalid ID
+never falls back to authorizing another request. Notifications retain `task_id`
+for context, but calls do not need to repeat it. Repeated confirmations in the
+same user turn reuse the receipt rather than expand its authorization scope.
+The Adapter privately maps raw ACP option IDs. The built-in ACP Adapter uses
+random short IDs instead of restarting a counter that could collide with old context.
+Replies use `task`, `always`, or `reject`: allow this Task and its subsequent
+operations, allow across Tasks in this frontend session, or reject the current
+operation. Gateway's task-layer PermissionPolicy is shared by voice, client commands,
+and scheduled work. It approves subsequent requests with BackendPort's per-operation
+`once` decision, including requests already queued for the approved Task. Task grants
+expire on completion, failure, or cancellation and never transfer to another Task.
+Neither scope creates a persistent backend rule or survives a Gateway restart.
 Protocol envelopes for permissions, progress, and restored context are owned
 exclusively by the Gateway. A model-authored lookalike is not an event, cannot
 enable its associated tool, and is not persisted into conversation history.
@@ -313,7 +331,7 @@ call.
 ## 8. Backend-internal capabilities
 
 For ACP backends that accept client-supplied MCP servers, including OpenCode,
-Qoder, Qwen Code, and Kimi Code, the Gateway injects the same five tools into the
+Qoder, Qwen Code, MiniMax Code, and Kimi Code, the Gateway injects the same five tools into the
 coordinator: Session list, start, send, status, and cancel. OpenClaw ACP does
 not accept client-supplied MCP servers, so the same coordination contract maps
 to OpenClaw's native Session tools. `session_start` and `session_send` return an
@@ -425,7 +443,7 @@ use the thin bootstrap entry while tests and future clients may supply isolated
 Agent, task, conversation, configuration, and logging services.
 
 The shared adapter usually owns one ACP stdio child and stops it with Gateway.
-OpenCode, Qoder, Qwen Code, and Kimi Code run directly as ACP agents; OpenCode may also
+OpenCode, Qoder, Qwen Code, MiniMax Code, and Kimi Code run directly as ACP agents; OpenCode may also
 start its native local Session UI service. `OPENCODE_BASE_URL` currently names
 that UI service, not a remote ACP execution endpoint, so OpenCode remains
 `owned`.

@@ -3,7 +3,7 @@ import {
   backendDefinition,
   normalizeBackendProtocol,
   resolveBackendOwnership,
-} from '../../shared/backend-catalog.mjs'
+} from '../../shared/backend/catalog.mjs'
 import {
   normalizeOrbSkinId,
   resolveOrbSkinId,
@@ -11,6 +11,7 @@ import {
 import {
   DEFAULT_DASHSCOPE_REALTIME_MODEL,
   DEFAULT_DASHSCOPE_REALTIME_URL,
+  DEFAULT_MINICPM_O_REALTIME_URL,
   DEFAULT_REALTIME_PROVIDER,
   DEFAULT_SPEECH_TO_SPEECH_REALTIME_URL,
   DEFAULT_STEPFUN_REALTIME_MODEL,
@@ -49,6 +50,8 @@ const DEFAULTS = {
   stepfunRealtimeVoice: '',
   speechToSpeechRealtimeUrl: '',
   speechToSpeechAuthToken: '',
+  miniCpmORealtimeUrl: '',
+  miniCpmOAuthToken: '',
   backendModel: '',
   backendOwnership: 'owned',
   backendUrl: '',
@@ -57,7 +60,7 @@ const DEFAULTS = {
   language: 'auto',
 }
 
-const SETTING_KEYS = {
+const CLIENT_SETTING_KEYS = {
   gatewayUrl: 'QWEN_AUDIO_AGENT_URL',
   orbStyle: 'QWEN_AUDIO_ORB_STYLE',
   orbSkin: 'QWEN_AUDIO_ORB_SKIN',
@@ -69,6 +72,18 @@ const SETTING_KEYS = {
   autoHideSeconds: 'QWEN_AUDIO_DESKTOP_AUTO_HIDE_SECONDS',
   wakeShortcut: 'QWEN_AUDIO_DESKTOP_WAKE_SHORTCUT',
   wakeWordEnabled: 'QWEN_AUDIO_WAKE_WORD_ENABLED',
+  language: 'QWEN_AUDIO_DESKTOP_LANGUAGE',
+}
+
+const CLIENT_ENVIRONMENT_KEYS = new Set(Object.values(CLIENT_SETTING_KEYS))
+
+export function clientSettingsPatch(settings) {
+  return Object.fromEntries(Object.entries(settings)
+    .filter(([key]) => Object.hasOwn(CLIENT_SETTING_KEYS, key)))
+}
+
+const SETTING_KEYS = {
+  ...CLIENT_SETTING_KEYS,
   dashscopeApiKey: 'DASHSCOPE_API_KEY',
   realtimeBaseUrl: 'QWEN_AUDIO_REALTIME_BASE_URL',
   realtimeProvider: 'QWEN_AUDIO_REALTIME_PROVIDER',
@@ -82,12 +97,13 @@ const SETTING_KEYS = {
   stepfunRealtimeVoice: 'STEPFUN_REALTIME_VOICE',
   speechToSpeechRealtimeUrl: 'SPEECH_TO_SPEECH_REALTIME_URL',
   speechToSpeechAuthToken: 'SPEECH_TO_SPEECH_AUTH_TOKEN',
+  miniCpmORealtimeUrl: 'MINICPM_O_REALTIME_URL',
+  miniCpmOAuthToken: 'MINICPM_O_AUTH_TOKEN',
   backendModel: 'QWEN_AUDIO_AGENT_BACKEND_MODEL',
   backendOwnership: 'QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP',
   backendUrl: 'QWEN_AUDIO_AGENT_BACKEND_URL',
   backendCredential: 'QWEN_AUDIO_AGENT_BACKEND_CREDENTIAL',
   nodePath: 'QWEN_AUDIO_AGENT_NODE_PATH',
-  language: 'QWEN_AUDIO_DESKTOP_LANGUAGE',
 }
 
 function configured(values, key, fallback) {
@@ -300,6 +316,16 @@ export function parseSettings(content = '', fallback = {}) {
       || DEFAULTS.speechToSpeechAuthToken,
     ),
   )
+  const configuredMiniCpmOUrl = configured(
+    values,
+    'MINICPM_O_REALTIME_URL',
+    fallback.MINICPM_O_REALTIME_URL || DEFAULTS.miniCpmORealtimeUrl,
+  )
+  const configuredMiniCpmOToken = configured(
+    values,
+    'MINICPM_O_AUTH_TOKEN',
+    fallback.MINICPM_O_AUTH_TOKEN || DEFAULTS.miniCpmOAuthToken,
+  )
   const realtimeModel = String(configured(
     values,
     'QWEN_AUDIO_REALTIME_MODEL',
@@ -397,6 +423,13 @@ export function parseSettings(content = '', fallback = {}) {
         : DEFAULTS.speechToSpeechRealtimeUrl),
     ).trim(),
     speechToSpeechAuthToken: String(configuredS2sToken || '').trim(),
+    miniCpmORealtimeUrl: String(
+      configuredMiniCpmOUrl
+      || (realtimeProvider === 'minicpm-o'
+        ? DEFAULT_MINICPM_O_REALTIME_URL
+        : DEFAULTS.miniCpmORealtimeUrl),
+    ).trim(),
+    miniCpmOAuthToken: String(configuredMiniCpmOToken || '').trim(),
     backendModel: String(configured(
       values,
       'QWEN_AUDIO_AGENT_BACKEND_MODEL',
@@ -425,6 +458,9 @@ export function normalizeSettings(settings = {}) {
   const requestedS2sUrl = String(
     settings.speechToSpeechRealtimeUrl
     ?? DEFAULTS.speechToSpeechRealtimeUrl,
+  ).trim()
+  const requestedMiniCpmOUrl = String(
+    settings.miniCpmORealtimeUrl ?? DEFAULTS.miniCpmORealtimeUrl,
   ).trim()
   const realtimeModel = String(
     settings.realtimeModel || DEFAULTS.realtimeModel,
@@ -518,6 +554,14 @@ export function normalizeSettings(settings = {}) {
       settings.speechToSpeechAuthToken
       ?? DEFAULTS.speechToSpeechAuthToken,
     ).trim(),
+    miniCpmORealtimeUrl: requestedMiniCpmOUrl
+      ? cleanRealtimeUrl(requestedMiniCpmOUrl, '')
+      : realtimeProvider === 'minicpm-o'
+        ? DEFAULT_MINICPM_O_REALTIME_URL
+        : '',
+    miniCpmOAuthToken: String(
+      settings.miniCpmOAuthToken ?? DEFAULTS.miniCpmOAuthToken,
+    ).trim(),
     backendModel: String(
       settings.backendModel ?? DEFAULTS.backendModel,
     ).trim(),
@@ -561,11 +605,14 @@ export function realtimeSettingsConfigured(settings = {}) {
       return false
     }
   }
+  const endpoint = provider === 'speech-to-speech'
+    ? settings.speechToSpeechRealtimeUrl
+    : settings.miniCpmORealtimeUrl
+  const fallback = provider === 'speech-to-speech'
+    ? DEFAULT_SPEECH_TO_SPEECH_REALTIME_URL
+    : DEFAULT_MINICPM_O_REALTIME_URL
   try {
-    return Boolean(cleanRealtimeUrl(
-      settings.speechToSpeechRealtimeUrl,
-      DEFAULT_SPEECH_TO_SPEECH_REALTIME_URL,
-    ))
+    return Boolean(cleanRealtimeUrl(endpoint, fallback))
   } catch {
     return false
   }
@@ -599,22 +646,27 @@ export function applySettingsEnvironment(settings = {}, env = process.env) {
   return env
 }
 
-export function updateSettingsContent(content = '', settings = {}) {
+// The form is unified; persistence is not. Gateway settings and client
+// preferences use separate files without duplicating validation or schemas.
+export function updateSettingsContent(content = '', settings = {}, { scope = 'all' } = {}) {
+  if (!['all', 'gateway', 'client'].includes(scope)) throw new TypeError('invalid settings scope')
+  const accepts = key => scope === 'all'
+    || (scope === 'client') === CLIENT_ENVIRONMENT_KEYS.has(key)
   const normalized = normalizeSettings(settings)
   const values = Object.fromEntries(
     Object.entries(SETTING_KEYS)
-      .filter(([field]) => settings[field] !== undefined)
+      .filter(([field, key]) => settings[field] !== undefined && accepts(key))
       .map(([field, key]) => [
         key,
         encoded(normalized[field]),
       ]),
   )
   const backend = backendDefinition(normalized.agentProtocol)
-  if (settings.backendUrl !== undefined && backend?.baseUrlEnvironment) {
+  if (scope !== 'client' && settings.backendUrl !== undefined && backend?.baseUrlEnvironment) {
     values[backend.baseUrlEnvironment] = encoded(normalized.backendUrl)
   }
   const credentialEnvironment = backend?.externalService?.credentialEnvironment
-  if (settings.backendCredential !== undefined && credentialEnvironment) {
+  if (scope !== 'client' && settings.backendCredential !== undefined && credentialEnvironment) {
     values[credentialEnvironment] = encoded(normalized.backendCredential)
   }
   const removed = new Set([
@@ -636,6 +688,7 @@ export function updateSettingsContent(content = '', settings = {}) {
   const lines = content.split(/\r?\n/).map(line => {
     const match = line.match(/^([A-Z][A-Z0-9_]*)\s*=/)
     const key = match?.[1]
+    if (key && !accepts(key)) return null
     if (key && legacy.has(key)) return null
     if (key && removed.has(key)) return null
     if (!key || !(key in values) || seen.has(key)) return line

@@ -1,19 +1,22 @@
 import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 import {
-  defaultBackendWorkspace,
   loadRuntimeEnvironment,
 } from '../../../shared/runtime-environment.mjs'
+import { defaultBackendWorkspace } from '../../../shared/runtime-paths.mjs'
 import {
   backendDefinition,
   backendNames,
   effectiveBackendPermissionMode,
   normalizeBackendProtocol,
   resolveBackendOwnership,
-} from '../../../shared/backend-catalog.mjs'
+} from '../../../shared/backend/catalog.mjs'
 import {
   resolveRealtimeFrontendConfiguration,
 } from '../../../shared/realtime-provider-catalog.mjs'
+import {
+  normalizeMemoryProviderSelection,
+} from '../../../shared/memory-provider-catalog.mjs'
 import {
   loadFrontendProfile,
   resolveFrontendProfileConfiguration,
@@ -36,10 +39,31 @@ export function numberSetting(value, fallback, {
   return Math.min(max, Math.max(min, parsed))
 }
 
+function featureEnabled(value) {
+  return !['0', 'false', 'no', 'off'].includes(
+    String(value || '').trim().toLowerCase(),
+  )
+}
+
+export function resolveDisabledFrontendTools(env = process.env) {
+  return [
+    ...(!featureEnabled(env.QWEN_AUDIO_SCHEDULE_TOOL_ENABLED)
+      ? ['schedule_reminder'] : []),
+    ...(!featureEnabled(env.QWEN_AUDIO_WEB_TOOLS_ENABLED)
+      ? ['web_search', 'fetch_url'] : []),
+    ...(!featureEnabled(env.QWEN_AUDIO_KNOWLEDGE_TOOL_ENABLED)
+      ? ['knowledge'] : []),
+    ...(!featureEnabled(env.QWEN_AUDIO_NOTES_TOOL_ENABLED)
+      ? ['notes'] : []),
+    ...(!featureEnabled(env.QWEN_AUDIO_RECALL_TOOL_ENABLED)
+      ? ['recall'] : []),
+  ]
+}
+
 export function resolveBackendWorkspace(
   protocol,
   env = process.env,
-  configDirectory = runtimeEnvironment.dataDirectory,
+  dataDirectory = runtimeEnvironment.dataDirectory,
 ) {
   const definition = backendDefinition(protocol)
   if (!definition?.workspaceEnvironment) {
@@ -48,7 +72,7 @@ export function resolveBackendWorkspace(
   const configured = env[definition.workspaceEnvironment]
   return configured
     ? resolve(root, configured)
-    : defaultBackendWorkspace(configDirectory)
+    : defaultBackendWorkspace(dataDirectory, env, root)
 }
 
 export function resolveAcpArgs(value) {
@@ -87,6 +111,7 @@ export function resolveBackendModels(env = process.env) {
     openClaw: common ? `bailian/${name}` : '',
     qoder: common,
     qwen: common,
+    minimax: common,
     kimi: common,
     hermes: common,
     codeBuddy: common,
@@ -210,6 +235,12 @@ export const config = {
   root,
   configDirectory: runtimeEnvironment.configDirectory,
   dataDirectory: runtimeEnvironment.dataDirectory,
+  stateDirectory: runtimeEnvironment.stateDirectory,
+  cacheDirectory: runtimeEnvironment.cacheDirectory,
+  // Optional read-only hosting of assets owned by an embedding client.
+  webSkinsDirectory: process.env.QWEN_AUDIO_WEB_SKINS_DIR
+    ? resolve(process.env.QWEN_AUDIO_WEB_SKINS_DIR)
+    : '',
   host: process.env.HOST || '127.0.0.1',
   // PORT=0 lets an embedded host (e.g. the desktop app) fall back to a
   // random loopback port and learn it from the child process report.
@@ -232,6 +263,10 @@ export const config = {
   // The upstream WebSocket does not require authentication. This optional
   // credential is useful only when users put it behind an authenticated proxy.
   speechToSpeechAuthToken: realtimeFrontend.speechToSpeechAuthToken,
+  // User-managed MiniCPM-o 4.5 audio full-duplex Realtime endpoint.
+  miniCpmORealtimeUrl: realtimeFrontend.miniCpmORealtimeUrl,
+  miniCpmOAuthToken: realtimeFrontend.miniCpmOAuthToken,
+  miniCpmOConfigured: realtimeFrontend.miniCpmOConfigured,
   audioModel: realtimeFrontend.dashscopeModel,
   audioVoice: realtimeFrontend.dashscopeVoice,
   // StepFun 开放平台 Realtime 前台（step-audio-2 系列）。
@@ -243,6 +278,7 @@ export const config = {
   webSearchMcpUrl: webSearch.mcpUrl,
   webSearchMcpToken: webSearch.mcpToken,
   webSearchMcpTool: webSearch.mcpTool,
+  frontendDisabledTools: resolveDisabledFrontendTools(process.env),
   frontendProfile: frontendProfileConfiguration.frontendProfile,
   frontendMcpConfigPath: frontendProfileConfiguration.frontendMcpConfigPath,
   frontendOpenApiConfigPath: frontendProfileConfiguration.frontendOpenApiConfigPath,
@@ -250,11 +286,42 @@ export const config = {
     .split(',')
     .map(value => value.trim())
     .filter(Boolean),
+  tailnet: ['1', 'true', 'yes', 'on'].includes(
+    String(process.env.QWEN_AUDIO_GATEWAY_TAILNET || '').trim().toLowerCase(),
+  ),
+  lan: ['1', 'true', 'yes', 'on'].includes(
+    String(process.env.QWEN_AUDIO_GATEWAY_LAN || '').trim().toLowerCase(),
+  ),
+  gatewayLanHost: String(
+    process.env.QWEN_AUDIO_GATEWAY_LAN_HOST || '',
+  ).trim(),
   authSecret: process.env.QWEN_AUDIO_AGENT_AUTH_SECRET || '',
   identityMode: (
     process.env.QWEN_AUDIO_AGENT_IDENTITY_MODE || 'personal'
   ).toLowerCase() === 'browser' ? 'browser' : 'personal',
   personalOwnerId: process.env.QWEN_AUDIO_AGENT_PERSONAL_OWNER_ID || 'user_personal',
+  memoryProvider: normalizeMemoryProviderSelection(
+    process.env.QWEN_AUDIO_MEMORY_PROVIDER,
+  ),
+  voiceMemStateDirectory: process.env.VOICEMEM_STATE_DIR
+    ? resolve(root, process.env.VOICEMEM_STATE_DIR)
+    : resolve(runtimeEnvironment.dataDirectory, 'memory/voicemem'),
+  voiceMemPython: String(process.env.VOICEMEM_PYTHON || '').trim(),
+  voiceMemSidecarPath: process.env.VOICEMEM_SIDECAR
+    ? resolve(root, process.env.VOICEMEM_SIDECAR)
+    : '',
+  gatewayAccessToken: String(
+    process.env.QWEN_AUDIO_GATEWAY_ACCESS_TOKEN
+    || process.env.QWEN_AUDIO_AGENT_ACCESS_TOKEN
+    || '',
+  ).trim(),
+  gatewayAccessKeys: String(
+    process.env.QWEN_AUDIO_AGENT_ACCESS_KEYS || '',
+  ).trim(),
+  gatewayDeviceStatePath: resolve(
+    runtimeEnvironment.stateDirectory,
+    'gateway-devices.json',
+  ),
   agentProtocol: requestedAgentProtocol,
   backendOwnership,
   backendPermissionMode,
@@ -315,6 +382,11 @@ export const config = {
       directory: resolveBackendWorkspace('qwen'),
       cliPath: String(process.env.QWEN_CODE_BIN || '').trim(),
     },
+    minimax: {
+      model: String(backendModels.minimax).trim(),
+      directory: resolveBackendWorkspace('minimax'),
+      cliPath: String(process.env.MINIMAX_CODE_BIN || '').trim(),
+    },
     kimi: {
       model: String(backendModels.kimi).trim(),
       directory: resolveBackendWorkspace('kimi'),
@@ -357,7 +429,7 @@ export const config = {
       directory: resolveBackendWorkspace('deepseek'),
       cliPath: String(process.env.DEEPSEEK_HARNESS_ACP_BIN || '').trim(),
       sessionRoot: resolve(
-        runtimeEnvironment.configDirectory,
+        runtimeEnvironment.stateDirectory,
         'backends/deepseek-harness/sessions',
       ),
     },
@@ -431,7 +503,7 @@ export const config = {
     : runtimeEnvironment.taskStatePath,
   backendSessionStatePath: process.env.QWEN_AUDIO_AGENT_BACKEND_SESSION_STATE_PATH
     ? resolve(root, process.env.QWEN_AUDIO_AGENT_BACKEND_SESSION_STATE_PATH)
-    : resolve(runtimeEnvironment.configDirectory, 'state/acp-sessions.json'),
+    : resolve(runtimeEnvironment.stateDirectory, 'acp-sessions.json'),
   taskTerminalTtlMs: numberSetting(
     process.env.QWEN_AUDIO_AGENT_TASK_TERMINAL_TTL_MS,
     86_400_000,
@@ -500,7 +572,7 @@ export const config = {
     || process.env.DASHSCOPE_API_KEY
     || '',
   memoryAuditPath: resolve(
-    runtimeEnvironment.configDirectory,
+    runtimeEnvironment.stateDirectory,
     'memory-audit.jsonl',
   ),
   // 偏好自更新：从对话里观察反复出现的表达偏好，攒够跨会话确认后写入 USER.md
@@ -510,7 +582,7 @@ export const config = {
     process.env.QWEN_AUDIO_PREFERENCE_LEARNING || 'off',
   ).toLowerCase() === 'on',
   preferenceCandidatePath: resolve(
-    runtimeEnvironment.configDirectory,
+    runtimeEnvironment.stateDirectory,
     'preference-candidates.json',
   ),
   // 会话摘要：每场会话结束时记一条「聊了哪些话题 + 一句要点」，供用户日后问
@@ -520,22 +592,22 @@ export const config = {
     process.env.QWEN_AUDIO_SESSION_DIGEST || 'off',
   ).toLowerCase() === 'on',
   sessionDigestPath: resolve(
-    runtimeEnvironment.configDirectory,
+    runtimeEnvironment.stateDirectory,
     'session-digests.json',
   ),
-  // 领域资料库：用户导入的手册 / 规章 / 教材。资料本体落在后端共享 workspace 下，
-  // 后端拿到路径就能自己 grep / read —— 前端只维护一份带摘要的清单。
+  // 用户导入的资料属于共享数据，不属于项目工作区或某个 Gateway 的状态。
+  // 由本机 Knowledge Provider 管理和检索。
   // 默认关闭：它会把用户的文件复制到另一个位置，需要用户显式同意。
   domainLibraryEnabled: String(
     process.env.QWEN_AUDIO_DOMAIN_LIBRARY || 'off',
   ).toLowerCase() === 'on',
   domainDocumentDirectory: resolve(
-    defaultBackendWorkspace(runtimeEnvironment.configDirectory),
-    'domain',
+    runtimeEnvironment.dataDirectory,
+    'knowledge/documents',
   ),
   domainIndexPath: resolve(
-    runtimeEnvironment.configDirectory,
-    'domain-index.json',
+    runtimeEnvironment.dataDirectory,
+    'knowledge/index.json',
   ),
   reminderSchedulerEnabled: String(
     process.env.QWEN_AUDIO_AGENT_REMINDER_SCHEDULER || 'true'

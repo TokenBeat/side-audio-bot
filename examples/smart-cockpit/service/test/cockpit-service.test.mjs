@@ -99,21 +99,57 @@ test('keeps isolated authoritative state per cockpit', async () => {
   assert.equal(service.snapshot('car-two').vehicle.windowFL, 0)
 })
 
-test('validates climate bounds before mutating state', async () => {
+test('validates temperature bounds before mutating state', async () => {
   const { service, options } = fixture()
-  const rejected = await service.execute('vehicle_climate_control', {
-    action: 'set_temp',
+  const rejected = await service.execute('vehicle_temperature_control', {
+    action: 'set',
     temperature: 40,
   }, options)
   assert.match(rejected.content, /16~32/)
   assert.equal(rejected.changed.length, 0)
 
-  const accepted = await service.execute('vehicle_climate_control', {
-    action: 'set_temp',
+  const accepted = await service.execute('vehicle_temperature_control', {
+    action: 'set',
     temperature: 23,
   }, options)
   assert.equal(accepted.data.vehicle.acTemp, 23)
+  assert.equal(accepted.data.vehicle.passengerTemp, 23)
   assert.deepEqual(accepted.changed, ['vehicle'])
+})
+
+test('controls expanded vehicle surfaces', async () => {
+  const { service, options } = fixture()
+
+  const closure = await service.execute('vehicle_closure_control', {
+    target: 'rear_trunk',
+    action: 'open',
+  }, options)
+  assert.equal(closure.data.vehicle.rearTrunk, 1)
+
+  const comfort = await service.execute('vehicle_comfort_control', {
+    target: 'seat_heater',
+    seat: 'front',
+    action: 'set',
+    level: 2,
+  }, options)
+  assert.equal(comfort.data.vehicle.seatHeating.driver, 2)
+  assert.equal(comfort.data.vehicle.seatHeating.passenger, 2)
+
+  const light = await service.execute('vehicle_light_control', {
+    action: 'flash',
+  }, options)
+  assert.equal(light.data.vehicle.flashLightsCount, 1)
+
+  const sound = await service.execute('vehicle_sound_control', {
+    action: 'honk',
+  }, options)
+  assert.equal(sound.data.vehicle.hornCount, 1)
+
+  const charging = await service.execute('vehicle_charging_control', {
+    action: 'set_limit',
+    limitPercent: 90,
+  }, options)
+  assert.equal(charging.data.vehicle.chargeLimit, 90)
 })
 
 test('updates music state without returning UI actions', async () => {
@@ -124,6 +160,48 @@ test('updates music state without returning UI actions', async () => {
   assert.equal(output.data.music.playing, true)
   assert.equal(output.data.music.playlist[output.data.music.currentIndex].title, '稻香')
   assert.equal('actions' in output, false)
+})
+
+test('controls expanded music playback volume source favorites and state queries', async () => {
+  const { service, options } = fixture()
+
+  const source = await service.execute('music_source_control', { source: 'bluetooth' }, options)
+  assert.equal(source.data.music.source, 'bluetooth')
+  assert.match(source.content, /蓝牙/u)
+
+  const volume = await service.execute('music_volume_control', {
+    action: 'set',
+    volume: 8,
+  }, options)
+  assert.equal(volume.data.music.volume, 8)
+  assert.equal(volume.data.music.muted, false)
+
+  const quieter = await service.execute('music_volume_control', {
+    action: 'decrease',
+    delta: 2,
+  }, options)
+  assert.equal(quieter.data.music.volume, 6)
+
+  const muted = await service.execute('music_volume_control', { action: 'mute' }, options)
+  assert.equal(muted.data.music.muted, true)
+
+  const toggle = await service.execute('music_toggle_playback', {}, options)
+  assert.equal(toggle.data.music.playing, true)
+
+  const favorite = await service.execute('music_favorite_control', {
+    action: 'add',
+    query: '稻香',
+  }, options)
+  assert.deepEqual(favorite.data.music.favoriteIds, ['rice-field'])
+
+  const nextFavorite = await service.execute('music_favorite_control', { action: 'next' }, options)
+  assert.match(nextFavorite.content, /稻香/u)
+  assert.equal(nextFavorite.data.music.playing, true)
+
+  const state = await service.execute('music_state_query', { part: 'all' }, options)
+  assert.equal(state.changed.length, 0)
+  assert.match(state.content, /当前来源蓝牙/u)
+  assert.match(state.content, /音量 6\/11/u)
 })
 
 test('projects navigation progress and route state separately', async () => {

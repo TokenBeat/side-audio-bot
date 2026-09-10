@@ -1,17 +1,19 @@
 import { WebSocket, WebSocketServer } from 'ws'
+import { PERMISSION_DECISIONS } from '../../../shared/permission-decisions.mjs'
+import { selectGatewayWebSocketProtocol } from '../../../shared/gateway/websocket-auth.mjs'
 import { randomUUID } from 'node:crypto'
 import {
   GatewayClientEvent,
   GatewayServerEvent,
-} from '../../../shared/realtime-events.mjs'
+} from '../../../shared/protocol/realtime-events.mjs'
 import { AnnouncementWindow } from './announcement/announcement-window.mjs'
 import {
   createTaskAnnouncementRuntime,
   resolveTaskAnnouncementRuntime,
 } from './announcement/task-announcement-runtime.mjs'
-import { config } from '../core/config.mjs'
-import { logger } from '../core/logger.mjs'
-import { conversationSync } from '../conversation/conversation-sync.mjs'
+import { config as defaultConfig } from '../core/config.mjs'
+import { logger as defaultLogger } from '../core/logger.mjs'
+import { conversationSync as defaultConversationSync } from '../conversation/conversation-sync.mjs'
 import { InputAssetRegistry } from './input-asset-registry.mjs'
 import { normalizeClientContext } from '../conversation/frontend-agent-context.mjs'
 import {
@@ -19,11 +21,12 @@ import {
   realtimeEventErrorMessage,
 } from './realtime-provider.mjs'
 import { isAllowedOrigin } from '../core/request-security.mjs'
-import { taskManager } from '../task/task-manager.mjs'
+import { TaskManager } from '../task/task-manager.mjs'
 import { TaskDomainEvent } from '../task/task-events.mjs'
 import { recordTaskResult } from '../conversation/task-result-projector.mjs'
 import { projectGatewayTaskEvent } from '../transport/gateway-task-event-projector.mjs'
 import { ToolCallHandler } from './tools/tool-call-handler.mjs'
+import { buildFrontendToolContext } from './tools/frontend-tool-context.mjs'
 import { TurnTranscripts } from './tools/turn-transcripts.mjs'
 import { TurnCitations } from './turn-citations.mjs'
 import { RealtimeInputRuntime } from './realtime-input-runtime.mjs'
@@ -38,6 +41,7 @@ import {
   clientVoiceCapabilities,
 } from './active-voice-clients.mjs'
 import { RealtimeProviderSession } from './realtime-provider-session.mjs'
+import { VisualInputBuffer } from './visual-input-buffer.mjs'
 import { RealtimeRecoveryContext } from './realtime-recovery-context.mjs'
 import { SleepController } from './sleep-controller.mjs'
 import {
@@ -48,19 +52,24 @@ import {
   frontendSourceToolDefinitions,
 } from '../frontend/tools/frontend-tool-source.mjs'
 import {
-  PERMISSION_RESPONSE_CAPABILITY,
-  BACKEND_INPUT_RESPONSE_CAPABILITY,
-  FRONTEND_RECALL_CAPABILITY,
   permissionResponseInstructions,
   inputRequestResponseInstructions,
 } from './frontend-tools.mjs'
 import { GatewayClientProtocolSession } from '../transport/gateway-client-protocol-session.mjs'
 import {
   GATEWAY_CLIENT_IMPLEMENTED_CAPABILITIES,
+  GATEWAY_CLIENT_OCCUPIED_CLOSE_CODE,
+  GATEWAY_CLIENT_REPLACED_CLOSE_CODE,
+  GATEWAY_CLIENT_REVOKED_CLOSE_CODE,
   GatewayClientCapability,
   GatewayClientProtocolEvent,
-} from '../../../shared/gateway-client-protocol.mjs'
+  GatewaySessionPongSchema,
+} from '../../../shared/protocol/gateway-client-protocol.mjs'
 import { createAgentDelivery } from '../delivery/agent-delivery.mjs'
+import {
+  createGatewaySystemEventDelivery,
+  GatewaySystemEvent,
+} from '../delivery/gateway-system-event.mjs'
 import { RealtimeAgentDeliveryRuntime } from './realtime-agent-delivery-runtime.mjs'
 import {
   ClientActionName,
@@ -68,7 +77,7 @@ import {
 } from '../client/client-action-port.mjs'
 import { PresenceController } from '../client/presence-controller.mjs'
 import { GatewayClientReplayBuffer } from '../transport/gateway-client-replay-buffer.mjs'
-import { permissionReference } from './tools/permission-reference.mjs'
+import { ActiveClientLeases } from '../client/active-client-leases.mjs'
 
 const MAX_PENDING_AUDIO_CHUNKS = 30
 const RESPONSE_START_WATCHDOG_MS = 12000
@@ -76,7 +85,19 @@ const PERMISSION_RESPONSE_GRACE_MS = 800
 const RESPONSE_CONTEXT_CLEANUP_MS = 30000
 const REALTIME_STABLE_CONNECTION_MS = 10000
 const MAX_CLIENT_REPLAY_SESSIONS = 32
+const CLIENT_HEARTBEAT_MS = 30_000
 const clientProtocolSessions = new WeakMap()
+
+function providerSupportsImageBuffer(registry, providerName) {
+  try {
+    return registry.resolve(providerName)
+      .modelProfile?.()
+      ?.transportCapabilities
+      ?.imageBufferInput === true
+  } catch {
+    return false
+  }
+}
 
 function gatewayTurnId() {
   return `gateway_${randomUUID().replaceAll('-', '')}`
@@ -131,9 +152,10 @@ export {
 }
 
 function clientDescriptor(event = {}) {
-  const type = ['desktop', 'cli', 'web'].includes(event.clientType)
-    ? event.clientType
-    : 'web'
+  // Client type is descriptive metadata. Runtime behavior is negotiated from
+  // capabilities, so a new first- or third-party Client never needs a Gateway
+  // allowlist entry before it can speak GCP.
+  const type = String(event.clientType || '').trim().slice(0, 40) || 'unknown'
   const label = String(event.clientLabel || '').trim().slice(0, 40)
   return {
     type,
@@ -158,6 +180,10 @@ export function attachRealtimeGateway(server, {
   permissionPolicy,
   inputAssets = new InputAssetRegistry(),
   inputArbitration = null,
+  taskManager = new TaskManager(),
+  conversationSync = defaultConversationSync,
+  config = defaultConfig,
+  logger = defaultLogger,
   realtimeProviderRegistry = defaultRealtimeProviderRegistry,
   defaultRealtimeProvider = config.audioProvider,
   realtimeFrontendFactory = undefined,
@@ -169,7 +195,11 @@ export function attachRealtimeGateway(server, {
   clientCommandRuntime = null,
   clientEventRouter = null,
 }) {
-  const wss = new WebSocketServer({ noServer: true, maxPayload: 20 * 1024 * 1024 })
+  const wss = new WebSocketServer({
+    noServer: true,
+    maxPayload: 20 * 1024 * 1024,
+    handleProtocols: selectGatewayWebSocketProtocol,
+  })
   const supportedClientCapabilities = GATEWAY_CLIENT_IMPLEMENTED_CAPABILITIES
     .filter(capability => {
       if (capability === GatewayClientCapability.CLIENT_EVENTS) {
@@ -184,9 +214,10 @@ export function attachRealtimeGateway(server, {
       return true
     })
   const activeVoiceClients = new ActiveVoiceClients()
+  const activeClientLeases = new ActiveClientLeases()
   const voiceConnections = new Map()
-  const activeClientSockets = new Set()
   const replayBuffers = new Map()
+  const pendingMemoryOperations = new Set()
   const frontendToolSourcesReady = Promise.all(
     frontendToolSources.map(source => source.initialize()),
   ).catch(error => {
@@ -223,13 +254,16 @@ export function attachRealtimeGateway(server, {
   server.on('upgrade', (request, socket, head) => {
     const url = new URL(request.url, 'http://localhost')
     if (rejectUnsupportedRealtimeUpgrade(socket, url.pathname)) return
-    if (!isAllowedOrigin(request)) {
-      rejectUpgrade(socket, '403 Forbidden', 'origin not allowed')
-      return
-    }
     const identity = identityManager.resolveUpgrade(request)
     if (!identity) {
       rejectUpgrade(socket, '401 Unauthorized', 'identity required')
+      return
+    }
+    if (!isAllowedOrigin(request, {
+      authenticatedRemote: identity.access === 'remote',
+      trustedNativeClient: ['client', 'mobile'].includes(identity.clientType),
+    })) {
+      rejectUpgrade(socket, '403 Forbidden', 'origin not allowed')
       return
     }
     wss.handleUpgrade(request, socket, head, ws => {
@@ -238,20 +272,11 @@ export function attachRealtimeGateway(server, {
   })
 
   wss.on('connection', (ws, url, identity) => {
-    if (activeClientSockets.size > 0) {
-      ws.send(JSON.stringify({
-        type: 'error',
-        event_id: `evt_gateway_${randomUUID().replaceAll('-', '')}`,
-        message: 'Gateway 已由另一个 Client 使用',
-        error: {
-          code: 'client_occupied',
-          message: 'Gateway already has an active Client connection',
-        },
-      }))
-      ws.close(1008, 'client_occupied')
-      return
-    }
-    activeClientSockets.add(ws)
+    ws.isAlive = true
+    ws.gatewayCredentialId = identity.access === 'remote'
+      ? identity.credentialId
+      : null
+    ws.on('pong', () => { ws.isAlive = true })
     const ownerId = identity.ownerId
     const sessionId = url.searchParams.get('sessionId') || 'main'
     const replayKey = `${ownerId}\u0000${sessionId}`
@@ -268,7 +293,13 @@ export function attachRealtimeGateway(server, {
     }
     const clientProtocol = new GatewayClientProtocolSession({
       sessionId,
-      supportedCapabilities: supportedClientCapabilities,
+      supportedCapabilities: hello => supportedClientCapabilities.filter(capability => (
+        capability !== GatewayClientCapability.INPUT_IMAGE_BUFFER
+        || providerSupportsImageBuffer(
+          realtimeProviderRegistry,
+          hello.connection?.provider || defaultRealtimeProvider,
+        )
+      )),
       replayBuffer,
     })
     clientProtocolSessions.set(ws, clientProtocol)
@@ -286,6 +317,8 @@ export function attachRealtimeGateway(server, {
     let inputSuspended = inputArbitration?.suspended === true
     let nonVoiceClient = false
     let descriptor = clientDescriptor()
+    let admitted = false
+    let clientLease = null
     let responseTurnCandidate = null
     let responseStartWatchdog = null
     let permissionResponseTimer = null
@@ -321,6 +354,11 @@ export function attachRealtimeGateway(server, {
     const announcedInputs = new Set()
     let permissionRetryTimer = null
     let realtimeSession
+    let visualInput
+    const clearVisualInput = () => {
+      realtimeSession?.clearPendingImage?.()
+      visualInput?.reset?.()
+    }
     const agentDeliveries = new RealtimeAgentDeliveryRuntime({
       getFrontend: () => realtimeSession?.frontend,
       isDeliveryBlocked: () => (
@@ -342,6 +380,20 @@ export function attachRealtimeGateway(server, {
     const hasPendingBackendInput = () => activeSessionTasks().some(task => (
       task.inputRequest?.status === 'pending'
     ))
+    const observeMemoryAudio = event => {
+      if (!memoryService?.ownsAudioStreamObservation?.()) return
+      try {
+        memoryService.observeAudio(ownerId, event, {
+          source: 'voice-input',
+          sessionId,
+        })
+      } catch (error) {
+        connectionLogger.warn('memory.provider_audio_hook_failed', {
+          eventType: String(event?.type || ''),
+          error: String(error?.message || error),
+        })
+      }
+    }
     // Keep visible history intact while excluding only a provider-rejected turn
     // from future Realtime Session restoration.
     const realtimeRecoveryContext = new RealtimeRecoveryContext()
@@ -352,20 +404,15 @@ export function attachRealtimeGateway(server, {
       client: clientContext,
       frontend: {
         ...(spawnThinkingDescription ? { spawnThinkingDescription } : {}),
-        capabilities: [...new Set([
-          ...(frontendRetrieval?.capabilities?.() || []),
-          ...(frontendKnowledge?.capabilities?.() || []),
-          ...(hasPendingBackendPermission()
-            ? [PERMISSION_RESPONSE_CAPABILITY]
-            : []),
-          ...(hasPendingBackendInput()
-            ? [BACKEND_INPUT_RESPONSE_CAPABILITY]
-            : []),
-          // 会话摘要池与资料库都没启用时不暴露 recall —— 池子永远是空的，
-          // 暴露它只会让模型白调一次。会话摘要本身绝不注入 instructions：
-          // 它每场都在变，会让 prompt 前缀每场都变。
-          ...(sessionDigests ? [FRONTEND_RECALL_CAPABILITY] : []),
-        ])],
+        ...buildFrontendToolContext({
+          disabledTools: config.frontendDisabledTools || [],
+          backendAvailability,
+          frontendRetrieval,
+          frontendKnowledge,
+          sessionDigests,
+          permissionPending: hasPendingBackendPermission(),
+          inputPending: hasPendingBackendInput(),
+        }),
         tools: frontendSourceToolDefinitions(frontendToolSources),
       },
       memories: memoryService?.list(ownerId, { limit: 64 }) || [],
@@ -402,10 +449,10 @@ export function attachRealtimeGateway(server, {
         origin: 'permission',
         text: [
           '<permission_request>',
-          `permission_id=${permissionReference(permission.id)}`,
+        `permission_id=${permission.id}`,
           `task_id=${task.id}`,
           `operation=${permission.summary}`,
-          'allowed_decisions=once,always,reject',
+          `allowed_decisions=${PERMISSION_DECISIONS.join(',')}`,
           '</permission_request>',
         ].join('\n'),
         // A permission prompt is a new model input and response. taskId keeps
@@ -599,10 +646,13 @@ export function attachRealtimeGateway(server, {
           announcements.flush()
         }
       },
-      onDisconnected: () => send(ws, {
-        type: GatewayServerEvent.VOICE_STATE,
-        state: 'idle',
-      }),
+      onDisconnected: () => {
+        clearVisualInput()
+        send(ws, {
+          type: GatewayServerEvent.VOICE_STATE,
+          state: 'idle',
+        })
+      },
       onReconnected: () => {
         announcements.flush()
         progressAnnouncements.flush()
@@ -623,6 +673,9 @@ export function attachRealtimeGateway(server, {
         ? { createFrontend: realtimeFrontendFactory }
         : {}),
     })
+    visualInput = new VisualInputBuffer({
+      onFrame: image => realtimeSession.appendImage(image),
+    })
     const voiceClient = {
       ws,
       descriptor,
@@ -636,6 +689,7 @@ export function attachRealtimeGateway(server, {
         if (suspend) {
           // Buffered audio predates the suspension and is no longer wanted.
           realtimeSession.clearPendingAudio()
+          clearVisualInput()
           sleepController?.disable()
           realtimeSession.cancelResponse()
           send(ws, { type: GatewayServerEvent.PLAYBACK_CLEAR, reason: 'input_suspended' })
@@ -663,6 +717,7 @@ export function attachRealtimeGateway(server, {
         sleepController?.disable()
         inputEnabled = false
         outputEnabled = false
+        clearVisualInput()
         announcementWindow.reset()
         announcements.pause()
         progressAnnouncements.clear()
@@ -684,7 +739,9 @@ export function attachRealtimeGateway(server, {
       const result = activeVoiceClients.activate(
         ownerId,
         voiceClient,
+        { replace: clientLease?.replaced === true },
       )
+      if (result.granted && clientLease) clientLease.replaced = false
       inputEnabled = result.granted && enableInput
       outputEnabled = result.granted && enableOutput
       broadcastVoiceOwnership(ownerId)
@@ -698,6 +755,7 @@ export function attachRealtimeGateway(server, {
         broadcastVoiceOwnership(ownerId)
       }
     }
+    const toolCallTimings = new Map()
     const toolCalls = new ToolCallHandler({
       taskManager,
       ownerId,
@@ -735,6 +793,24 @@ export function attachRealtimeGateway(server, {
         announcedPermissions.delete(authorizationId)
         announcePendingPermissions()
       },
+      onToolResultReady: ({ callId, turnId, toolName }) => {
+        const timing = toolCallTimings.get(callId)
+        if (!timing || timing.resultReady) return
+        timing.resultReady = true
+        connectionLogger.info('realtime.tool_call.result_ready', {
+          ...timing.fields,
+          turnId: turnId || timing.fields.turnId,
+          toolName: toolName || timing.fields.toolName,
+          durationMs: Math.max(0, Date.now() - timing.startedAt),
+        })
+      },
+      onToolCallDebug: event => {
+        const { startedAt: _startedAt, ...publicEvent } = event || {}
+        send(ws, {
+          type: GatewayServerEvent.TOOL_CALL,
+          ...publicEvent,
+        })
+      },
       presenceController,
       onAgentActivity: activity => send(ws, {
         type: GatewayServerEvent.AGENT_ACTIVITY,
@@ -743,6 +819,7 @@ export function attachRealtimeGateway(server, {
       inputAssets,
       frontendRetrieval,
       frontendKnowledge,
+      disabledTools: config.frontendDisabledTools || [],
       frontendToolSources,
       turnCitations,
       sessionDigests,
@@ -824,6 +901,13 @@ export function attachRealtimeGateway(server, {
       shouldEnsurePermissionResponse: context => responseTurnCandidate === context,
       ensurePermissionResponseFor,
       reportFrontendError,
+      onSpeechStarted: fields => {
+        observeMemoryAudio({ type: 'speech_started', ...fields })
+      },
+      onSpeechStopped: fields => {
+        connectionLogger.info('realtime.provider.speech_stopped', fields)
+        observeMemoryAudio({ type: 'speech_stopped', ...fields })
+      },
     })
 
     const presentationRuntime = new RealtimePresentationRuntime({
@@ -982,16 +1066,29 @@ export function attachRealtimeGateway(server, {
         const id = realtimeResponseId(event)
         const callContext = presentationRuntime.get(id)
           || { turnId: '', turnGeneration: -1 }
-        logger.info('realtime.tool_call.received', {
+        const callFields = {
           responseId: id,
           callId: event.call_id || event.item?.call_id || '',
           toolName: event.name || event.item?.name || '',
           turnId: callContext.turnId || '',
-        })
+        }
+        connectionLogger.info('realtime.tool_call.received', callFields)
         presentationRuntime.markFunctionCall(id)
-        toolCalls.handle(event, { ...callContext, responseId: id }).catch(error => {
-          send(ws, { type: 'error', message: error.message })
+        const startedAt = Date.now()
+        toolCallTimings.set(callFields.callId, {
+          fields: callFields,
+          startedAt,
+          resultReady: false,
         })
+        toolCalls.handle(event, { ...callContext, responseId: id })
+          .catch(error => {
+            connectionLogger.warn('realtime.tool_call.failed', {
+              ...callFields,
+              durationMs: Math.max(0, Date.now() - startedAt),
+            })
+            send(ws, { type: 'error', message: error.message })
+          })
+          .finally(() => toolCallTimings.delete(callFields.callId))
       } else if (presentationRuntime.handle(event)) {
         return
       } else if (event.type === 'error') {
@@ -1043,10 +1140,28 @@ export function attachRealtimeGateway(server, {
             type: 'error',
             message: '这次内容未能处理，语音会话已自动恢复，请换个说法再试。',
           })
-          realtimeSession.reconnect().catch(error => send(ws, {
-            type: 'error',
-            message: error.message,
-          }))
+          const recoveryTurnId = gatewayTurnId()
+          const recoveryDelivery = createGatewaySystemEventDelivery(
+            GatewaySystemEvent.REALTIME_CONTENT_REJECTED,
+            {
+              id: `content_recovery_${recoveryTurnId}`,
+              correlation: { turnId: recoveryTurnId },
+            },
+          )
+          realtimeSession.reconnect()
+            .then(() => agentDeliveries.deliver(recoveryDelivery))
+            .then(outcome => {
+              if (outcome?.completed) return
+              connectionLogger.warn('realtime.content_safety_delivery_skipped', {
+                provider: realtimeSession.providerKey,
+                blocked: outcome?.blocked === true,
+                unavailable: outcome?.unavailable === true,
+              })
+            })
+            .catch(error => send(ws, {
+              type: 'error',
+              message: error.message,
+            }))
           return
         }
         if (providerError === 'fatal') {
@@ -1076,6 +1191,7 @@ export function attachRealtimeGateway(server, {
 
     const enterSleep = () => {
       if (sleeping) return
+      clearVisualInput()
       sleeping = true
       waking = false
       announcementWindow.reset()
@@ -1154,6 +1270,47 @@ export function attachRealtimeGateway(server, {
       clientType: descriptor.type,
       clientInstanceId: descriptor.instanceId,
     })
+    const leaseParticipant = {
+      isAlive: () => ws.readyState === WebSocket.OPEN,
+      deactivate: replacement => {
+        releaseVoiceClient()
+        send(ws, { type: 'playback.clear' })
+        send(ws, {
+          type: 'voice.deactivated',
+          holder: replacement?.client?.descriptor || null,
+        })
+        ws.close(GATEWAY_CLIENT_REPLACED_CLOSE_CODE, 'client_replaced')
+      },
+      descriptor,
+    }
+    const admitClientConnection = nextDescriptor => {
+      leaseParticipant.descriptor = nextDescriptor
+      const claimed = activeClientLeases.claim(ownerId, leaseParticipant, {
+        instanceId: nextDescriptor.instanceId,
+        takeover: nextDescriptor.takeoverRequested === true,
+      })
+      if (!claimed.granted) return null
+      clientLease = { ...claimed.lease, replaced: claimed.replaced }
+      admitted = true
+      if (claimed.replaced) connectionLogger.info('voice_client.replaced', {
+        clientType: nextDescriptor.type,
+        clientInstanceId: nextDescriptor.instanceId,
+        leaseGeneration: clientLease.generation,
+        explicitTakeover: nextDescriptor.takeoverRequested === true,
+      })
+      return clientLease
+    }
+    const rejectOccupiedClient = () => {
+      send(ws, {
+        type: 'error',
+        message: 'Gateway 已由另一个 Client 使用',
+        error: {
+          code: 'client_occupied',
+          message: 'Gateway already has an active Client connection',
+        },
+      })
+      ws.close(GATEWAY_CLIENT_OCCUPIED_CLOSE_CODE, 'client_occupied')
+    }
     const sendRuntimeError = (message, error) => {
       connectionLogger.warn('client_runtime.command_failed', {
         type: String(message?.type || ''),
@@ -1212,6 +1369,17 @@ export function attachRealtimeGateway(server, {
       }
     }
     const handleRuntimeMessage = async message => {
+      // A command can wait behind an earlier asynchronous command. Recheck the
+      // owner lease when it actually executes so a replaced socket cannot
+      // mutate Gateway state with work that was queued before takeover.
+      if (
+        admitted
+        && !activeClientLeases.isActive(
+          ownerId,
+          leaseParticipant,
+          clientLease?.generation,
+        )
+      ) return
       if (message.type === GatewayClientProtocolEvent.CLIENT_ACTION_RESULT) {
         if (!clientActions.receive(message)) {
           connectionLogger.debug('client_action.result_stale', {
@@ -1307,12 +1475,49 @@ export function attachRealtimeGateway(server, {
       } catch {
         return
       }
+      if (
+        event.type === GatewayClientProtocolEvent.SESSION_PONG
+        && clientProtocol.capabilities.includes(GatewayClientCapability.SESSION_HEARTBEAT)
+        && GatewaySessionPongSchema.safeParse(event).success
+      ) {
+        ws.isAlive = true
+        return
+      }
       const protocolOutcome = clientProtocol.receive(event)
-      if (protocolOutcome.reply) send(ws, protocolOutcome.reply)
+      // WebSocket control-frame pongs are not reliably observable after every
+      // reverse proxy. Any accepted application frame proves the Client is alive.
+      if (!protocolOutcome.close && (
+        protocolOutcome.event
+        || protocolOutcome.runtimeMessage
+        || protocolOutcome.reply?.type === GatewayClientProtocolEvent.SESSION_READY
+      )) ws.isAlive = true
       if (protocolOutcome.close) {
+        if (protocolOutcome.reply) send(ws, protocolOutcome.reply)
         ws.close(1002, protocolOutcome.reply?.error?.code || 'protocol error')
         return
       }
+      const negotiatedEvent = protocolOutcome.event
+      if (
+        negotiatedEvent?.type === GatewayClientEvent.CONNECT
+        && !admitted
+      ) {
+        const nextDescriptor = clientDescriptor(negotiatedEvent)
+        const lease = admitClientConnection({
+          ...nextDescriptor,
+          takeoverRequested: negotiatedEvent.takeoverRequested === true,
+        })
+        if (!lease) {
+          rejectOccupiedClient()
+          return
+        }
+        if (protocolOutcome.reply?.type === GatewayClientProtocolEvent.SESSION_READY) {
+          protocolOutcome.reply.connection = {
+            lease_generation: lease.generation,
+            replaced: lease.replaced === true,
+          }
+        }
+      }
+      if (protocolOutcome.reply) send(ws, protocolOutcome.reply)
       for (const pendingEvent of protocolOutcome.pending || []) {
         send(ws, pendingEvent)
       }
@@ -1323,8 +1528,19 @@ export function attachRealtimeGateway(server, {
           .catch(error => sendRuntimeError(runtimeMessage, error))
         return
       }
-      event = protocolOutcome.event
+      event = negotiatedEvent
       if (!event) return
+      if (
+        admitted
+        && !activeClientLeases.isActive(
+          ownerId,
+          leaseParticipant,
+          clientLease?.generation,
+        )
+      ) {
+        ws.close(GATEWAY_CLIENT_REPLACED_CLOSE_CODE, 'client_replaced')
+        return
+      }
       if (event.type === GatewayClientEvent.CONNECT) {
         descriptor = clientDescriptor(event)
         voiceClient.descriptor = descriptor
@@ -1471,6 +1687,33 @@ export function attachRealtimeGateway(server, {
           return
         }
         realtimeSession.appendAudio(event.audio)
+        observeMemoryAudio({
+          type: 'chunk',
+          audio: event.audio,
+          sampleRate: Number(realtimeSession.provider()?.inputSampleRate) || 16_000,
+        })
+      } else if (event.type === GatewayClientEvent.IMAGE_APPEND) {
+        if (
+          sleeping
+          || !inputEnabled
+          || inputSuspended
+          || !activeVoiceClients.isActive(ownerId, voiceClient)
+        ) return
+        try {
+          visualInput.append({
+            image: event.image,
+            mediaType: event.media_type,
+            occurredAt: event.occurred_at,
+          })
+        } catch (error) {
+          send(ws, {
+            type: GatewayServerEvent.ERROR,
+            message: error.message,
+          })
+        }
+      } else if (event.type === GatewayClientEvent.IMAGE_CLEAR) {
+        if (!activeVoiceClients.isActive(ownerId, voiceClient)) return
+        clearVisualInput()
       } else if (
         event.type === GatewayClientEvent.TEXT_MESSAGE
         || event.type === GatewayClientEvent.INPUT_MESSAGE
@@ -1492,11 +1735,19 @@ export function attachRealtimeGateway(server, {
         realtimeSession.cancelResponse()
       } else if (event.type === GatewayClientEvent.PLAYBACK_STARTED) {
         const id = String(event.responseId || '')
+        const playbackContext = presentationRuntime.get(id)
         if (acceptsPlaybackReceipt({
           outputEnabled,
           active: activeVoiceClients.isActive(ownerId, voiceClient),
           responseKnown: presentationRuntime.has(id),
-        })) presentationRuntime.startPlayback(id)
+        })) {
+          connectionLogger.info('realtime.playback.started', {
+            responseId: id,
+            turnId: playbackContext?.turnId || '',
+            origin: playbackContext?.origin || 'model',
+          })
+          presentationRuntime.startPlayback(id)
+        }
       } else if (event.type === GatewayClientEvent.PLAYBACK_ENDED) {
         const id = String(event.responseId || '')
         if (acceptsPlaybackReceipt({
@@ -1516,6 +1767,7 @@ export function attachRealtimeGateway(server, {
           })
         }
       } else if (event.type === GatewayClientEvent.MUTE) {
+        clearVisualInput()
         releaseVoiceClient()
         sleeping = false
         waking = false
@@ -1528,6 +1780,7 @@ export function attachRealtimeGateway(server, {
       } else if (event.type === GatewayClientEvent.INPUT_MUTE) {
         inputEnabled = false
         realtimeSession.clearPendingAudio()
+        clearVisualInput()
       } else if (event.type === GatewayClientEvent.SLEEP) {
         requestExplicitSleep('client')
       } else if (event.type === GatewayClientEvent.WAKE) {
@@ -1542,11 +1795,17 @@ export function attachRealtimeGateway(server, {
       }
     })
 
-    ws.on('close', () => {
-      activeClientSockets.delete(ws)
+    ws.on('close', (code, reason) => {
+      activeClientLeases.release(
+        ownerId,
+        leaseParticipant,
+        clientLease?.generation,
+      )
       clientProtocolSessions.delete(ws)
       connectionLogger.info('voice_client.disconnected', {
         clientType: descriptor.type,
+        closeCode: Number(code),
+        closeReason: reason?.toString() || undefined,
       })
       releaseVoiceClient()
       const connections = voiceConnections.get(ownerId)
@@ -1561,11 +1820,13 @@ export function attachRealtimeGateway(server, {
       presentationRuntime.clear()
       announcements.close()
       progressAnnouncements.close()
+      clearVisualInput()
       clearTimeout(permissionRetryTimer)
       permissionRetryTimer = null
       sleepController?.close()
       presenceController.close()
       realtimeSession.close()
+      observeMemoryAudio({ type: 'session_ended' })
       // Invisible memory: distil durable personal facts from this session in
       // the background. All gating (debounce, minimum turns, disabled state)
       // lives inside the extractor; it never blocks or breaks the close path,
@@ -1576,6 +1837,30 @@ export function attachRealtimeGateway(server, {
         connectionLogger.warn('memory.extract_hook_failed', {
           error: String(error?.message || error),
         })
+      }
+      // A provider-managed memory engine receives the complete bounded
+      // exchange instead of the built-in Markdown extractor. This is the only
+      // automatic-learning hook exposed by the Gateway; vendor-specific
+      // indexing, consolidation and storage stay inside the provider.
+      if (memoryService?.ownsSessionObservation?.()) {
+        const exchange = {
+          messages: conversationSync.frontendContext({ ownerId, sessionId }),
+        }
+        const observing = Promise.resolve(memoryService.observe(ownerId, exchange, {
+          source: 'session-close',
+          sessionId,
+        })).then(
+          () => memoryService.flush(ownerId, {
+            source: 'session-close',
+            sessionId,
+          }),
+        ).catch(error => {
+          connectionLogger.warn('memory.provider_observe_hook_failed', {
+            error: String(error?.message || error),
+          })
+        })
+        pendingMemoryOperations.add(observing)
+        observing.finally(() => pendingMemoryOperations.delete(observing))
       }
       // 画像观察 → 晋升扫描。观察器要调模型所以是异步的，晋升必须排在它之后：
       // 否则本场刚攒到的确认要等下一场会话结束才被扫到，白等一轮。观察器未启用
@@ -1636,12 +1921,42 @@ export function attachRealtimeGateway(server, {
     })
   })
 
+  const heartbeat = setInterval(() => {
+    for (const ws of wss.clients) {
+      if (ws.isAlive === false) {
+        ws.terminate()
+        continue
+      }
+      ws.isAlive = false
+      const protocol = clientProtocolSessions.get(ws)
+      if (protocol?.capabilities.includes(GatewayClientCapability.SESSION_HEARTBEAT)) {
+        send(ws, { type: GatewayClientProtocolEvent.SESSION_PING })
+      } else {
+        ws.ping()
+      }
+    }
+  }, CLIENT_HEARTBEAT_MS)
+  heartbeat.unref?.()
+
   return {
-    close() {
+    disconnectCredential(credentialId) {
+      const target = String(credentialId || '').trim()
+      if (!target) return 0
+      let disconnected = 0
+      for (const client of wss.clients) {
+        if (client.gatewayCredentialId !== target) continue
+        disconnected += 1
+        client.close(GATEWAY_CLIENT_REVOKED_CLOSE_CODE, 'credential_revoked')
+      }
+      return disconnected
+    },
+    async close() {
+      clearInterval(heartbeat)
       for (const client of wss.clients) client.close()
-      return new Promise(resolveClose => {
+      await new Promise(resolveClose => {
         wss.close(() => resolveClose())
       })
+      await Promise.allSettled([...pendingMemoryOperations])
     },
     status() {
       const byType = { desktop: 0, cli: 0, web: 0 }
@@ -1681,6 +1996,7 @@ export function attachRealtimeGateway(server, {
       return {
         connected,
         activeOwners: activeVoiceClients.size,
+        activeClients: activeClientLeases.size,
         byType,
         realtime,
       }

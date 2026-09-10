@@ -5,6 +5,7 @@ import {
 import { dashscopeProvider } from './dashscope.mjs'
 import { s2sProvider } from './s2s.mjs'
 import { stepfunProvider } from './stepfun.mjs'
+import { miniCpmOProvider } from './minicpm-o.mjs'
 import { createRealtimeProviderRegistry } from './provider-registry.mjs'
 
 export {
@@ -15,7 +16,7 @@ export {
 } from './provider-registry.mjs'
 
 export const defaultRealtimeProviderRegistry = createRealtimeProviderRegistry({
-  providers: [dashscopeProvider, stepfunProvider, s2sProvider],
+  providers: [dashscopeProvider, stepfunProvider, s2sProvider, miniCpmOProvider],
 })
 
 export function resolveRealtimeProvider(requested) {
@@ -81,4 +82,6 @@ export const REALTIME_PROVIDERS = Object.freeze({
   qwen: dashscopeProvider,
   stepaudio: stepfunProvider,
   s2s: s2sProvider,
+  'minicpm-o': miniCpmOProvider,
+  minicpmo: miniCpmOProvider,
 })

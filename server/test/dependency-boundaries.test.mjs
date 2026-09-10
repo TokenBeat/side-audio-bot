@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, relative, resolve, sep } from 'node:path'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
@@ -9,6 +9,7 @@ const projectRoot = resolve(sourceRoot, '../..')
 const sharedRoot = resolve(sourceRoot, '../../shared')
 const allowedDependencies = {
   app: new Set([
+    'access',
     'agent',
     'app',
     'backend',
@@ -16,26 +17,28 @@ const allowedDependencies = {
     'conversation',
     'core',
     'delivery',
-    'domain',
     'frontend',
+    'knowledge',
     'providers',
     'session',
     'task',
     'transport',
     'voice',
   ]),
+  access: new Set(['access', 'core', 'shared']),
   process: new Set(['process', 'shared']),
   core: new Set(['core', 'shared']),
   frontend: new Set(['frontend']),
+  // Local knowledge storage is independent from conversation memory and
+  // transport. Frontend contracts and application orchestration depend on it,
+  // never the other way around.
+  knowledge: new Set(['core', 'knowledge', 'shared']),
   providers: new Set(['core', 'frontend', 'providers', 'shared']),
   agent: new Set(['agent', 'backend', 'core', 'shared']),
   backend: new Set(['backend', 'core', 'shared']),
   client: new Set(['client', 'delivery', 'shared', 'task']),
   delivery: new Set(['delivery']),
   conversation: new Set(['conversation', 'core', 'shared']),
-  // 资料库刻意不依赖 conversation：它复用的落盘与敏感闸门都在 core，
-  // 让「用户给的手册」去依赖「会话逻辑」是没有道理的耦合。
-  domain: new Set(['core', 'domain', 'shared']),
   session: new Set(['session', 'shared']),
   task: new Set(['agent', 'core', 'session', 'task']),
   transport: new Set(['shared', 'task', 'transport']),
@@ -66,6 +69,29 @@ function layerFor(path) {
   return first.endsWith('.mjs') ? 'root' : first
 }
 
+test('server and shared source relative module imports resolve to files', () => {
+  const missing = []
+  for (const file of [
+    ...sourceFiles(sourceRoot),
+    ...sourceFiles(sharedRoot),
+  ]) {
+    const imports = [
+      ...readFileSync(file, 'utf8').matchAll(
+        /(?:from\s+|import\s+)['"](\.{1,2}\/[^'"]+\.mjs)['"]/g,
+      ),
+    ]
+    for (const match of imports) {
+      const target = resolve(dirname(file), match[1])
+      if (!existsSync(target)) {
+        missing.push(
+          `${relative(projectRoot, file)} -> ${relative(projectRoot, target)}`,
+        )
+      }
+    }
+  }
+  assert.deepEqual(missing, [])
+})
+
 test('server source dependencies follow the documented layer direction', () => {
   const violations = []
   for (const file of sourceFiles(sourceRoot)) {
@@ -94,15 +120,23 @@ test('server source dependencies follow the documented layer direction', () => {
 
 test('generic ACP and process cores do not bind to named backends', () => {
   const genericCoreFiles = [
-    resolve(sourceRoot, 'agent/acp-process-client.mjs'),
-    resolve(sourceRoot, 'agent/acp-backend-adapter.mjs'),
+    resolve(sourceRoot, 'agent/acp/process-client.mjs'),
+    resolve(sourceRoot, 'agent/acp/backend-adapter.mjs'),
     resolve(sourceRoot, 'process/managed-backend.mjs'),
     resolve(projectRoot, 'cli/src/runtime.mjs'),
     resolve(projectRoot, 'cli/src/launcher.mjs'),
   ]
-  const namedBackend = /\b(?:openclaw|opencode|qoder|qwen(?!-audio-agent)|kimi|hermes|codebuddy|codex|claude|pi)\b/i
+  const namedBackend = /\b(?:openclaw|opencode|qoder|qwen(?!-audio-agent)|minimax|kimi|hermes|codebuddy|codex|claude|pi)\b/i
   const violations = genericCoreFiles
     .filter(file => namedBackend.test(readFileSync(file, 'utf8')))
+    .map(file => relative(projectRoot, file))
+  assert.deepEqual(violations, [])
+})
+
+test('protocol-neutral backend core does not import Agent protocol SDKs', () => {
+  const protocolSdk = /from\s+['"](?:@agentclientprotocol\/|@a2a-js\/)/
+  const violations = sourceFiles(resolve(sourceRoot, 'backend'))
+    .filter(file => protocolSdk.test(readFileSync(file, 'utf8')))
     .map(file => relative(projectRoot, file))
   assert.deepEqual(violations, [])
 })

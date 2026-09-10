@@ -14,13 +14,18 @@ import {
   upsertUserTranscript,
 } from './message-order.js'
 import MessageContent from './MessageContent.jsx'
-import MultimodalComposer from './MultimodalComposer.jsx'
-import DesktopFluidOrb from './DesktopFluidOrb.jsx'
-import DesktopSpriteOrb from './DesktopSpriteOrb.jsx'
+import MultimodalComposer from './composer/MultimodalComposer.jsx'
+import TaskArtifacts from './TaskArtifacts.jsx'
+import PermissionActions from './PermissionActions.jsx'
+import DesktopFluidOrb from './desktop/DesktopFluidOrb.jsx'
+import DesktopSpriteOrb from './desktop/DesktopSpriteOrb.jsx'
 import DesktopBloubOrb from './DesktopBloubOrb.jsx'
-import DomainLibraryPanel from './DomainLibraryPanel.jsx'
-import { desktopOrbClassName, resolveOrbVisualState } from './orb-presentation.js'
 import { useBloubAppearance } from './use-bloub-appearance.js'
+import KnowledgeLibraryPanel from './KnowledgeLibraryPanel.jsx'
+import {
+  desktopOrbClassName,
+  resolveOrbVisualState,
+} from './desktop/orb-presentation.js'
 import {
   isBuiltinOrbSkin,
 } from '../../shared/orb-skin-catalog.mjs'
@@ -36,12 +41,11 @@ import {
   taskLabel,
   taskView,
 } from './task-view.js'
+import { taskHasArtifacts } from './task-artifacts.js'
 import useRealtimeVoice, {
   realtimeModelStatus,
-  realtimeProviderForConnection,
-  realtimeProviderSelection,
   shouldClaimReleasedVoice,
-} from './useRealtimeVoice.js'
+} from './realtime/useRealtimeVoice.js'
 import { requestedSessionId } from './session.js'
 import { initialVoiceEnabled } from './voice-defaults.js'
 import {
@@ -53,24 +57,30 @@ import {
   desktopWorkSettled,
   desktopTasksWorking,
   performDesktopClientAction,
-} from './desktop-hide.js'
+} from './desktop/desktop-hide.js'
 import {
   desktopTaskCards,
-} from './desktop-task-cards.js'
+} from './desktop/desktop-task-cards.js'
 import {
   advanceDesktopRuntimePresentation,
   desktopBackendRuntime,
   desktopRealtimeRuntime,
   resolveDesktopRuntime,
-} from './desktop-runtime.js'
+} from './desktop/desktop-runtime.js'
 import {
   spriteAnimationEventForGatewayEvent,
   spriteAnimationForEvent,
-} from './sprite-orb.js'
+} from './desktop/sprite-orb.js'
 import {
   applyDesktopClientSettings,
   initialDesktopClientSettings,
-} from './desktop-client-settings.js'
+} from './desktop/desktop-client-settings.js'
+import {
+  gatewayClientInstanceId,
+  gatewayClientLabel,
+  gatewayClientType,
+  gatewayFetch,
+} from './gateway-transport.js'
 
 const desktopOrbMode = (
   new URLSearchParams(window.location.search).get('desktop') === 'orb'
@@ -80,7 +90,25 @@ const initialDesktopSurfaceMode = (
     ? 'panel'
     : 'orb'
 )
-const composerEnabled = supportsComposerInput(desktopOrbMode ? 'desktop' : 'web')
+const activeClientType = gatewayClientType(desktopOrbMode ? 'desktop' : 'web')
+const activeClientInstanceId = gatewayClientInstanceId()
+const compactVoiceControl = desktopOrbMode || activeClientType === 'mobile'
+const composerEnabled = supportsComposerInput(activeClientType)
+const MODEL_INPUT_MODE_ORDER = ['text', 'image', 'video', 'audio']
+const MODEL_INPUT_MODE_LABELS = {
+  text: 'Text',
+  image: 'Image',
+  video: 'Video',
+  audio: 'Audio',
+}
+
+function modelInputModeList(modes = []) {
+  const supported = new Set(modes)
+  return MODEL_INPUT_MODE_ORDER
+    .filter(mode => supported.has(mode))
+    .map(mode => MODEL_INPUT_MODE_LABELS[mode])
+    .join(' · ')
+}
 
 function getSessionId() {
   const requested = requestedSessionId(window.location.search)
@@ -113,6 +141,7 @@ function labelFor(state) {
 function frontendLabel(holder) {
   return holder?.label || {
     desktop: t('桌面端'),
+    mobile: t('移动端'),
     cli: t('终端'),
     web: 'WebUI',
   }[holder?.type] || t('其他入口')
@@ -169,7 +198,21 @@ export default function App() {
     orbSkinId,
     autoHideSeconds,
     wakeWordEnabled,
+    orbBloubShape,
+    orbBloubColor,
+    orbBloubExpression,
+    orbBloubAutoState,
+    orbBloubFixedShape,
   } = desktopClientSettings
+  // bloub 外观来源：desktop-client-settings 的 IPC 热应用链路透传，
+  // 字段名映射见 use-bloub-appearance.js 的入参约定。
+  const bloubSettings = {
+    urlShape: orbBloubShape,
+    urlColor: orbBloubColor,
+    urlExpression: orbBloubExpression,
+    autoState: orbBloubAutoState,
+    fixedShape: orbBloubFixedShape,
+  }
   // `t()` reads the module-level runtime language. Keeping a revision in
   // React state makes a language-only settings update repaint this surface
   // without replacing its Gateway WebSocket or Realtime Session.
@@ -177,18 +220,13 @@ export default function App() {
   const [sessionId, setSessionId] = useState(getSessionId)
   const [voiceEnabled, setVoiceEnabled] = useState(() => initialVoiceEnabled({
     desktopOrbMode,
+    clientType: activeClientType,
   }))
   const [waitingForVoice, setWaitingForVoice] = useState(false)
   const [messages, setMessages] = useState([])
   const [activity, setActivity] = useState(t('正在检查后台 Agent'))
   const [frontend, setFrontend] = useState({ label: 'Realtime Agent' })
-  const [realtimeProviders, setRealtimeProviders] = useState([])
-  const [realtimeProvider, setRealtimeProvider] = useState(
-    () => localStorage.getItem('qwen-audio-agent.realtimeProvider') || '',
-  )
   const [modelStatus, setModelStatus] = useState(() => realtimeModelStatus())
-  const [providerNotice, setProviderNotice] = useState('')
-  const [healthValidated, setHealthValidated] = useState(false)
   const [gatewayRuntime, setGatewayRuntime] = useState('connecting')
   const [backend, setBackend] = useState({
     label: 'Agent',
@@ -199,7 +237,7 @@ export default function App() {
   })
   const [agentTasks, setAgentTasks] = useState([])
   const [desktopTasksCollapsed, setDesktopTasksCollapsed] = useState(false)
-  const [showDomainLibrary, setShowDomainLibrary] = useState(false)
+  const [showKnowledgeLibrary, setShowKnowledgeLibrary] = useState(false)
   const [desktopTaskLayout, setDesktopTaskLayout] = useState({
     placement: 'below',
     orbOffsetX: 0,
@@ -274,9 +312,7 @@ export default function App() {
   }, [noteInteraction])
 
   const triggerSpriteAnimation = useCallback((eventName, { priority = false } = {}) => {
-    // bloub-bot 是内置皮肤但自带彩蛋动画（burst/comet），同样要放行。
-    if (!desktopOrbMode) return
-    if (isBuiltinOrbSkin(orbSkinId) && orbSkinId !== 'bloub-bot') return
+    if (!desktopOrbMode || isBuiltinOrbSkin(orbSkinId)) return
     const name = spriteAnimationForEvent(eventName)
     if (!name) return
     spriteAnimationCueId.current += 1
@@ -334,6 +370,35 @@ export default function App() {
     }
   }, [])
 
+  const cancelDesktopTask = useCallback(async task => {
+    if (task?.phase !== 'scheduled' || !task.id) return
+    const cancelTask = gatewayCommandsRef.current?.cancelTask
+    if (typeof cancelTask !== 'function') return
+    setAgentTasks(items => upsertTask(
+      items,
+      task.id,
+      current => ({ ...current, phase: 'cancelling' }),
+    ))
+    try {
+      const cancelled = await cancelTask(task.id)
+      if (!cancelled) return
+      setAgentTasks(items => upsertTask(
+        items,
+        task.id,
+        current => taskView(cancelled, current),
+        taskView(cancelled),
+      ))
+    } catch {
+      setAgentTasks(items => upsertTask(
+        items,
+        task.id,
+        current => current.phase === 'cancelling'
+          ? { ...current, phase: 'scheduled' }
+          : current,
+      ))
+    }
+  }, [])
+
   useLayoutEffect(() => {
     const container = messagesRef.current
     if (container && stickToBottom.current) {
@@ -349,7 +414,7 @@ export default function App() {
   useEffect(() => {
     let cancelled = false
     let refreshTimer
-    const refresh = () => fetch('api/health', { cache: 'no-store' })
+    const refresh = () => gatewayFetch('api/health', { cache: 'no-store' })
       .then(async response => ({ response, payload: await response.json() }))
       .then(({ response, payload }) => {
         if (cancelled) return
@@ -362,22 +427,8 @@ export default function App() {
         setFrontend({
           label: payload.realtimeLabel || payload.realtimeProvider || 'Realtime Agent',
         })
-        setRealtimeProviders(payload.realtimeProviders || [])
         setModelStatus(realtimeModelStatus(payload))
-        // A front end persisted by an earlier visit may no longer exist on this
-        // server (removed provider, different deployment). Sending it would be
-        // refused on every connect, so the stale selection is dropped in favour
-        // of the server default instead of leaving the client stuck.
-        setRealtimeProvider(current => {
-          const selection = realtimeProviderSelection(current, payload)
-          setProviderNotice(selection.notice)
-          if (selection.provider !== current) {
-            localStorage.removeItem('qwen-audio-agent.realtimeProvider')
-          }
-          return selection.provider
-        })
         setGatewayRuntime(gatewayReady ? 'ready' : 'failed')
-        setHealthValidated(gatewayReady)
         setBackend({
           label,
           enabled: backendEnabled,
@@ -403,7 +454,6 @@ export default function App() {
       .catch(() => {
         if (cancelled) return
         setGatewayRuntime('failed')
-        setHealthValidated(false)
         setActivity(t('qwen-audio-agent Gateway 尚未连接'))
         if (desktopOrbMode) refreshTimer = setTimeout(refresh, 1000)
       })
@@ -578,6 +628,15 @@ export default function App() {
           : message
       )))
     }
+    if (event.type === 'task.scheduled') {
+      const task = event.task
+      setAgentTasks(items => upsertTask(
+        items,
+        task.id,
+        current => taskView(task, current),
+        taskView(task),
+      ))
+    }
     if (event.type === 'task.accepted') {
       const task = event.task
       if (task.turnId) agentTurnIds.current.add(task.turnId)
@@ -746,6 +805,7 @@ export default function App() {
       )
       setAgentTasks(items => items.filter(task => (
         !presentedTaskIds.has(task.id)
+        || taskHasArtifacts(task)
         || !['responding', 'completed'].includes(task.phase)
       )))
     }
@@ -776,13 +836,10 @@ export default function App() {
     // microphone capture and never closes or interrupts the output stream.
     inputOnlyMute: true,
     wakeWordOnly: voiceEnabledForWakeWord,
-    clientType: desktopOrbMode ? 'desktop' : 'web',
-    clientLabel: desktopOrbMode ? t('桌面端') : 'WebUI',
+    clientType: activeClientType,
+    clientLabel: gatewayClientLabel(desktopOrbMode ? t('桌面端') : 'WebUI'),
+    clientInstanceId: activeClientInstanceId,
     clientStates: desktopOrbMode ? ['sleeping'] : [],
-    realtimeProvider: realtimeProviderForConnection(
-      realtimeProvider,
-      healthValidated,
-    ),
     onEvent: onRealtimeEvent,
     onInputError: message => {
       setVoiceEnabled(false)
@@ -825,21 +882,14 @@ export default function App() {
     voiceState: voice.visualState || voice.state,
     tasksWorking: desktopHasWorkingTasks,
   })
-  const authorizationTask = agentTasks.find(
-    task => task.authorization?.status === 'pending',
-  )
-
   const bloubAppearance = useBloubAppearance({
     orbSkinId,
     orbVisualState,
-    bloubSettings: {
-      autoState: desktopClientSettings.orbBloubAutoState,
-      fixedShape: desktopClientSettings.orbBloubFixedShape,
-      urlShape: desktopClientSettings.orbBloubShape,
-      urlColor: desktopClientSettings.orbBloubColor,
-      urlExpression: desktopClientSettings.orbBloubExpression,
-    },
+    bloubSettings,
   })
+  const authorizationTask = agentTasks.find(
+    task => task.authorization?.status === 'pending',
+  )
 
   useEffect(() => {
     if (!desktopOrbMode) return
@@ -924,11 +974,7 @@ export default function App() {
       }
       previousDesktopLifecycle.current = lifecycle.state
       setDesktopLifecycle(lifecycle.state)
-      if (lifecycle.state === 'waking') {
-        lastWakeAtRef.current = Date.now()
-        // 唤醒瞬间播孵化彩蛋：球先收成一颗蛋再孵回正常形态（bloub）。
-        triggerSpriteAnimation('hatching')
-      }
+      if (lifecycle.state === 'waking') lastWakeAtRef.current = Date.now()
       if (lifecycle.reason === 'activity') noteInteraction()
       if (lifecycle.state === 'hidden') {
         // Main has already collapsed a visible conversation panel before an
@@ -1017,36 +1063,9 @@ export default function App() {
     return () => clearInterval(timer)
   }, [autoHideSeconds, publishClientEvent])
 
-  // Switching the front end reconnects on its own: realtimeProvider is part of
-  // the realtime effect's dependencies, so changing it tears the current socket
-  // down and connects again with the newly selected provider.
-  const selectRealtimeProvider = value => {
-    const selection = realtimeProviderSelection(value, {
-      realtimeModel: modelStatus.id,
-      realtimeModelProfile: modelStatus.id ? { id: modelStatus.id } : null,
-      realtimeProviders,
-    })
-    setRealtimeProvider(selection.provider)
-    setProviderNotice(selection.notice)
-    if (selection.provider) {
-      localStorage.setItem(
-        'qwen-audio-agent.realtimeProvider',
-        selection.provider,
-      )
-    } else {
-      localStorage.removeItem('qwen-audio-agent.realtimeProvider')
-    }
-  }
-
-  const inputModeLabels = {
-    text: t('文字'),
-    audio: t('语音'),
-    image: t('图片'),
-    video: t('视频'),
-    observation: t('画面观察'),
-    nativeVideo: t('原生视频'),
-  }
-  const modeList = modes => modes.map(mode => inputModeLabels[mode]).join(' / ')
+  const modelLabel = (modelStatus.label || t('模型信息不可用'))
+    .replace(/\s+Realtime\b/gi, '')
+    .trim()
 
   const resetSession = () => {
     taskDismissTimers.current.forEach(timer => clearTimeout(timer))
@@ -1164,25 +1183,23 @@ export default function App() {
         onPointerUp={endOrbDrag}
         onPointerCancel={endOrbDrag}
         >
-        {isBuiltinOrbSkin(orbSkinId) || spriteOrbFailed
+        {orbSkinId === 'bloub-bot'
           ? (
-              orbSkinId === 'bloub-bot'
-                ? (
-                    <DesktopBloubOrb
-                      state={bloubAppearance.state}
-                      dragDirection={orbDragDirection}
-                      cue={spriteAnimationCue}
-                      onCueComplete={completeSpriteAnimationCue}
-                      shape={bloubAppearance.shape}
-                      color={bloubAppearance.color}
-                      expression={bloubAppearance.expression}
-                    />
-                  )
-                : (
-                    <DesktopFluidOrb
-                      style={isBuiltinOrbSkin(orbSkinId) ? orbSkinId : 'fluid'}
-                    />
-                  )
+              <DesktopBloubOrb
+                state={bloubAppearance.state}
+                dragDirection={orbDragDirection}
+                cue={spriteAnimationCue}
+                onCueComplete={completeSpriteAnimationCue}
+                shape={bloubAppearance.shape}
+                color={bloubAppearance.color}
+                expression={bloubAppearance.expression}
+              />
+            )
+          : isBuiltinOrbSkin(orbSkinId) || spriteOrbFailed
+          ? (
+              <DesktopFluidOrb
+                style={isBuiltinOrbSkin(orbSkinId) ? orbSkinId : 'fluid'}
+              />
             )
           : (
               <DesktopSpriteOrb
@@ -1275,6 +1292,7 @@ export default function App() {
         {desktopCards.map(task => {
           const detail = taskDetail(task)
           const title = task.delegation?.title || task.objective || taskLabel(task)
+          const scheduled = task.phase === 'scheduled'
           const progress = ['completed', 'failed', 'cancelled'].includes(task.phase)
             ? taskLabel(task)
             : detail && detail !== title ? detail : taskLabel(task)
@@ -1292,6 +1310,16 @@ export default function App() {
               <i aria-hidden="true" />
               <small>{progress}</small>
             </span>
+            {scheduled && <button
+              className="desktop-task-cancel"
+              type="button"
+              aria-label={t(task.kind === 'reminder' ? '取消提醒' : '取消计划')}
+              title={t(task.kind === 'reminder' ? '取消提醒' : '取消计划')}
+              onClick={event => {
+                event.stopPropagation()
+                void cancelDesktopTask(task)
+              }}
+            >×</button>}
             <span
               className={`desktop-task-progress${progressRatio == null ? '' : ' determinate'}`}
               style={progressRatio == null ? undefined : {
@@ -1307,54 +1335,23 @@ export default function App() {
 
   const renderTask = agentTask => <aside
     key={`task:${agentTask.id}`}
-    className={`agent-task ${agentTask.phase}`}
+    className={`agent-task ${agentTask.phase}${
+      taskHasArtifacts(agentTask) ? ' has-artifacts' : ''
+    }${agentTask.authorization?.status === 'pending' ? ' awaiting-permission' : ''}`}
   >
     <span className="task-spinner" aria-hidden="true" />
     <div>
       <b>{taskLabel(agentTask)}</b>
       <small>{taskDetail(agentTask)}</small>
+      <TaskArtifacts artifacts={agentTask.artifacts} />
     </div>
     {!['failed', 'disconnected'].includes(agentTask.phase) && <div className="task-controls">
-      {agentTask.authorization?.status === 'pending' && <>
-        <button
-          className="permission-allow"
-          disabled={agentTask.authorization.submitting}
-          onClick={() => respondToPermission(
-            agentTask.id,
-            agentTask.authorization,
-            'once',
-          )}
-        >
-          {t('本次允许')}
-        </button>
-        <button
-          className="permission-allow"
-          disabled={agentTask.authorization.submitting}
-          onClick={() => respondToPermission(
-            agentTask.id,
-            agentTask.authorization,
-            'always',
-          )}
-        >
-          {agentTask.authorization.submitting
-            ? t('正在提交')
-            : t('本会话始终允许')}
-        </button>
-        <button
-          className="permission-deny"
-          disabled={agentTask.authorization.submitting}
-          onClick={() => respondToPermission(
-            agentTask.id,
-            agentTask.authorization,
-            'reject',
-          )}
-        >
-          {t('拒绝')}
-        </button>
-        {agentTask.authorization.error && <small className="permission-error">
-          {agentTask.authorization.error}
-        </small>}
-      </>}
+      {agentTask.authorization?.status === 'pending' && <PermissionActions
+        authorization={agentTask.authorization}
+        onRespond={decision => respondToPermission(
+          agentTask.id, agentTask.authorization, decision,
+        )}
+      />}
       <time>{Math.max(0, Math.round(agentTask.elapsedMs / 1000))}s</time>
     </div>}
   </aside>
@@ -1390,34 +1387,15 @@ export default function App() {
         <i className={backend.ready ? 'ready' : ''} />
         {backend.label}
       </a>
-      <div className="model-status" title={modelStatus.id}>
-        <b>{modelStatus.label || t('模型信息不可用')}</b>
-        {modelStatus.metadataStatus === 'current'
-          ? <>
-              <small>{t('模型支持：{modes}', {
-                modes: modeList(modelStatus.modelInputModes),
-              })}</small>
-              <small>{t('Web 传输：{modes}', {
-                modes: modeList(modelStatus.transportInputModes),
-              })}</small>
-            </>
-          : <small>{t('模型能力信息不可用')}</small>}
-        {providerNotice && <small className="provider-notice" role="status">
-          {t(providerNotice)}
-        </small>}
-      </div>
-      {realtimeProviders.length > 1 && <select
-        className="ghost frontend-provider"
-        value={realtimeProvider}
-        onChange={event => selectRealtimeProvider(event.target.value)}
-        title={t('选择前台语音引擎')}
-        aria-label={t('选择前台语音引擎')}
+      <div
+        className="model-status"
+        title={`${frontend.label}\n${modelStatus.id}`}
       >
-        <option value="">{t('前台：默认（{label}）', { label: frontend.label })}</option>
-        {realtimeProviders.map(item => <option key={item.key} value={item.key}>
-          {t('前台：{label}', { label: item.label })}
-        </option>)}
-      </select>}
+        <b>{modelLabel}</b>
+        {modelStatus.metadataStatus === 'current'
+          ? <small>{modelInputModeList(modelStatus.modelInputModes)}</small>
+          : <small>{t('模型能力信息不可用')}</small>}
+      </div>
       <div className="status">
         <i className={orbVisualState} /><span>{labelFor(orbVisualState)}</span>
       </div>
@@ -1425,8 +1403,8 @@ export default function App() {
           压成一个「＋」，再塞一个文字按钮会挤掉语音按钮 */}
       {!desktopOrbMode && (
         <button
-          className={`ghost${showDomainLibrary ? ' active' : ''}`}
-          onClick={() => setShowDomainLibrary(value => !value)}
+          className={`ghost${showKnowledgeLibrary ? ' active' : ''}`}
+          onClick={() => setShowKnowledgeLibrary(value => !value)}
           title={t('把本机的手册、规章、教材交给助手')}
         >
           {t('资料库')}
@@ -1447,7 +1425,7 @@ export default function App() {
         aria-label={voiceEnabled
           ? t('麦克风静音')
           : waitingForVoice ? t('取消等待') : t('开启麦克风')}
-        title={desktopOrbMode
+        title={compactVoiceControl
           ? voiceEnabled
             ? t('麦克风静音')
             : waitingForVoice ? t('取消等待') : t('开启麦克风')
@@ -1460,7 +1438,7 @@ export default function App() {
           enableVoice()
         }}
       >
-        {desktopOrbMode
+        {compactVoiceControl
           ? <OrbControlIcon type="microphone" muted={!voiceEnabled} />
           : voiceEnabled
             ? t('麦克风静音')
@@ -1476,8 +1454,8 @@ export default function App() {
     </header>
 
     <section className="workspace">
-      {showDomainLibrary && <DomainLibraryPanel
-        onClose={() => setShowDomainLibrary(false)}
+      {showKnowledgeLibrary && <KnowledgeLibraryPanel
+        onClose={() => setShowKnowledgeLibrary(false)}
         getTask={voice.getTask}
       />}
       <div className="hero">
@@ -1521,6 +1499,13 @@ export default function App() {
 
       {composerEnabled && <MultimodalComposer
         onSend={sendComposerInput}
+        onVisualFrame={voice.sendImageFrame}
+        onVisualStop={voice.clearImageBuffer}
+        visualStreamSupported={!desktopOrbMode
+          && modelStatus.transportInputModes.includes('video')}
+        visualStreamAvailable={!desktopOrbMode && voice.imageBufferAvailable}
+        voiceInputEnabled={voice.inputReady}
+        connectionState={voice.connectionState}
         compact={desktopOrbMode}
       />}
 

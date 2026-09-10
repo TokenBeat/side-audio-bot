@@ -4,14 +4,6 @@ function toolName(entry) {
   return String(entry?.definition?.function?.name || '').trim()
 }
 
-export const FRONTEND_TOOL_MODES = Object.freeze([
-  'inline',
-  'background',
-  'control',
-])
-
-const FRONTEND_TOOL_MODE_SET = new Set(FRONTEND_TOOL_MODES)
-
 function clientStates(context) {
   return new Set(
     Array.isArray(context?.client?.states)
@@ -36,6 +28,14 @@ function frontendCapabilities(context) {
   )
 }
 
+function disabledTools(context) {
+  return new Set(
+    Array.isArray(context?.frontend?.disabledTools)
+      ? context.frontend.disabledTools.map(String)
+      : [],
+  )
+}
+
 function policyAllows(policy = {}, context = {}) {
   const availableStates = clientStates(context)
   const requiredStates = Array.isArray(policy.requiredClientStates)
@@ -45,15 +45,9 @@ function policyAllows(policy = {}, context = {}) {
   const requiredActions = Array.isArray(policy.requiredClientActions)
     ? policy.requiredClientActions
     : []
-  const availableCapabilities = frontendCapabilities(context)
-  const requiredCapabilities = Array.isArray(policy.requiredCapabilities)
-    ? policy.requiredCapabilities
-    : []
   return requiredStates.every(state => availableStates.has(state))
     && requiredActions.every(action => availableActions.has(action))
-    && requiredCapabilities.every(capability => (
-      availableCapabilities.has(capability)
-    ))
+    && capabilitiesAllow(policy, context)
 }
 
 function capabilitiesAllow(policy = {}, context = {}) {
@@ -67,12 +61,6 @@ function capabilitiesAllow(policy = {}, context = {}) {
 }
 
 function normalizedPolicy(policy = {}) {
-  const mode = String(policy.mode || '').trim()
-  if (!FRONTEND_TOOL_MODE_SET.has(mode)) {
-    throw new Error(
-      `Frontend tool policy requires a valid mode: ${FRONTEND_TOOL_MODES.join(', ')}`,
-    )
-  }
   if (
     policy.repeatHandling !== undefined
     && policy.repeatHandling !== 'handler'
@@ -85,7 +73,7 @@ function normalizedPolicy(policy = {}) {
   ) {
     throw new Error('Frontend tool maxResultBytes must be a positive integer')
   }
-  const normalized = { ...policy, mode }
+  const normalized = { ...policy }
   if (Array.isArray(policy.requiredClientStates)) {
     normalized.requiredClientStates = Object.freeze([
       ...policy.requiredClientStates.map(String),
@@ -112,7 +100,7 @@ function positivePolicyInteger(value) {
 /**
  * Declarative catalog for tools exposed to the realtime frontend model.
  *
- * Each entry declares its execution mode and optional visibility constraints.
+ * Entries contain a model definition and optional runtime constraints.
  * Visibility never replaces permission or current-state validation inside the
  * tool implementation.
  */
@@ -149,7 +137,11 @@ export class FrontendToolRegistry {
 
   isEnabled(name, context = {}) {
     const entry = this.get(name)
-    return Boolean(entry && policyAllows(entry.policy, context))
+    return Boolean(
+      entry
+      && !disabledTools(context).has(entry.name)
+      && policyAllows(entry.policy, context),
+    )
   }
 
   definitions(context = {}) {
@@ -167,8 +159,9 @@ export class FrontendToolRegistry {
  * Exact dispatcher for the tools declared by one registry.
  *
  * Argument parsing, turn correlation and tool-specific policy remain outside
- * this generic boundary; the executor only guarantees that every registered
- * tool has exactly one callable implementation and unknown tools stay closed.
+ * this generic boundary. Disabled tools and unavailable service capabilities
+ * are rejected before loop admission; live client-action validation remains
+ * in the handler. Each registered tool has exactly one callable implementation.
  */
 export class FrontendToolExecutor {
   #registry
@@ -208,7 +201,7 @@ export class FrontendToolExecutor {
         value: undefined,
       }
     }
-    if (!capabilitiesAllow(entry.policy, context)) {
+    if (disabledTools(context).has(entry.name) || !capabilitiesAllow(entry.policy, context)) {
       return {
         handled: true,
         executed: false,
