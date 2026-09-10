@@ -99,6 +99,8 @@ export const keep = [
   /Qwen Realtime\b/g,
   /Qwen Omni Realtime/g, // 模型家族显示名（无版本号形态）
   /qwen-omni-realtime/g, // 模型文档页 slug（改了断链）
+  /qwen-omni-turbo-realtime/g, // DashScope 模型 ID（bench 示例命令）
+  /qwen-voice-bean/g, // 外部示例仓库路径（liutaocode/esp32demo 链接，改了断链）
   /Qwen3\.5 Omni (?:Plus|Flash) Realtime/g,
   /QWEN_\(\?:AUDIO\|OMNI\)_REALTIME_VOICE/g, // 测试正则里的厂商变量名
   /voice-frontends\/qwen-omni-realtime/g, // 上游文档站页面 slug（改了会断链）

@@ -55,6 +55,8 @@
 | `QWEN_OMNI_REALTIME_VOICE` | 厂商语音前台配置变量，保留原样 |
 | `Qwen Code` | 第三方 Agent 名称，保留原样 |
 | `qwen-audio-realtime` | DashScope provider ID，外部标识 |
+| `qwen-omni-turbo-realtime` | DashScope 模型 ID，外部 API 标识 |
+| `qwen-voice-bean` | 外部示例仓库路径（第三方 ESP32 demo 链接），改了断链 |
 | 图片文件名（如 `qwen-audio-agent-three-layer-architecture-*.png`） | 按约定不替换文件名 |
 
 ## 3. 特殊处理
