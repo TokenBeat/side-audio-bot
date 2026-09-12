@@ -15,6 +15,15 @@ function greeting(now, address) {
   return `${period}，${address}`
 }
 
+function checkinGreeting(now) {
+  const hour = now.getHours()
+  if (hour < 6) return '这么晚还没睡呀，跟我聊聊？'
+  if (hour < 11) return '早上好呀，睡得好吗？跟我说说话吧'
+  if (hour < 14) return '中午好，今天胃口怎么样？'
+  if (hour < 18) return '下午好，喝口水歇一歇，聊两句？'
+  return '晚上好呀，今天过得怎么样？'
+}
+
 export default function ElderTerminal() {
   const { state } = useHomeState()
   const [now, setNow] = useState(() => new Date())
@@ -86,6 +95,7 @@ export default function ElderTerminal() {
       autoStartedRef.current = true
       if (session.activateVoice()) setMuted(false)
     }
+    if (!checkinActive) autoStartedRef.current = false
   }, [checkinActive, muted, session])
 
   const startSosPress = () => {
@@ -166,9 +176,9 @@ export default function ElderTerminal() {
         </p>
 
         {checkinActive && (
-          <div className="terminal-call-status tone-accepted">
+          <div className="checkin-banner">
             <span className="call-icon">☀️</span>
-            早上好呀，睡得好吗？跟我说说话吧
+            {checkinGreeting(now)}
           </div>
         )}
 

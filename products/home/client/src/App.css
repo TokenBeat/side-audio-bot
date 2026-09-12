@@ -493,3 +493,24 @@ button { font-family: inherit; cursor: pointer; }
 
 .home-actions .action-card.sos .action-sub { color: rgba(255, 255, 255, 0.85); }
 .home-actions .action-card.sos.active { filter: brightness(1.08); }
+
+/* 问安瞬间：日出色全宽横幅 */
+.checkin-banner {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 26px;
+  font-weight: 600;
+  color: #7a4a12;
+  background: linear-gradient(90deg, #ffe9c4, #ffd9a8);
+  padding: 16px 26px;
+  border-radius: 18px;
+  border: 2px solid #f2c98a;
+  animation: fade-in 0.6s ease-out, sunrise-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes sunrise-glow {
+  0%, 100% { box-shadow: 0 6px 24px rgba(232, 178, 74, 0.25); }
+  50% { box-shadow: 0 6px 34px rgba(232, 178, 74, 0.5); }
+}

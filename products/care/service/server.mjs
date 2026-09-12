@@ -142,7 +142,7 @@ export class CareServiceServer {
       return
     }
     if (url.pathname === '/api/care/reset' && request.method === 'POST') {
-      json(response, 200, this.service.reset(careId(request, url, body ?? {})))
+      json(response, 200, this.service.reset(careId(request, url)))
       return
     }
     const mcpSurface = url.pathname === '/mcp/frontend'

@@ -140,7 +140,7 @@ export class HomeServiceServer {
       return
     }
     if (url.pathname === '/api/home/reset' && request.method === 'POST') {
-      json(response, 200, this.service.reset(homeId(request, url, body ?? {})))
+      json(response, 200, this.service.reset(homeId(request, url)))
       return
     }
     const mcpSurface = url.pathname === '/mcp/frontend'
