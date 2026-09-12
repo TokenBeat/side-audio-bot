@@ -1,18 +1,19 @@
-// 老人端：问安、提醒、SOS、日常聊天。大字、大按钮、SOS 长按防误触。
+// 老人端：晚晴伴。布局与机构版房间终端同工艺（设备框+3D 陪伴球+圆形 Dock），
+// 差异：SOS 长按防误触、问安日出横幅、家属留言位。
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useVoiceSession from '../hooks/useVoiceSession'
 import useHomeState from '../hooks/useHomeState'
-import VoiceOrb from './VoiceOrb'
+import Orb3D from './Orb3D'
 
 function greeting(now, address) {
   const hour = now.getHours()
   const period = hour < 6 ? '夜深了'
-    : hour < 9 ? '早上好'
-    : hour < 12 ? '上午好'
-    : hour < 14 ? '中午好'
-    : hour < 18 ? '下午好'
-    : '晚上好'
-  return `${period}，${address}`
+    : hour < 9 ? '早上'
+    : hour < 12 ? '上午'
+    : hour < 14 ? '中午'
+    : hour < 18 ? '下午'
+    : '晚上'
+  return hour < 6 ? `夜深了，${address}` : `${period}好，${address}`
 }
 
 function checkinGreeting(now) {
@@ -24,13 +25,22 @@ function checkinGreeting(now) {
   return '晚上好呀，今天过得怎么样？'
 }
 
+const ORB_STATE_LABEL = {
+  idle: '点一下，跟我说话',
+  listening: '在听呢，请讲',
+  thinking: '想一想…',
+  speaking: '我在说',
+  error: '语音需要帮助，请长按 SOS',
+}
+
 export default function ElderTerminal() {
   const { state } = useHomeState()
   const [now, setNow] = useState(() => new Date())
   const [muted, setMuted] = useState(true)
   const [transcript, setTranscript] = useState([])
-  const [sosCountdown, setSosCountdown] = useState(null)
   const pressTimerRef = useRef(null)
+  const transcriptRef = useRef(null)
+
   const elder = state?.elder
   const address = elder?.address || ''
 
@@ -65,7 +75,6 @@ export default function ElderTerminal() {
         }]
       })
       if (message.role === 'user' && message.final) {
-        // 有应答即认为语音活跃，供家属端"最近对话"展示。
         fetch('/api/home/voice-touch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -88,7 +97,6 @@ export default function ElderTerminal() {
     (state?.reminders || []).find(item => !item.confirmedAt)
   ), [state])
 
-  // 问安主动唤起：服务端到点发起时，终端自动开麦进入对话。
   const autoStartedRef = useRef(false)
   useEffect(() => {
     if (checkinActive && muted && !autoStartedRef.current) {
@@ -106,18 +114,16 @@ export default function ElderTerminal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: 'sos_manage',
-          arguments: { action: 'trigger', reason: '按下紧急按钮', },
+          arguments: { action: 'trigger', reason: '按下紧急按钮' },
         }),
       }).catch(() => {})
     }, 1200)
-    setSosCountdown(1.2)
   }
 
   const cancelSosPress = () => {
     if (pressTimerRef.current) {
       clearTimeout(pressTimerRef.current)
       pressTimerRef.current = null
-      setSosCountdown(null)
     }
   }
 
@@ -133,7 +139,7 @@ export default function ElderTerminal() {
     }).catch(() => {})
   }
 
-  const triggerCheckin = () => {
+  const finishCheckin = () => {
     fetch('/api/home/commands', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -141,101 +147,153 @@ export default function ElderTerminal() {
     }).catch(() => {})
   }
 
-  const voiceState = sosActive ? 'speaking' : session.voiceState
+  const toggleVoice = () => {
+    if (muted) {
+      if (session.activateVoice()) setMuted(false)
+    } else {
+      setMuted(true)
+      session.deactivateVoice()
+    }
+  }
+
+  const lastLine = transcript[transcript.length - 1]
+  const orbState = sosActive ? 'speaking' : session.voiceState
+  const orbLabel = sosActive
+    ? '已经通知家人了'
+    : muted
+      ? ORB_STATE_LABEL.idle
+      : session.error
+        ? session.error
+        : ORB_STATE_LABEL[session.voiceState] || ORB_STATE_LABEL.idle
+
+  const remindersDone = (state?.reminders || []).filter(item => item.confirmedAt).length
 
   return (
-    <div className="room-terminal home-elder">
-      <header className="terminal-topbar">
-        <div className="terminal-clock">
-          {now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+    <div className="terminal-stage">
+      <div className="terminal-frame">
+        <header className="frame-topbar">
+          <span className="frame-brand">
+            <span className="brand-mark">晴</span>
+            晚晴伴
+          </span>
+          <span className="frame-weather">☁️ {state?.weather?.summary || '多云'}</span>
+          <span className="frame-clock">{now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
+          <span className="frame-date">{now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })}</span>
+        </header>
+
+        <div className="terminal-columns">
+          <section className="hero-panel glass">
+            <div className="hero-clock">
+              {now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+            <div className="hero-room">{elder?.name} · 家里</div>
+            <Orb3D
+              state={orbState}
+              level={session.inputLevel}
+              speakingLevel={session.outputLevel}
+              height={330}
+            />
+            <div className="hero-greeting">{greeting(now, address || elder?.name || '')}</div>
+            <button type="button" className={`hero-mic ${muted ? '' : 'live'}`} onClick={toggleVoice}>
+              {orbLabel}
+            </button>
+            {checkinActive && (
+              <div className="checkin-banner">☀️ {checkinGreeting(now)}</div>
+            )}
+            {lastLine && !checkinActive && (
+              <div className="hero-subtitle glass-soft" ref={transcriptRef}>
+                <p className={`line line-${lastLine.role}`}>
+                  {lastLine.role === 'user' ? '您' : lastLine.role === 'system' ? '' : '晚晴'}：{lastLine.content}
+                </p>
+              </div>
+            )}
+          </section>
+
+          <aside className="info-column">
+            <div className={`info-card medication-card ${pendingReminder ? '' : 'done'}`}>
+              <div className="info-card-head">💊 接下来的安排</div>
+              {pendingReminder ? (
+                <>
+                  <div className="info-card-title">{pendingReminder.name}</div>
+                  <div className="info-card-sub">{pendingReminder.time} · {pendingReminder.note}</div>
+                  <button type="button" className="card-action" onClick={confirmReminder}>做好了，点这里</button>
+                </>
+              ) : (
+                <div className="info-card-title">今天的安排都完成啦 👍</div>
+              )}
+            </div>
+
+            <div className="info-card call-card sos-info">
+              <div className="info-card-head">🆘 紧急求助</div>
+              <div className="info-card-title">长按下面红色按钮</div>
+              <div className="info-card-sub">
+                {sosActive
+                  ? sosAcknowledged
+                    ? `${state.sos.notified.find(entry => entry.ackAt)?.contact?.name || '家人'}已经看到了`
+                    : `已通知${state.sos.notified[0]?.relation || '家人'}${state.sos.notified[0]?.contact?.name || ''}`
+                  : `家人（${(elder?.contacts || []).map(contact => contact.name).join('、')}）会马上收到`}
+              </div>
+            </div>
+
+            <div className="info-card schedule-card">
+              <div className="info-card-head">🏡 今天</div>
+              <div className="schedule-row">
+                <span className="schedule-time">问安</span>
+                <span className="schedule-title">
+                  {checkin?.status === 'done' ? `已完成 ✓ · 心情${checkin.mood}` : checkin?.status === 'in_progress' ? '正在进行…' : '还没开始'}
+                </span>
+              </div>
+              <div className="schedule-row">
+                <span className="schedule-time">提醒</span>
+                <span className="schedule-title">{remindersDone}/{state?.reminders?.length || 0} 已完成</span>
+              </div>
+              <div className="schedule-row soft">
+                <span className="schedule-title soft">语音在家庭网关本地处理，不会上云。</span>
+              </div>
+            </div>
+          </aside>
         </div>
-        <div className="terminal-date">
-          {now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })}
-        </div>
-        <div className="terminal-room">晚晴伴</div>
-      </header>
 
-      <main className="terminal-main">
-        <VoiceOrb
-          state={voiceState}
-          level={Math.max(session.inputLevel, session.outputLevel)}
-          onClick={() => {
-            if (muted) {
-              if (session.activateVoice()) setMuted(false)
-            } else {
-              setMuted(true)
-              session.deactivateVoice()
-            }
-          }}
-        />
-        <h1 className="terminal-greeting">{greeting(now, address || elder?.name || '')}</h1>
-        <p className="terminal-hint">
-          {sosActive
-            ? '别急，家人已经知道了'
-            : muted ? '点上面的圆圈跟我说话，或者按下面的按钮' : session.error || '我在听呢，想聊点什么？'}
-        </p>
-
-        {checkinActive && (
-          <div className="checkin-banner">
-            <span className="call-icon">☀️</span>
-            {checkinGreeting(now)}
-          </div>
-        )}
-
-        {sosActive && (
-          <div className={`terminal-call-status tone-${sosAcknowledged ? 'accepted' : 'new'}`}>
-            <span className="call-icon">🆘</span>
-            {sosAcknowledged
-              ? `${state.sos.notified.find(entry => entry.ackAt)?.contact?.name || '家人'}已经看到了，正在过来`
-              : `已经通知${state.sos.notified[0]?.relation || '家人'}${state.sos.notified[0]?.contact?.name || ''}了，别着急`}
-          </div>
-        )}
-
-        {transcript.length > 0 && (
-          <div className="terminal-transcript">
-            {transcript.slice(-1).map((entry, index) => (
-              <p key={`${entry.at}-${index}`} className={`line line-${entry.role}`}>
-                {entry.role === 'user' ? '您' : entry.role === 'system' ? '' : '晚晴'}：{entry.content}
-              </p>
-            ))}
-          </div>
-        )}
-      </main>
-
-      <footer className="terminal-actions home-actions">
-        {pendingReminder ? (
-          <button type="button" className="action-card medication" onClick={confirmReminder}>
-            <span className="action-icon">💊</span>
-            <span className="action-title">{pendingReminder.name}</span>
-            <span className="action-sub">{pendingReminder.time} · {pendingReminder.note}</span>
-            <span className="action-count">做好了点这里</span>
+        <footer className="dock">
+          <button
+            type="button"
+            className={`dock-btn mic ${muted ? '' : 'live'}`}
+            onClick={toggleVoice}
+            aria-label="语音对话开关"
+          >
+            {muted ? '🎙️' : '🗣️'}
+            <span>{muted ? '说话' : '在听'}</span>
           </button>
-        ) : checkinActive ? (
-          <button type="button" className="action-card medication done" onClick={triggerCheckin}>
-            <span className="action-icon">☀️</span>
-            <span className="action-title">聊好啦</span>
-            <span className="action-sub">结束今天的问安</span>
-          </button>
-        ) : (
-          <div className="action-card medication done">
-            <span className="action-icon">✅</span>
-            <span className="action-title">今天的安排都完成啦</span>
+          <div className="dock-temp">
+            <span className="dock-temp-value">{state?.weather?.summary?.match(/\d+°/)?.[0] || '18°'}</span>
+            <span className="dock-temp-label">室内舒适</span>
           </div>
-        )}
-        <button
-          type="button"
-          className={`action-card sos ${sosActive ? 'active' : ''}`}
-          onMouseDown={startSosPress}
-          onMouseUp={cancelSosPress}
-          onMouseLeave={cancelSosPress}
-          onTouchStart={startSosPress}
-          onTouchEnd={cancelSosPress}
-        >
-          <span className="action-icon">🆘</span>
-          <span className="action-title">{sosActive ? '已通知家人' : '紧急求助'}</span>
-          <span className="action-sub">{sosActive ? '保持电话畅通' : '长按 1 秒触发'}</span>
-        </button>
-      </footer>
+          {checkinActive ? (
+            <button type="button" className="dock-btn primary checkin" onClick={finishCheckin} aria-label="完成问安">
+              ☀️
+              <span>聊好啦</span>
+            </button>
+          ) : (
+            <div className="dock-temp">
+              <span className="dock-temp-value">♥</span>
+              <span className="dock-temp-label">一切平安</span>
+            </div>
+          )}
+          <button
+            type="button"
+            className={`dock-btn sos ${sosActive ? 'active' : ''}`}
+            onMouseDown={startSosPress}
+            onMouseUp={cancelSosPress}
+            onMouseLeave={cancelSosPress}
+            onTouchStart={startSosPress}
+            onTouchEnd={cancelSosPress}
+            aria-label="紧急求助"
+          >
+            🆘
+            <span>{sosActive ? '已通知' : '求助'}</span>
+          </button>
+        </footer>
+      </div>
     </div>
   )
 }

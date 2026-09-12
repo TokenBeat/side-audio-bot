@@ -34,7 +34,10 @@ export default function FamilyView({ roomId }) {
   return (
     <div className="family-view">
       <header className="family-topbar">
-        <span className="family-brand">晚晴<span className="dot">·</span>照护</span>
+        <span className="family-brand">
+          <span className="brand-mark">晴</span>
+          晚晴·照护
+        </span>
         <span className="family-role">家属端 · {room?.id} 房</span>
       </header>
 

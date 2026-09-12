@@ -75,23 +75,27 @@ export default function StationBoard() {
   const onDuty = (state?.duty?.staff || []).filter(person => person.onDuty)
 
   return (
-    <div className="station-board">
+    <div className="station-stage">
+      <div className="station-frame">
       <header className="station-topbar">
         <div className="station-brand">
-          晚晴<span className="dot">·</span>照护
+          <span className="brand-mark">晴</span>
+          晚晴·照护
           <span className="station-floor">{state?.floor || ''}</span>
         </div>
         <div className={`station-link ${connected ? 'ok' : 'bad'}`}>
           {connected ? '系统在线' : '连接中…'}
         </div>
         <div className="station-clock">
-          {now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+          <span className="station-clock-time">
+            {now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+          </span>
           <span className="station-date">
             {now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })}
           </span>
         </div>
         <div className="station-duty">
-          当班：{onDuty.map(person => person.name).join(' ') || '—'}
+          当班：<strong>{onDuty.map(person => person.name).join(' ') || '—'}</strong>
         </div>
       </header>
 
@@ -128,7 +132,7 @@ export default function StationBoard() {
         </section>
 
         <aside className="station-side">
-          <h2 className="side-title urgent">⚡ 呼叫队列（{openTickets.length}）</h2>
+          <h2 className="side-title">⚡ 呼叫队列（{openTickets.length}）</h2>
           <div className="ticket-list">
             {openTickets.map(ticket => (
               <div key={ticket.id} className={`ticket-card ${ticket.urgency === 'urgent' ? 'urgent' : ''} ${ticket.escalated ? 'escalated' : ''}`}>
@@ -151,7 +155,7 @@ export default function StationBoard() {
             )}
           </div>
 
-          <h2 className="side-title">📋 处理中（{acceptedTickets.length}）</h2>
+          <h2 className="side-title muted">📋 处理中（{acceptedTickets.length}）</h2>
           <div className="ticket-list compact">
             {acceptedTickets.map(ticket => (
               <div key={ticket.id} className="ticket-card accepted">
@@ -181,6 +185,7 @@ export default function StationBoard() {
         </span>
         <span className="weather-ticker">天气：{state?.weather?.summary || '—'} · 今天 {state?.activities?.map(activity => `${activity.time} ${activity.title}(${activity.attendees.length}人)`).join(' · ') || ''}</span>
       </footer>
+      </div>
     </div>
   )
 }

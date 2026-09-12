@@ -11,7 +11,10 @@
   "dependencies": {
     "qwen-audio-agent": "file:../../..",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "three": "0.184.0",
+    "@react-three/fiber": "9.6.1",
+    "@react-three/drei": "10.7.7"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.1",

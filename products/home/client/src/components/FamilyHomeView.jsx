@@ -46,7 +46,10 @@ export default function FamilyHomeView() {
   return (
     <div className="family-view home-family">
       <header className="family-topbar">
-        <span className="family-brand">晚晴伴</span>
+        <span className="family-brand">
+          <span className="brand-mark">晴</span>
+          晚晴伴
+        </span>
         <span className={`family-role ${connected ? '' : 'offline'}`}>
           {connected ? '已连接家庭网关' : '连接中…'}
         </span>
