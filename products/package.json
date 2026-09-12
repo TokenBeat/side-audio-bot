@@ -1,0 +1,26 @@
+{
+  "name": "wanqing-products",
+  "private": true,
+  "version": "0.1.0",
+  "description": "晚晴康养产品系列：晚晴·照护（机构版）与 晚晴伴（居家版）",
+  "type": "module",
+  "scripts": {
+    "care:install": "npm install --prefix care/service && npm install --prefix care/agent && npm install --prefix care/client",
+    "care:service": "node care/service/server.mjs",
+    "care:agent": "node care/agent/server.mjs",
+    "care:gateway": "node care/gateway/server.mjs",
+    "care:client": "npm run dev --prefix care/client",
+    "care:preflight": "node care/bootstrap/preflight.mjs",
+    "care": "npm run care:preflight && concurrently -n service,agent,gateway,client -c yellow,cyan,green,magenta --kill-others-on-fail \"npm run care:service\" \"npm run care:agent\" \"npm run care:gateway\" \"npm run care:client\"",
+    "home:install": "npm install --prefix home/service && npm install --prefix home/agent && npm install --prefix home/client",
+    "home:service": "node home/service/server.mjs",
+    "home:agent": "node home/agent/server.mjs",
+    "home:gateway": "node home/gateway/server.mjs",
+    "home:client": "npm run dev --prefix home/client",
+    "home:preflight": "node home/bootstrap/preflight.mjs",
+    "home": "npm run home:preflight && concurrently -n service,agent,gateway,client -c yellow,cyan,green,magenta --kill-others-on-fail \"npm run home:service\" \"npm run home:agent\" \"npm run home:gateway\" \"npm run home:client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
