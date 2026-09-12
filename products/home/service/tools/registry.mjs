@@ -63,6 +63,12 @@ const reminderGroup = group('reminder', '提醒', [
 
 const checkinGroup = group('checkin', '问安', [
   {
+    name: 'checkin_start',
+    label: '发起问安',
+    description: '发起一次问安：老人端会自动响起并进入对话。由每日定时调度或家属手动触发。',
+    parameters: { type: 'object', properties: {}, required: [] },
+  },
+  {
     name: 'checkin_complete',
     label: '完成问安',
     description: '问安对话结束时调用，记录老人心情与提到的事情。老人说"聊好了""没事了"或对话自然结束时使用。心情从对话中判断（不错/一般/不太好）。',

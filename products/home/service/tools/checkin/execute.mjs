@@ -2,6 +2,18 @@ import { clean, reportActivity, toolResult } from '../shared.mjs'
 
 export function executeCheckinTool(name, args, context) {
   const { homeId, store, onActivity } = context
+
+  if (name === 'checkin_start') {
+    store.startCheckin(homeId, {})
+    reportActivity(onActivity, 'checkin', 'started', '问安开始了，终端会主动响起')
+    return toolResult(
+      '问安已经开始，老人端会自动响起。',
+      store.snapshot(homeId),
+      true,
+      { status: 'in_progress' },
+    )
+  }
+
   const mood = clean(args.mood) || '不错'
   const notes = clean(args.notes)
   store.completeCheckin(homeId, { mood, notes })

@@ -36,7 +36,7 @@ function initialState(now) {
     checkin: {
       time: '09:00',
       today: {
-        date: now().toISOString().slice(0, 10),
+        date: new Date(now()).toISOString().slice(0, 10),
         status: 'done',
         at: new Date(now() - 3600 * 1000).toISOString(),
         mood: '不错',

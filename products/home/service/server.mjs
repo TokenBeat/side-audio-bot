@@ -131,6 +131,14 @@ export class HomeServiceServer {
       json(response, 200, { ok: true })
       return
     }
+    if (url.pathname === '/api/home/simulate-checkin' && request.method === 'POST') {
+      // 演示控制：手动触发一次问安（真实环境由每日定时调度调用 checkin_start）。
+      const output = await this.service.execute('checkin_start', {}, {
+        homeId: homeId(request, url),
+      })
+      json(response, 200, output)
+      return
+    }
     if (url.pathname === '/api/home/reset' && request.method === 'POST') {
       json(response, 200, this.service.reset(homeId(request, url, body ?? {})))
       return
