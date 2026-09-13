@@ -10,7 +10,7 @@ import { sceneApi, motionApi, doorApi } from '../api'
 import { SceneIcon } from '../ui/icons'
 import {
   Cloud, ArrowUpRight, Mic, MicOff, AudioLines, TriangleAlert,
-  Radio, Lock, LockOpen, ScrollText, Moon, DoorOpen, Hand,
+  Radio, Lock, LockOpen, ScrollText, Moon, DoorOpen, Hand, CloudSun,
 } from '../ui/icons'
 
 const ORB_STATE_LABEL = {
@@ -19,6 +19,75 @@ const ORB_STATE_LABEL = {
   thinking: '想一想…',
   speaking: '我在说',
   error: '语音异常，请重试',
+}
+
+
+// 环境与能耗卡：三天天气、24h 温湿度曲线、今日用电与实时功率。
+function EnvEnergyCard({ state }) {
+  const history = state?.sensorHistory || []
+  const energy = state?.energy
+  const forecast = state?.weather?.forecast || []
+  return (
+    <div className="info-card env-energy-card">
+      <div className="info-card-head"><CloudSun className="icon-inline" size={17} /> 环境与能耗</div>
+      <div className="forecast-row">
+        {forecast.map(item => (
+          <div key={item.day} className="forecast-cell">
+            <span className="forecast-day">{item.day}</span>
+            <span className="forecast-summary">{item.summary}</span>
+            <span className="forecast-range">{item.low}° ~ {item.high}°</span>
+          </div>
+        ))}
+        {!forecast.length && <span className="forecast-day soft">天气预报加载中…</span>}
+      </div>
+      <SensorCurve history={history} />
+      <div className="energy-row">
+        <span className="energy-main">今日 <strong>{energy?.todayKwh ?? '—'}</strong> 度</span>
+        <span className="energy-now">当前 <strong>{energy?.powerNowWatts ?? '—'}</strong> 瓦</span>
+        <span className="energy-q">空气 {state?.weather?.airQuality || '—'}</span>
+      </div>
+      <EnergyBars history={energy?.history || []} />
+    </div>
+  )
+}
+
+function SensorCurve({ history }) {
+  if (history.length < 2) return <div className="curve-empty">环境曲线采样中…</div>
+  const width = 400
+  const height = 74
+  const temps = history.map(item => item.temp)
+  const hums = history.map(item => item.humidity)
+  const tMin = Math.min(...temps) - 0.6
+  const tMax = Math.max(...temps) + 0.6
+  const hMin = 30
+  const hMax = 70
+  const toPath = (values, min, max) => values.map((value, index) => {
+    const x = (index / (values.length - 1)) * width
+    const y = height - ((value - min) / (max - min)) * height
+    return `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`
+  }).join(' ')
+  return (
+    <div className="sensor-curve">
+      <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-label="24 小时温湿度曲线">
+        <path d={toPath(temps, tMin, tMax)} className="curve-temp" fill="none" strokeWidth={2.4} />
+        <path d={toPath(hums, hMin, hMax)} className="curve-hum" fill="none" strokeWidth={2} strokeDasharray="5 4" />
+      </svg>
+      <span className="curve-legend"><i className="dot temp" />温度 <i className="dot hum" />湿度（24 小时）</span>
+    </div>
+  )
+}
+
+function EnergyBars({ history }) {
+  if (!history.length) return null
+  const values = history.slice(-24)
+  const max = Math.max(...values.map(entry => entry.kwh))
+  return (
+    <div className="energy-bars" aria-label="24 小时用电分布">
+      {values.map((item, index) => (
+        <i key={item.at} style={{ height: `${Math.max(8, (item.kwh / max) * 100)}%`, animationDelay: `${index * 28}ms` }} />
+      ))}
+    </div>
+  )
 }
 
 export default function HubPanel() {
@@ -255,6 +324,8 @@ export default function HubPanel() {
               ))}
               {!activities.length && <div className="schedule-row soft"><span className="schedule-title soft">设备就绪，等一句话。</span></div>}
             </div>
+
+            <EnvEnergyCard state={state} />
           </aside>
         </div>
 

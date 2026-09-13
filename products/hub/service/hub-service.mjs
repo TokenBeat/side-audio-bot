@@ -20,7 +20,27 @@ export class HubService {
   }
 
   snapshot(hubId = 'default') {
-    return this.store.snapshot(hubId)
+    const snapshot = this.store.snapshot(hubId)
+    snapshot.energy = this.#energyOf(snapshot)
+    return snapshot
+  }
+
+  // 实时功率按设备状态派生（演示估算值，不落库）。
+  #energyOf(snapshot) {
+    let watts = 0
+    for (const device of Object.values(snapshot.devices)) {
+      if (device.on === false) continue
+      if (device.kind === 'light' || device.kind === 'nightlight') watts += 6 + (device.brightness || 40) * 0.22
+      else if (device.kind === 'ac') watts += 780
+      else if (device.kind === 'media') watts += 110
+      else if (device.kind === 'curtain') watts += 4
+    }
+    watts = Math.round(watts)
+    return {
+      powerNowWatts: watts,
+      todayKwh: Math.round((snapshot.energyTodayKwh + watts / 1000 * 0.05) * 100) / 100,
+      history: snapshot.energyHistory,
+    }
   }
 
   subscribe(hubId, listener) {

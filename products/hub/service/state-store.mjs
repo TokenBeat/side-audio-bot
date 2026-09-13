@@ -52,8 +52,51 @@ function initialState(now) {
     automations: [
       { id: 'auto-night-light', name: '起夜自动亮灯', enabled: true, description: '夜间检测到起夜活动，自动点亮夜灯' },
     ],
-    weather: { summary: '多云 18-24°', airQuality: '良' },
+    weather: {
+      summary: '多云 18-24°',
+      airQuality: '良',
+      forecast: [
+        { day: '今天', summary: '多云', low: 18, high: 24 },
+        { day: '明天', summary: '小雨', low: 17, high: 22 },
+        { day: '后天', summary: '晴', low: 19, high: 26 },
+      ],
+    },
+    sensorHistory: seedSensorHistory(now),
+    energyTodayKwh: 4.6,
+    energyHistory: seedEnergyHistory(now),
   }
+}
+
+// 过去 24 小时温湿度（半小时一个点）：正弦日循环 + 抖动，供历史曲线展示。
+function seedSensorHistory(now) {
+  const points = []
+  const nowMs = now()
+  for (let index = 47; index >= 0; index -= 1) {
+    const at = nowMs - index * 30 * 60 * 1000
+    const hour = new Date(at).getHours() + new Date(at).getMinutes() / 60
+    const dayWave = Math.sin(((hour - 9) / 24) * Math.PI * 2)
+    const temp = Math.round((23.6 + dayWave * 2.2 + (Math.random() - 0.5) * 0.3) * 10) / 10
+    const humidity = Math.round(53 - dayWave * 6 + (Math.random() - 0.5) * 2)
+    points.push({ at: new Date(at).toISOString(), temp, humidity: Math.min(70, Math.max(35, humidity)) })
+  }
+  return points
+}
+
+// 过去 24 小时用电（每小时 kWh）：昼低夜高（空调/照明/电视）的家庭曲线形状。
+function seedEnergyHistory(now) {
+  const points = []
+  const nowMs = now()
+  for (let index = 23; index >= 0; index -= 1) {
+    const at = nowMs - index * 60 * 60 * 1000
+    const hour = new Date(at).getHours()
+    const shape = hour >= 19 && hour <= 23 ? 0.38
+      : hour >= 17 && hour < 19 ? 0.26
+      : hour >= 11 && hour < 14 ? 0.22
+      : hour >= 6 && hour < 11 ? 0.12
+      : 0.07
+    points.push({ at: new Date(at).toISOString(), kwh: Math.round((shape + Math.random() * 0.05) * 100) / 100 })
+  }
+  return points
 }
 
 export class HubStateStore {
@@ -98,9 +141,23 @@ export class HubStateStore {
     const state = this.#stateOf(id)
     const before = state.version
     recipe(state)
+    this.#sampleSensors(state)
     state.version = before + 1
     this.#publish(id, { kind: 'state', version: state.version })
     return this.snapshot(id)
+  }
+
+  // 半小时一个温湿度采样点，滚动保留 48 个（24 小时）。
+  #sampleSensors(state) {
+    const nowMs = this.now()
+    const last = state.sensorHistory[state.sensorHistory.length - 1]
+    if (last && nowMs - new Date(last.at).getTime() < 25 * 60 * 1000) return
+    state.sensorHistory.push({
+      at: new Date(nowMs).toISOString(),
+      temp: state.sensors.indoorTemp,
+      humidity: state.sensors.humidity,
+    })
+    if (state.sensorHistory.length > 48) state.sensorHistory.shift()
   }
 
   #publish(hubId, event) {

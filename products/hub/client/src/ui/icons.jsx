@@ -2,13 +2,13 @@
 // 尺寸与描边在 CSS 中按 .icon 体系约束，禁止再新增 emoji 当功能图标。
 import {
   Lightbulb, Snowflake, Blinds, Tv, Plug, Moon, MoonStar, DoorOpen, DoorClosed,
-  Radio, Lock, LockOpen, Mic, MicOff, AudioLines, TriangleAlert, Cloud,
+  Radio, Lock, LockOpen, Mic, MicOff, AudioLines, TriangleAlert, Cloud, CloudSun,
   ScrollText, ArrowUpRight, Footprints, Home, Clapperboard, Hand, Sparkles,
 } from 'lucide-react'
 
 export {
   Lightbulb, Snowflake, Blinds, Tv, Plug, Moon, MoonStar, DoorOpen, DoorClosed,
-  Radio, Lock, LockOpen, Mic, MicOff, AudioLines, TriangleAlert, Cloud,
+  Radio, Lock, LockOpen, Mic, MicOff, AudioLines, TriangleAlert, Cloud, CloudSun,
   ScrollText, ArrowUpRight, Footprints, Home, Clapperboard, Hand, Sparkles,
 }
 
