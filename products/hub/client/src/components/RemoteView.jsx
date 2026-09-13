@@ -4,6 +4,7 @@ import { useState } from 'react'
 import useHubState from '../hooks/useHubState'
 import DevicePanel from './DevicePanel'
 import { sceneApi, motionApi } from '../api'
+import { speak, warmUpSpeech } from '../audio/announceSpeech'
 
 export default function RemoteView() {
   const { state, connected } = useHubState()
@@ -14,6 +15,7 @@ export default function RemoteView() {
     setBusy(true)
     try {
       await sceneApi(scene.id || scene)
+      speak(`好，已为你切换到${scene.name || ''}场景`)
     } finally {
       setBusy(false)
     }
@@ -62,7 +64,12 @@ export default function RemoteView() {
       <DevicePanel state={state} selectedRoom={selectedRoom} />
 
       <div className="remote-demo">
-        <button type="button" onClick={() => motionApi('卧室')}>🌙 模拟起夜</button>
+        <button type="button" onClick={() => {
+          warmUpSpeech()
+          motionApi('卧室', { forceNight: true }).then(result => {
+            speak(result?.announced || '夜灯已为你点亮')
+          }).catch(() => {})
+        }}>🌙 模拟起夜</button>
         <span>远程与现场操控同源；真实部署经家庭网关远程访问（设备凭证 + Tailscale）。</span>
       </div>
     </div>
