@@ -1077,3 +1077,21 @@ button { font-family: inherit; cursor: pointer; }
 /* floorplan-wrap 才是 flex 子项：让它参与收缩，SVG 在其内自适应 */
 .hub-left .floorplan-wrap { flex: 1 1 auto; min-height: 0; display: flex; }
 .hub-left .floorplan-wrap .floorplan-svg { flex: 1 1 auto; min-height: 0; height: 100%; width: 100%; display: block; }
+
+/* —— 设备专属动效：空调风感条 / 窗帘开合进度 / 灯光亮度辉光 —— */
+.ac-state { display: inline-flex; align-items: center; gap: 8px; }
+.wind-bars { display: inline-flex; align-items: flex-end; gap: 2.5px; height: 13px; }
+.wind-bars i { width: 3px; border-radius: 2px; background: linear-gradient(to top, #58b7d4, #a8dcec); animation: windFlow 1.05s ease-in-out infinite; }
+.wind-bars i:nth-child(1) { height: 55%; animation-delay: 0ms; }
+.wind-bars i:nth-child(2) { height: 90%; animation-delay: 160ms; }
+.wind-bars i:nth-child(3) { height: 70%; animation-delay: 320ms; }
+@keyframes windFlow { 0%, 100% { transform: scaleY(0.5); opacity: 0.55; } 50% { transform: scaleY(1); opacity: 1; } }
+
+.toggle-pill { display: inline-flex; align-items: center; gap: 8px; }
+.curtain-track { width: 54px; height: 7px; border-radius: 999px; background: rgba(51, 41, 31, 0.12); overflow: hidden; }
+.curtain-fill { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #d9b25f, #b57f1d); transition: width 480ms cubic-bezier(0.2, 0.9, 0.2, 1); }
+.caret { display: inline-block; transition: transform 200ms ease; }
+.toggle-pill:hover .caret { transform: translateY(1px); }
+
+.device-icon.lit { animation: iconLit 2.8s ease-in-out infinite; }
+@keyframes iconLit { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.12); } }

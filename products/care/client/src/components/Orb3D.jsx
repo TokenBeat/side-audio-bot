@@ -1,10 +1,27 @@
 // 晚晴 3D 陪伴球：对标座舱 3D 车模的主视觉。
 // 暖色渐变球体 + 菲涅尔边缘光 + 柔和浮动；音量驱动呼吸缩放，
 // 状态驱动色相与光环：待机=暖橙，聆听=扩散涟漪，思考=慢转光环，播报=波纹。
-import { Suspense, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { Float } from '@react-three/drei'
+import { Suspense, useEffect, useRef } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Float, Sparkles } from '@react-three/drei'
 import * as THREE from 'three'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+
+// 程序化环境反射：给清漆层提供真实高光，无需外部 HDR 资源
+function StudioEnv() {
+  const { gl, scene } = useThree()
+  useEffect(() => {
+    const pmrem = new THREE.PMREMGenerator(gl)
+    const env = pmrem.fromScene(new RoomEnvironment(), 0.06)
+    scene.environment = env.texture
+    return () => {
+      scene.environment = null
+      env.dispose()
+      pmrem.dispose()
+    }
+  }, [gl, scene])
+  return null
+}
 
 function CompanionOrb({ state, level, speakingLevel }) {
   const coreRef = useRef(null)
@@ -71,10 +88,15 @@ function CompanionOrb({ state, level, speakingLevel }) {
       {/* 主体：暖色呼吸球 */}
       <mesh ref={coreRef}>
         <sphereGeometry args={[1, 64, 64]} />
-        <meshStandardMaterial
+        <meshPhysicalMaterial
           color="#f08c3a"
-          roughness={0.28}
-          metalness={0.05}
+          roughness={0.32}
+          metalness={0.06}
+          clearcoat={0.9}
+          clearcoatRoughness={0.28}
+          sheen={0.5}
+          sheenColor="#ffd9b0"
+          sheenRoughness={0.6}
           emissive="#ff9d4d"
           emissiveIntensity={0.22}
         />
@@ -129,9 +151,11 @@ export default function Orb3D({ state = 'idle', level = 0, speakingLevel = 0, he
         <ambientLight intensity={0.85} />
         <directionalLight position={[3, 4, 5]} intensity={1.5} color="#fff4e4" />
         <directionalLight position={[-4, -2, -3]} intensity={0.5} color="#ffd9b0" />
+        <StudioEnv />
         <Suspense fallback={null}>
           <Float speed={1.6} rotationIntensity={0.12} floatIntensity={0.55} floatingRange={[-0.06, 0.08]}>
             <CompanionOrb state={state} level={level} speakingLevel={speakingLevel} />
+            <Sparkles count={42} scale={3.4} size={2.2} speed={0.35} opacity={0.45} color="#ffd9b0" />
           </Float>
         </Suspense>
       </Canvas>

@@ -23,7 +23,12 @@ export default function DevicePanel({ state, selectedRoom, onMutate }) {
         return (
           <div key={id} className={`device-row ${on === false ? 'off' : ''}`}>
             <div className="device-info">
-              <span className={`device-icon kind-${device.kind}`}>
+              <span
+                className={`device-icon kind-${device.kind} ${on ? 'lit' : ''}`}
+                style={on && (device.kind === 'light' || device.kind === 'nightlight')
+                  ? { boxShadow: `0 0 ${10 + (device.brightness || 40) * 0.22}px rgba(232, 114, 42, 0.45)` }
+                  : undefined}
+              >
                 <DeviceIcon kind={device.kind} size={24} strokeWidth={1.8} />
               </span>
               <div>
@@ -32,7 +37,7 @@ export default function DevicePanel({ state, selectedRoom, onMutate }) {
                   {device.kind === 'light' && on
                     ? `亮度 ${device.brightness}% · ${device.colorTemp || ''}`
                     : device.kind === 'ac' && on
-                      ? `${device.mode} · ${device.temp}°`
+                      ? <span className="ac-state">{device.mode} · {device.temp}°<span className="wind-bars" aria-hidden="true"><i /><i /><i /></span></span>
                       : device.kind === 'curtain'
                         ? `开合 ${device.position}%`
                         : on ? '开启' : '关闭'}
@@ -64,6 +69,9 @@ export default function DevicePanel({ state, selectedRoom, onMutate }) {
                   className="toggle-pill"
                   onClick={() => mutate(id, { action: 'set', direction: device.position > 50 ? '关' : '开' })}
                 >
+                  <span className="curtain-track" aria-hidden="true">
+                    <span className="curtain-fill" style={{ width: `${device.position ?? 0}%` }} />
+                  </span>
                   {device.position > 50 ? '打开中' : '已关闭'} <span className="caret">⌄</span>
                 </button>
               ) : (
