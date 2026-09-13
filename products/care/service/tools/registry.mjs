@@ -5,6 +5,7 @@ import { executeMedicationTool } from './medication/execute.mjs'
 import { executeRoomTool } from './room/execute.mjs'
 import { executeActivityTool } from './activity/execute.mjs'
 import { executeMediaTool } from './media/execute.mjs'
+import { executeVitalsTool } from './vitals/execute.mjs'
 import { executeWeatherTool } from './weather/execute.mjs'
 
 const READ_ONLY = new Set([
@@ -12,6 +13,7 @@ const READ_ONLY = new Set([
   'medication_plan_query',
   'activity_query',
   'duty_query',
+  'vitals_query',
   'weather_query',
 ])
 
@@ -118,6 +120,38 @@ const activityGroup = group('activity', '活动', '院内活动查询与报名�
   },
 ], executeActivityTool)
 
+const vitalsGroup = group('vitals', '健康数据', '老人每日健康测量数据：血压、血糖、心率、血氧的查询与录入。', [
+  {
+    name: 'vitals_query',
+    label: '查询健康数据',
+    description: '查询老人今天测量的血压、血糖、心率、血氧等数据与评估。老人问"我血压怎么样""今天血糖多少"时使用。',
+    parameters: {
+      type: 'object',
+      properties: {
+        roomId: { type: 'string', description: '房间号。老人自己查询时不传' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'vitals_record',
+    label: '记录测量数据',
+    description: '录入一次健康测量。老人说"帮我记一下血压 135 85""血糖 6 8"时使用。bloodPressure 需要 systolic（高压）和 diastolic（低压）两个数；血糖 stage 填"空腹"或"餐后"。',
+    parameters: {
+      type: 'object',
+      properties: {
+        kind: { type: 'string', enum: ['bloodPressure', 'bloodSugar', 'heartRate', 'bloodOxygen', 'temperature'], description: 'bloodPressure=血压, bloodSugar=血糖, heartRate=心率, bloodOxygen=血氧, temperature=体温' },
+        roomId: { type: 'string', description: '房间号。老人自己录入时不传' },
+        systolic: { type: 'number', description: '高压（收缩压），bloodPressure 时必填' },
+        diastolic: { type: 'number', description: '低压（舒张压），bloodPressure 时必填' },
+        value: { type: 'number', description: '测量数值，bloodSugar/heartRate/bloodOxygen/temperature 时必填' },
+        stage: { type: 'string', description: '血糖测量阶段：空腹或餐后' },
+      },
+      required: ['kind'],
+    },
+  },
+], executeVitalsTool)
+
 const mediaGroup = group('media', '戏曲广播', '为老人播放戏曲、广播等音频内容（演示用播放列表）。', [
   {
     name: 'media_play',
@@ -148,6 +182,7 @@ export const CARE_TOOL_GROUPS = Object.freeze([
   medicationGroup,
   roomGroup,
   activityGroup,
+  vitalsGroup,
   mediaGroup,
   weatherGroup,
 ])
@@ -167,6 +202,7 @@ export const CARE_SURFACE_ROUTING = Object.freeze({
     medication: 'backend',
     room: 'frontend',
     activity: 'backend',
+    vitals: 'frontend',
     media: 'frontend',
     weather: 'frontend',
   }),

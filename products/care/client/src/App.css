@@ -621,3 +621,105 @@ button { font-family: inherit; cursor: pointer; }
     radial-gradient(700px 400px at 50% -10%, rgba(232, 114, 42, 0.10), transparent 60%),
     linear-gradient(175deg, #f8f4ec 0%, #f2ecdf 100%);
 }
+
+/* ============ 健康数据（机构版核心） ============ */
+
+.vitals-card { border-left: 8px solid var(--safe); }
+
+.vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.vital-chip {
+  border-radius: 16px;
+  padding: 12px 10px;
+  text-align: center;
+  background: var(--safe-soft);
+  border: 1.5px solid rgba(62, 124, 91, 0.3);
+}
+
+.vital-chip.high { background: var(--call-soft); border-color: rgba(217, 67, 47, 0.4); }
+.vital-chip.low { background: var(--warn-soft); border-color: rgba(217, 154, 38, 0.4); }
+
+.vital-chip .vital-label { display: block; font-size: 14px; color: var(--ink-soft); }
+.vital-chip .vital-value { display: block; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.vital-chip .vital-value small { font-size: 15px; font-weight: 500; color: var(--ink-soft); }
+.vital-chip.high .vital-value { color: var(--call); }
+.vital-chip.low .vital-value { color: var(--warn); }
+
+.vitals-trend {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.trend-label { font-size: 15px; color: var(--ink-soft); }
+
+.vitals-abnormal-note {
+  margin-top: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--call);
+  background: var(--call-soft);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+/* 大屏：房间卡体征芯片 */
+.vitals-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.vitals-chip {
+  font-size: 13px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(143, 214, 171, 0.14);
+  color: #8fd6ab;
+  border: 1px solid rgba(143, 214, 171, 0.3);
+  font-variant-numeric: tabular-nums;
+}
+
+.vitals-chip.high {
+  background: rgba(217, 67, 47, 0.2);
+  color: #ff9c8a;
+  border-color: rgba(217, 67, 47, 0.5);
+}
+
+.vitals-chip.low {
+  background: rgba(242, 198, 109, 0.16);
+  color: #f2c66d;
+  border-color: rgba(242, 198, 109, 0.4);
+}
+
+.side-title.alert { color: #ff9c8a; }
+
+.health-alert-card {
+  border-radius: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(170deg, rgba(217, 67, 47, 0.14), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(217, 67, 47, 0.4);
+}
+
+.alert-head { display: flex; justify-content: space-between; font-size: 17px; align-items: baseline; }
+.alert-head span { font-size: 13px; color: #b9aca0; }
+
+.alert-line { margin-top: 6px; font-size: 16px; color: #f5ede2; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.alert-line em { font-style: normal; color: #ff9c8a; font-weight: 700; }
+
+.alert-action {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 179, 122, 0.5);
+  background: transparent;
+  color: #ffb37a;
+}
+
+.alert-action:hover { background: rgba(255, 179, 122, 0.15); }
+.alert-action:disabled { opacity: 0.5; }

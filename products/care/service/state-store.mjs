@@ -24,7 +24,6 @@ function seedRooms(now) {
 }
 
 function seedMedications(now) {
-  const inFiveMinutes = new Date(now() + 5 * 60 * 1000)
   const noon = new Date(now())
   noon.setHours(12, 0, 0, 0)
   return {
@@ -35,6 +34,98 @@ function seedMedications(now) {
     '305': { items: [{ name: '维 C', time: '12:00', note: '1 片' }], confirmations: [] },
     '306': { items: [{ name: '降压药', time: '12:00', note: '1 片' }], confirmations: [] },
   }
+}
+
+// —— 生命体征：每日测量数据（机构版的核心资产）——
+// 异常阈值：血压 ≥140/90 偏高、<90/60 偏低；空腹血糖 >7.0 偏高、<3.9 偏低；
+// 心率 <60 或 >100；血氧 <93；体温 ≥37.3。
+function seedVitals(now) {
+  const today = new Date(now())
+  const day = offset => {
+    const date = new Date(today)
+    date.setDate(date.getDate() - offset)
+    return date.toISOString().slice(0, 10)
+  }
+  const measure = (offset, hour, minute) => {
+    const date = new Date(today)
+    date.setDate(date.getDate() - offset)
+    date.setHours(hour, minute, 0, 0)
+    return date.toISOString()
+  }
+  const morning = measure(0, 7, 30)
+  return {
+    '301': {
+      '2026-09-11': { bloodPressure: [{ at: measure(2, 7, 40), systolic: 142, diastolic: 88 }], bloodSugar: [{ at: measure(2, 7, 40), value: 5.8, stage: '空腹' }] },
+      [day(1)]: { bloodPressure: [{ at: measure(1, 7, 35), systolic: 138, diastolic: 85 }], bloodSugar: [{ at: measure(1, 7, 35), value: 5.9, stage: '空腹' }] },
+      [day(0)]: { bloodPressure: [{ at: morning, systolic: 134, diastolic: 82 }], bloodSugar: [{ at: morning, value: 5.6, stage: '空腹' }], heartRate: [{ at: morning, value: 74 }], bloodOxygen: [{ at: morning, value: 97 }] },
+    },
+    '302': {
+      [day(1)]: { bloodSugar: [{ at: measure(1, 7, 20), value: 7.4, stage: '空腹' }] },
+      [day(0)]: { bloodPressure: [{ at: morning, systolic: 128, diastolic: 78 }], bloodSugar: [{ at: morning, value: 6.8, stage: '空腹' }], heartRate: [{ at: morning, value: 70 }], bloodOxygen: [{ at: morning, value: 98 }] },
+    },
+    '303': {
+      [day(0)]: { bloodPressure: [{ at: morning, systolic: 126, diastolic: 76 }], bloodSugar: [{ at: morning, value: 5.2, stage: '空腹' }], heartRate: [{ at: morning, value: 68 }], bloodOxygen: [{ at: morning, value: 97 }] },
+    },
+    '304': {
+      [day(0)]: { bloodPressure: [{ at: morning, systolic: 132, diastolic: 80 }], heartRate: [{ at: morning, value: 82 }], bloodOxygen: [{ at: morning, value: 96 }] },
+    },
+    '305': {
+      [day(0)]: { bloodPressure: [{ at: morning, systolic: 124, diastolic: 76 }], bloodSugar: [{ at: morning, value: 5.4, stage: '空腹' }], heartRate: [{ at: morning, value: 66 }], bloodOxygen: [{ at: morning, value: 98 }] },
+    },
+    // 演示线：306 血压偏高，触发大屏健康预警
+    '306': {
+      [day(2)]: { bloodPressure: [{ at: measure(2, 7, 30), systolic: 148, diastolic: 90 }] },
+      [day(1)]: { bloodPressure: [{ at: measure(1, 7, 28), systolic: 155, diastolic: 92 }] },
+      [day(0)]: { bloodPressure: [{ at: morning, systolic: 162, diastolic: 95 }], bloodSugar: [{ at: morning, value: 5.7, stage: '空腹' }], heartRate: [{ at: morning, value: 88 }], bloodOxygen: [{ at: morning, value: 95 }] },
+    },
+  }
+}
+
+const VITAL_RANGES = {
+  bloodPressure: { label: '血压', unit: '', assess: entry => {
+    const { systolic, diastolic } = entry
+    if (systolic >= 140 || diastolic >= 90) return { level: 'high', text: '偏高' }
+    if (systolic < 90 || diastolic < 60) return { level: 'low', text: '偏低' }
+    return { level: 'normal', text: '正常' }
+  } },
+  bloodSugar: { label: '血糖', unit: 'mmol/L', assess: entry => {
+    const value = Number(entry.value)
+    if (value > 7) return { level: 'high', text: '偏高' }
+    if (value < 3.9) return { level: 'low', text: '偏低' }
+    return { level: 'normal', text: '正常' }
+  } },
+  heartRate: { label: '心率', unit: '次/分', assess: entry => {
+    const value = Number(entry.value)
+    if (value > 100) return { level: 'high', text: '偏快' }
+    if (value < 60) return { level: 'low', text: '偏慢' }
+    return { level: 'normal', text: '正常' }
+  } },
+  bloodOxygen: { label: '血氧', unit: '%', assess: entry => {
+    const value = Number(entry.value)
+    if (value < 93) return { level: 'low', text: '偏低' }
+    return { level: 'normal', text: '正常' }
+  } },
+}
+
+export function assessVital(kind, entry) {
+  const range = VITAL_RANGES[kind]
+  if (!range) return { level: 'normal', text: '' }
+  return { kind, label: range.label, unit: range.unit, ...range.assess(entry) }
+}
+
+export function latestVitalsOf(vitalsByDay) {
+  if (!vitalsByDay) return null
+  const days = Object.keys(vitalsByDay).sort()
+  const latestDay = days[days.length - 1]
+  if (!latestDay) return null
+  const dayData = vitalsByDay[latestDay]
+  const latest = {}
+  for (const [kind, entries] of Object.entries(dayData)) {
+    if (Array.isArray(entries) && entries.length) {
+      latest[kind] = entries[entries.length - 1]
+    }
+  }
+  return { date: latestDay, measurements: latest, historyDays: days.length }
 }
 
 function seedDuty(now) {
@@ -68,6 +159,7 @@ function initialState(now) {
     rooms: seedRooms(now),
     callTickets: [],
     medications: seedMedications(now),
+    vitals: seedVitals(now),
     duty: seedDuty(now),
     activities: seedActivities(now),
     media: emptyMediacState(),
@@ -329,5 +421,68 @@ export class CareStateStore {
         station: String(station || ''),
       }
     })
+  }
+
+  // —— 生命体征：录入与查询 ——
+  latestVitals(careId, roomId) {
+    const id = careId || 'default'
+    const state = this.#stateOf(id)
+    return latestVitalsOf(state.vitals[roomId])
+  }
+
+  recordVital(careId, { roomId, kind, entry }) {
+    const id = careId || 'default'
+    const room = this.room(id, roomId)
+    if (!room) throw new Error(`未知房间：${roomId}`)
+    if (!VITAL_RANGES[kind]) throw new Error(`未知体征类型：${kind}`)
+    const assessment = assessVital(kind, entry)
+    const recordedAt = entry.at || new Date(this.now()).toISOString()
+    const today = recordedAt.slice(0, 10)
+    this.update(id, state => {
+      state.vitals[roomId] ||= {}
+      state.vitals[roomId][today] ||= {}
+      state.vitals[roomId][today][kind] ||= []
+      state.vitals[roomId][today][kind].push({ ...entry, at: recordedAt })
+    })
+    const record = { ...entry, at: recordedAt }
+    return {
+      room: room.id,
+      resident: room.resident.name,
+      kind,
+      label: VITAL_RANGES[kind].label,
+      unit: VITAL_RANGES[kind].unit,
+      record,
+      assessment,
+      abnormal: assessment.level !== 'normal',
+    }
+  }
+
+  // 全院健康预警：今天/近两天里所有非正常体征。
+  healthAlerts(careId) {
+    const id = careId || 'default'
+    const state = this.#stateOf(id)
+    const alerts = []
+    for (const room of state.rooms) {
+      const byDay = state.vitals[room.id] || {}
+      const days = Object.keys(byDay).sort()
+      const latestDay = days[days.length - 1]
+      if (!latestDay) continue
+      for (const [kind, entries] of Object.entries(byDay[latestDay])) {
+        if (!Array.isArray(entries) || !entries.length) continue
+        const entry = entries[entries.length - 1]
+        const assessment = assessVital(kind, entry)
+        if (assessment.level === 'normal') continue
+        alerts.push({
+          roomId: room.id,
+          resident: room.resident.name,
+          kind,
+          label: assessment.label,
+          entry,
+          assessment,
+          at: entry.at,
+        })
+      }
+    }
+    return alerts.sort((a, b) => (a.at < b.at ? 1 : -1))
   }
 }

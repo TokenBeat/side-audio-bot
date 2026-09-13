@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import useVoiceSession from '../hooks/useVoiceSession'
 import useCareState from '../hooks/useCareState'
 import Orb3D from './Orb3D'
+import { speak, warmUpSpeech } from '../audio/announceSpeech'
 
 function greeting(now, address) {
   const hour = now.getHours()
@@ -47,6 +48,69 @@ const ORB_STATE_LABEL = {
   thinking: '想一想…',
   speaking: '我在说',
   error: '语音需要帮助，请按呼叫',
+}
+
+function latestVitals(vitalsByDay) {
+  if (!vitalsByDay) return null
+  const days = Object.keys(vitalsByDay).sort()
+  const latestDay = days[days.length - 1]
+  if (!latestDay) return null
+  const measurements = {}
+  for (const [kind, entries] of Object.entries(vitalsByDay[latestDay])) {
+    if (Array.isArray(entries) && entries.length) measurements[kind] = entries[entries.length - 1]
+  }
+  return { date: latestDay, measurements }
+}
+
+function vitalAssess(kind, entry) {
+  if (kind === 'bloodPressure') {
+    if (entry.systolic >= 140 || entry.diastolic >= 90) return 'high'
+    if (entry.systolic < 90 || entry.diastolic < 60) return 'low'
+    return 'normal'
+  }
+  if (kind === 'bloodSugar') return entry.value > 7 ? 'high' : entry.value < 3.9 ? 'low' : 'normal'
+  if (kind === 'heartRate') return entry.value > 100 ? 'high' : entry.value < 60 ? 'low' : 'normal'
+  if (kind === 'bloodOxygen') return entry.value < 93 ? 'low' : 'normal'
+  return 'normal'
+}
+
+function systolicTrend(vitalsByDay) {
+  if (!vitalsByDay) return []
+  return Object.keys(vitalsByDay).sort().map(day => {
+    const entries = vitalsByDay[day].bloodPressure || []
+    const entry = entries[entries.length - 1]
+    return entry ? entry.systolic : null
+  }).filter(value => value != null).slice(-7)
+}
+
+function Sparkline({ values, abnormal }) {
+  if (values.length < 2) return null
+  const min = Math.min(...values) - 8
+  const max = Math.max(...values) + 8
+  const width = 150
+  const height = 36
+  const points = values.map((value, index) => {
+    const x = (index / (values.length - 1)) * width
+    const y = height - ((value - min) / (max - min)) * height
+    return `${x.toFixed(1)},${y.toFixed(1)}`
+  })
+  const color = abnormal ? 'var(--call)' : 'var(--safe)'
+  return (
+    <svg width={width} height={height} className="sparkline">
+      <polyline
+        points={points.join(' ')}
+        fill="none"
+        stroke={color}
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      {points.map((point, index) => {
+        const [x, y] = point.split(',')
+        return <circle key={index} cx={x} cy={y} r="2.6" fill={color} />
+      })}
+    </svg>
+  )
 }
 
 export default function RoomTerminal({ roomId = '302' }) {
@@ -123,15 +187,47 @@ export default function RoomTerminal({ roomId = '302' }) {
     ))
   ), [state, roomId])
 
+  const medication = useMemo(() => nextMedication(state, roomId), [state, roomId])
+  const medicationDue = medicationCountdown(medication, now)
+  const reminderActive = room?.state === 'reminder'
+
+  const vitals = useMemo(() => latestVitals(state?.vitals?.[roomId]), [state, roomId])
+  const bpAbnormal = vitals?.measurements?.bloodPressure
+    ? vitalAssess('bloodPressure', vitals.measurements.bloodPressure) !== 'normal'
+    : false
+  const bpTrend = useMemo(() => systolicTrend(state?.vitals?.[roomId]), [state, roomId])
+
+  // —— 语音自动播报（不依赖老人看字）——
+  const spokenReminderKeyRef = useRef('')
+  const spokenCallKeyRef = useRef('')
+
+  // 用药提醒到点：终端主动开口叫人吃药
+  useEffect(() => {
+    if (reminderActive && medication) {
+      const key = `${new Date().toISOString().slice(0, 10)}#${medication.name}`
+      if (spokenReminderKeyRef.current !== key) {
+        spokenReminderKeyRef.current = key
+        speak(`${address || residentName}，${medication.time}的${medication.name}到时间了。${medication.note}，吃好了跟我说一声。`)
+      }
+    }
+  }, [reminderActive, medication, address, residentName])
+
+  // 呼叫反馈三段式：每一步都开口说
   useEffect(() => {
     if (!activeCall) return
     const staffName = activeCall.acceptedBy
-    setCallStatus(activeCall.status === 'accepted'
+    const nextStatus = activeCall.status === 'accepted'
       ? { tone: 'accepted', text: `${staffName || '护理员'}已经接到了，正在过来` }
       : activeCall.escalated
         ? { tone: 'escalated', text: '已经通知护士长啦，别着急' }
-        : { tone: 'new', text: '已经告诉护理员了，马上就到' })
-  }, [activeCall])
+        : { tone: 'new', text: '已经告诉护理员了，马上就到' }
+    const speechKey = `${activeCall.id}#${activeCall.status}`
+    if (spokenCallKeyRef.current !== speechKey) {
+      spokenCallKeyRef.current = speechKey
+      speak(nextStatus.text)
+    }
+    setCallStatus(nextStatus)
+  }, [activeCall, address, residentName])
 
   useEffect(() => {
     if (!activeCall && callStatus) {
@@ -140,11 +236,8 @@ export default function RoomTerminal({ roomId = '302' }) {
     }
   }, [activeCall, callStatus])
 
-  const medication = useMemo(() => nextMedication(state, roomId), [state, roomId])
-  const medicationDue = medicationCountdown(medication, now)
-  const reminderActive = room?.state === 'reminder'
-
   const toggleVoice = () => {
+    warmUpSpeech()
     if (muted) {
       if (session.activateVoice()) setMuted(false)
     } else {
@@ -229,6 +322,49 @@ export default function RoomTerminal({ roomId = '302' }) {
           </section>
 
           <aside className="info-column">
+            {vitals && Object.keys(vitals.measurements).length > 0 && (
+              <div className="info-card vitals-card">
+                <div className="info-card-head">❤️ 今日健康数据（{vitals.date.slice(5)} 测）</div>
+                <div className="vitals-grid">
+                  {vitals.measurements.bloodPressure && (
+                    <div className={`vital-chip ${vitalAssess('bloodPressure', vitals.measurements.bloodPressure)}`}>
+                      <span className="vital-label">血压</span>
+                      <span className="vital-value">
+                        {vitals.measurements.bloodPressure.systolic}<small>/{vitals.measurements.bloodPressure.diastolic}</small>
+                      </span>
+                    </div>
+                  )}
+                  {vitals.measurements.bloodSugar && (
+                    <div className={`vital-chip ${vitalAssess('bloodSugar', vitals.measurements.bloodSugar)}`}>
+                      <span className="vital-label">血糖</span>
+                      <span className="vital-value">{vitals.measurements.bloodSugar.value}</span>
+                    </div>
+                  )}
+                  {vitals.measurements.heartRate && (
+                    <div className={`vital-chip ${vitalAssess('heartRate', vitals.measurements.heartRate)}`}>
+                      <span className="vital-label">心率</span>
+                      <span className="vital-value">{vitals.measurements.heartRate.value}</span>
+                    </div>
+                  )}
+                  {vitals.measurements.bloodOxygen && (
+                    <div className={`vital-chip ${vitalAssess('bloodOxygen', vitals.measurements.bloodOxygen)}`}>
+                      <span className="vital-label">血氧</span>
+                      <span className="vital-value">{vitals.measurements.bloodOxygen.value}%</span>
+                    </div>
+                  )}
+                </div>
+                {bpTrend.length >= 2 && (
+                  <div className="vitals-trend">
+                    <span className="trend-label">近 {bpTrend.length} 天血压趋势（高压）</span>
+                    <Sparkline values={bpTrend} abnormal={bpAbnormal} />
+                  </div>
+                )}
+                {bpAbnormal && (
+                  <div className="vitals-abnormal-note">血压偏高，护理站已收到，会安排再测一次</div>
+                )}
+              </div>
+            )}
+
             <div className={`info-card medication-card ${reminderActive ? 'due' : ''} ${medication ? '' : 'done'}`}>
               <div className="info-card-head">💊 用药提醒</div>
               {medication ? (
