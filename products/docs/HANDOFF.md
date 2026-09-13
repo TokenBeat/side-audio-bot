@@ -261,7 +261,8 @@ process.exit(0)"
 
 ```
 products/
-├── docs/            ← 你在这里：00 总览 / 01 品牌 / 02 需求 / 03·04 产品设计 / 05 架构 / known-issues
+├── docs/            ← 你在这里：HANDOFF（本文）/ KICKOFF（开场提示词模板）/
+│                      00 总览 / 01 品牌 / 02 需求 / 03·04 产品设计 / 05 架构 / known-issues
 ├── care/  home/  hub/    # 三个垂直，目录结构同构（见 §3）
 ├── package.json     # npm run care|home|hub（含 :install/:preflight）
 └── .gitignore       # node_modules/.env.local/.runtime/dist
