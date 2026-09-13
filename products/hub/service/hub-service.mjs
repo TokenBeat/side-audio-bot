@@ -73,8 +73,8 @@ export class HubService {
     })
   }
 
-  motion(hubId, room) {
-    const result = this.store.motion(hubId, room)
+  motion(hubId, room, options = {}) {
+    const result = this.store.motion(hubId, room, options)
     if (result.announced) {
       this.#publishActivity(hubId, {
         kind: 'status',

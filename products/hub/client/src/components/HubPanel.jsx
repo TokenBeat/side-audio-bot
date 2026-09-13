@@ -6,6 +6,7 @@ import useHubState from '../hooks/useHubState'
 import FloorPlan from './FloorPlan'
 import DevicePanel from './DevicePanel'
 import { sceneApi, motionApi, doorApi } from '../api'
+import { speak, warmUpSpeech } from '../audio/announceSpeech'
 
 const ORB_STATE_LABEL = {
   idle: '点一下，跟我说话',
@@ -68,7 +69,11 @@ export default function HubPanel() {
   }
 
   const activateScene = scene => {
-    sceneApi(scene.id || scene).catch(() => {})
+    warmUpSpeech()
+    const sceneName = scene?.name || String(scene || '')
+    sceneApi(scene.id || scene).then(result => {
+      speak(`好，已为你切换到${result?.name || sceneName}场景`)
+    }).catch(() => {})
   }
 
   const orbState = session.voiceState
@@ -171,7 +176,12 @@ export default function HubPanel() {
                 </div>
               </div>
               <div className="demo-controls">
-                <button type="button" onClick={() => motionApi('卧室')}>🌙 模拟起夜（联动夜灯）</button>
+                <button type="button" onClick={() => {
+                  warmUpSpeech()
+                  motionApi('卧室', { forceNight: true }).then(result => {
+                    speak(result?.announced || '夜灯已为你点亮')
+                  }).catch(() => {})
+                }}>🌙 模拟起夜（联动夜灯）</button>
                 <button type="button" onClick={() => doorApi('大门', '被打开')}>🚪 模拟开门</button>
               </div>
               {openAlerts.length > 0 && (

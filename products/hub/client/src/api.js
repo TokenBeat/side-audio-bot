@@ -26,11 +26,11 @@ export function hubStateApi() {
   return fetch(gatewayHttpUrl('/api/hub/state')).then(response => response.json())
 }
 
-export function motionApi(room) {
+export function motionApi(room, { forceNight = false } = {}) {
   return fetch('/api/hub/motion', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ room }),
+    body: JSON.stringify({ room, forceNight }),
   }).then(response => response.json())
 }
 

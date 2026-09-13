@@ -138,7 +138,9 @@ export class HubServiceServer {
     if (url.pathname === '/api/hub/motion' && request.method === 'POST') {
       // 演示控制：模拟人体存在传感器（真实环境来自传感器硬件）。
       const body = await readJson(request)
-      const result = this.service.motion(hubId(request, url, body), body.room || '卧室')
+      const result = this.service.motion(hubId(request, url, body), body.room || '卧室', {
+        forceNight: body.forceNight === true,
+      })
       json(response, 200, result)
       return
     }

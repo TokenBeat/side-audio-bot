@@ -162,12 +162,13 @@ export class HubStateStore {
     return structuredClone(scene)
   }
 
-  motion(hubId, room, { at = null } = {}) {
+  motion(hubId, room, { at = null, forceNight = false } = {}) {
     const id = hubId || 'default'
     const state = this.#stateOf(id)
     const nowDate = new Date(this.now())
     const hour = nowDate.getHours()
-    const night = hour >= NIGHT_START_HOUR || hour < NIGHT_END_HOUR
+    // forceNight：演示按钮"模拟起夜"——白天也能完整走一遍夜间联动。
+    const night = forceNight || hour >= NIGHT_START_HOUR || hour < NIGHT_END_HOUR
     const sleepSceneActive = state.activeScene === 'scene-sleep' || state.activeScene === 'scene-night'
     const nightLightAutomation = state.automations.find(item => item.id === 'auto-night-light')?.enabled
     let spoke = ''
@@ -187,6 +188,8 @@ export class HubStateStore {
           text: spoke,
           at: nowDate.toISOString(),
         })
+      } else {
+        spoke = `${room}有活动，夜灯已经亮着`
       }
     } else {
       spoke = `${room}检测到活动`
