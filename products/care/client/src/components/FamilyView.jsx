@@ -3,6 +3,7 @@
 // 点歌、语音提醒、留言从这里"注入"照护，由终端的 AI 开口转达。
 import { useEffect, useMemo, useState } from 'react'
 import useCareState from '../hooks/useCareState'
+import { Heart, CircleDot, Pill, BellRing, Utensils, HeartHandshake, Music, AlarmClock, MessageCircleHeart, Check } from 'lucide-react'
 
 function latestVitalsOf(vitalsByDay) {
   if (!vitalsByDay) return null
@@ -120,12 +121,12 @@ export default function FamilyView({ roomId }) {
         <span className="family-role">家属端 · {room?.id} 房 · {connected ? '已连接' : '连接中'}</span>
       </header>
 
-      {flash && <div className="family-flash">✓ {flash}</div>}
+      {flash && <div className="family-flash"><Check className="icon-inline" size={15} /> {flash}</div>}
 
       {/* —— 全貌主卡 —— */}
       <section className={`family-status-card ${isSafe ? 'safe' : 'attention'}`}>
         <div className="status-main">
-          <span className="status-heart">{isSafe ? '♥' : '🔴'}</span>
+          <span className="status-heart">{isSafe ? <Heart size={30} /> : <CircleDot size={30} />}</span>
           <div>
             <div className="status-name">{resident.name} <span className="status-age">{resident.age}岁</span></div>
             <div className="status-line">
@@ -145,10 +146,10 @@ export default function FamilyView({ roomId }) {
           </div>
         )}
         <ul className="status-facts">
-          <li>💊 用药：{medicationToday?.confirmed.length
+          <li><Pill className="icon-inline" size={15} /> 用药：{medicationToday?.confirmed.length
             ? `今日已确认 ${medicationToday.confirmed.map(item => `${item.name} ${item.at.slice(11, 16)}`).join('、')}`
             : `今日待确认：${medicationToday?.items.map(item => `${item.time} ${item.name}`).join('、') || '无计划'}`}</li>
-          <li>🔔 最近呼叫：{myTickets[0]
+          <li><BellRing className="icon-inline" size={15} /> 最近呼叫：{myTickets[0]
             ? `${new Date(myTickets[0].createdAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} ${myTickets[0].intent}（${myTickets[0].status === 'done' ? '已完成' : myTickets[0].status === 'accepted' ? '处理中' : '待受理'}）`
             : '今天还没有呼叫'}</li>
         </ul>
@@ -157,7 +158,7 @@ export default function FamilyView({ roomId }) {
       {/* —— 今日生活：吃饭 + 活动 + 喜好 —— */}
       <section className="family-grid">
         <div className="family-panel">
-          <h3>🍚 今天的生活</h3>
+          <h3><Utensils className="icon-inline" size={17} /> 今天的生活</h3>
           {todayMeals && (
             <div className="meal-block">
               <span className="meal-label">午餐</span>
@@ -179,7 +180,7 @@ export default function FamilyView({ roomId }) {
         </div>
 
         <div className="family-panel">
-          <h3>💗 妈妈的喜好</h3>
+          <h3><HeartHandshake className="icon-inline" size={17} /> 妈妈的喜好</h3>
           <div className="likes-chips">
             {(resident.likes || []).map(like => (
               <span key={like} className="like-chip">{like}</span>
@@ -192,7 +193,7 @@ export default function FamilyView({ roomId }) {
       {/* —— 照护注入：点歌 / 提醒 / 留言 —— */}
       <section className="family-grid">
         <div className="family-panel action">
-          <h3>🎵 点给她听</h3>
+          <h3><Music className="icon-inline" size={17} /> 点给她听</h3>
           <div className="song-chips">
             {SONG_CHOICES.map(song => (
               <button
@@ -201,14 +202,14 @@ export default function FamilyView({ roomId }) {
                 disabled={busy}
                 onClick={() => send('media', { query: song }, `已为${resident.address || '老人'}点播 ${song}，终端正在放`)}
               >
-                🎵 {song}
+                <Music className="icon-inline" size={15} /> {song}
               </button>
             ))}
           </div>
         </div>
 
         <div className="family-panel action">
-          <h3>⏰ 语音提醒</h3>
+          <h3><AlarmClock className="icon-inline" size={17} /> 语音提醒</h3>
           <div className="input-row">
             <input
               value={reminderText}
@@ -230,7 +231,7 @@ export default function FamilyView({ roomId }) {
         </div>
 
         <div className="family-panel action">
-          <h3>💬 说句心里话</h3>
+          <h3><MessageCircleHeart className="icon-inline" size={17} /> 说句心里话</h3>
           <div className="input-row">
             <input
               value={messageText}

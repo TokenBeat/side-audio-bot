@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useVoiceSession from '../hooks/useVoiceSession'
 import useHomeState from '../hooks/useHomeState'
+import { Cloud, Sun, Pill, Home as HomeIcon, Check, Mic, MicOff, Heart, BellRing } from 'lucide-react'
 import Orb3D from './Orb3D'
 import { speak, warmUpSpeech } from '../audio/announceSpeech'
 
@@ -195,7 +196,7 @@ export default function ElderTerminal() {
             <span className="brand-mark">晴</span>
             晚晴伴
           </span>
-          <span className="frame-weather">☁️ {state?.weather?.summary || '多云'}</span>
+          <span className="frame-weather"><Cloud className="icon-inline" size={17} /> {state?.weather?.summary || '多云'}</span>
           <span className="frame-clock">{now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
           <span className="frame-date">{now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })}</span>
         </header>
@@ -217,7 +218,7 @@ export default function ElderTerminal() {
               {orbLabel}
             </button>
             {checkinActive && (
-              <div className="checkin-banner">☀️ {checkinGreeting(now)}</div>
+              <div className="checkin-banner"><Sun className="icon-inline" size={19} /> {checkinGreeting(now)}</div>
             )}
             {lastLine && !checkinActive && (
               <div className="hero-subtitle glass-soft" ref={transcriptRef}>
@@ -230,7 +231,7 @@ export default function ElderTerminal() {
 
           <aside className="info-column">
             <div className={`info-card medication-card ${pendingReminder ? '' : 'done'}`}>
-              <div className="info-card-head">💊 接下来的安排</div>
+              <div className="info-card-head"><Pill className="icon-inline" size={17} /> 接下来的安排</div>
               {pendingReminder ? (
                 <>
                   <div className="info-card-title">{pendingReminder.name}</div>
@@ -238,7 +239,7 @@ export default function ElderTerminal() {
                   <button type="button" className="card-action" onClick={confirmReminder}>做好了，点这里</button>
                 </>
               ) : (
-                <div className="info-card-title">今天的安排都完成啦 👍</div>
+                <div className="info-card-title">今天的安排都完成啦</div>
               )}
             </div>
 
@@ -255,11 +256,11 @@ export default function ElderTerminal() {
             </div>
 
             <div className="info-card schedule-card">
-              <div className="info-card-head">🏡 今天</div>
+              <div className="info-card-head"><HomeIcon className="icon-inline" size={17} /> 今天</div>
               <div className="schedule-row">
                 <span className="schedule-time">问安</span>
                 <span className="schedule-title">
-                  {checkin?.status === 'done' ? `已完成 ✓ · 心情${checkin.mood}` : checkin?.status === 'in_progress' ? '正在进行…' : '还没开始'}
+                  {checkin?.status === 'done' ? `已完成 · 心情${checkin.mood}` : checkin?.status === 'in_progress' ? '正在进行…' : '还没开始'}
                 </span>
               </div>
               <div className="schedule-row">
@@ -280,7 +281,7 @@ export default function ElderTerminal() {
             onClick={toggleVoice}
             aria-label="语音对话开关"
           >
-            {muted ? '🎙️' : '🗣️'}
+            {muted ? <MicOff size={26} /> : <Mic size={26} />}
             <span>{muted ? '说话' : '在听'}</span>
           </button>
           <div className="dock-temp">
@@ -289,12 +290,12 @@ export default function ElderTerminal() {
           </div>
           {checkinActive ? (
             <button type="button" className="dock-btn primary checkin" onClick={finishCheckin} aria-label="完成问安">
-              ☀️
+              <Sun size={26} />
               <span>聊好啦</span>
             </button>
           ) : (
             <div className="dock-temp">
-              <span className="dock-temp-value">♥</span>
+              <span className="dock-temp-value"><Heart size={24} /></span>
               <span className="dock-temp-label">一切平安</span>
             </div>
           )}

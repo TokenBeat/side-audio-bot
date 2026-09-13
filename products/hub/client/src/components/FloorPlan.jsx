@@ -1,5 +1,7 @@
 // 户型平面图：客厅/卧室/厨房，设备状态实时点亮。
 // 点击房间选中，右侧面板显示该房间设备。灯光亮度=光晕强度，窗帘=开口示意。
+import { Moon } from 'lucide-react'
+import { DeviceIcon } from '../ui/icons'
 const ROOM_LAYOUT = {
   living: { x: 24, y: 60, w: 300, h: 250, label: '客厅' },
   bedroom: { x: 344, y: 60, w: 220, h: 190, label: '卧室' },
@@ -73,24 +75,29 @@ export default function FloorPlan({ state, selected, onSelect }) {
                 {layout.label}
               </text>
               <text x={layout.x + 20} y={layout.y + 60} className="room-sub">
-                {activeScene && roomId === 'living' ? `🌙 ${activeScene.name}` : ''}
+                {activeScene && roomId === 'living' ? activeScene.name : ''}
               </text>
+              {activeScene && roomId === 'living' && (
+                <g className="room-scene-mark">
+                  <Moon x={layout.x + 16} y={layout.y + 44} width={12} height={12} color="var(--brand)" />
+                </g>
+              )}
               {/* 设备状态点 */}
               {roomDevices.map(([id, device], index) => {
                 const cx = layout.x + 34 + (index % 4) * 46
                 const cy = layout.y + layout.h - 44
-                const icon = device.kind === 'light' || device.kind === 'nightlight'
-                  ? '💡'
-                  : device.kind === 'ac'
-                    ? '❄️'
-                    : device.kind === 'curtain'
-                      ? '🪟'
-                      : device.kind === 'media' ? '📺' : '🔌'
                 const on = device.on !== false
                 return (
                   <g key={id} className={`device-dot ${on ? 'on' : 'off'}`}>
                     <circle cx={cx} cy={cy} r={17} />
-                    <text x={cx} y={cy + 6}>{icon}</text>
+                    <DeviceIcon
+                      kind={device.kind}
+                      x={cx - 10}
+                      y={cy - 10}
+                      width={20}
+                      height={20}
+                      strokeWidth={1.8}
+                    />
                   </g>
                 )
               })}

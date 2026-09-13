@@ -2,12 +2,13 @@
 // 健康、问安、提醒、喜好一屏可见；点歌/语音提醒/留言从这里传到老人终端，
 // 由终端的 AI 开口转达——照护的心既要被看到，也要传过去。
 import { useMemo, useState } from 'react'
+import { Heart, CircleDot, Sun, Pill, Phone, HeartHandshake, Music, AlarmClock, MessageCircleHeart, Check, TriangleAlert } from 'lucide-react'
 import useHomeState from '../hooks/useHomeState'
 
 const CHECKIN_STATUS = {
-  done: '问安完成 ✓',
+  done: '问安完成',
   in_progress: '正在问安…',
-  no_answer: '问安无应答 ⚠️',
+  no_answer: '问安无应答',
 }
 
 const SONG_CHOICES = ['秦腔经典', '豫剧选段', '京剧经典', '评书', '怀旧金曲']
@@ -77,11 +78,11 @@ export default function FamilyHomeView() {
         </span>
       </header>
 
-      {flash && <div className="family-flash">✓ {flash}</div>}
+      {flash && <div className="family-flash"><Check className="icon-inline" size={15} /> {flash}</div>}
 
       {sosActive && (
         <div className="family-sos-banner">
-          <strong>⚠️ {elder.name} 紧急求助：{sos.reason}</strong>
+          <strong><TriangleAlert className="icon-inline" size={16} /> {elder.name} 紧急求助：{sos.reason}</strong>
           <span>已通知：{sos.notified.map(entry => entry.contact.name).join('、')}</span>
           {!sos.notified.some(entry => entry.ackAt) && (
             <button type="button" disabled={busy} onClick={ackSos}>
@@ -97,7 +98,7 @@ export default function FamilyHomeView() {
       {/* —— 全貌主卡：今天的人 —— */}
       <section className={`family-status-card ${sosActive || today.status === 'no_answer' ? 'attention' : 'safe'}`}>
         <div className="status-main">
-          <span className="status-heart">{sosActive || today.status === 'no_answer' ? '🔴' : '♥'}</span>
+          <span className="status-heart">{sosActive || today.status === 'no_answer' ? <CircleDot size={30} /> : <Heart size={30} />}</span>
           <div>
             <div className="status-name">{elder.name} <span className="status-age">{elder.age}岁</span></div>
             <div className="status-line">
@@ -122,16 +123,16 @@ export default function FamilyHomeView() {
           </div>
         )}
         <ul className="status-facts">
-          <li>☀️ {CHECKIN_STATUS[today.status] || today.status}：{today.mood || '—'}{today.notes ? ` · ${today.notes}` : ''}</li>
-          <li>💊 今日提醒：{state.reminders.filter(item => item.confirmedAt).length}/{state.reminders.length} 已确认</li>
-          <li>📞 紧急联系人：{elder.contacts.map(contact => `${contact.relation}${contact.name}`).join('、')}</li>
+          <li><Sun className="icon-inline" size={15} /> {CHECKIN_STATUS[today.status] || today.status}：{today.mood || '—'}{today.notes ? ` · ${today.notes}` : ''}</li>
+          <li><Pill className="icon-inline" size={15} /> 今日提醒：{state.reminders.filter(item => item.confirmedAt).length}/{state.reminders.length} 已确认</li>
+          <li><Phone className="icon-inline" size={15} /> 紧急联系人：{elder.contacts.map(contact => `${contact.relation}${contact.name}`).join('、')}</li>
         </ul>
       </section>
 
       {/* —— 照护注入 —— */}
       <section className="family-grid">
         <div className="family-panel">
-          <h3>💗 妈妈的喜好</h3>
+          <h3><HeartHandshake className="icon-inline" size={17} /> 妈妈的喜好</h3>
           <div className="likes-chips">
             {(elder.likes || []).map(like => (
               <span key={like} className="like-chip">{like}</span>
@@ -141,7 +142,7 @@ export default function FamilyHomeView() {
         </div>
 
         <div className="family-panel action">
-          <h3>🎵 点给她听</h3>
+          <h3><Music className="icon-inline" size={17} /> 点给她听</h3>
           <div className="song-chips">
             {SONG_CHOICES.map(song => (
               <button
@@ -150,14 +151,14 @@ export default function FamilyHomeView() {
                 disabled={busy}
                 onClick={() => send('media', { query: song }, `已为${elder.address || '妈妈'}点播 ${song}，终端正在放`)}
               >
-                🎵 {song}
+                <Music className="icon-inline" size={15} /> {song}
               </button>
             ))}
           </div>
         </div>
 
         <div className="family-panel action">
-          <h3>⏰ 语音提醒</h3>
+          <h3><AlarmClock className="icon-inline" size={17} /> 语音提醒</h3>
           <div className="input-row">
             <input
               value={reminderText}
@@ -178,7 +179,7 @@ export default function FamilyHomeView() {
         </div>
 
         <div className="family-panel action">
-          <h3>💬 说句心里话</h3>
+          <h3><MessageCircleHeart className="icon-inline" size={17} /> 说句心里话</h3>
           <div className="input-row">
             <input
               value={messageText}
@@ -201,7 +202,7 @@ export default function FamilyHomeView() {
 
       <section className="family-quick">
         <button type="button" className="quick-call" disabled={busy}>
-          📞 跟{elder.address || '妈妈'}说说话
+          <Phone className="icon-inline" size={16} /> 跟{elder.address || '妈妈'}说说话
         </button>
         <button type="button" className="quick-checkin" disabled={busy} onClick={async () => {
           setBusy(true)
@@ -211,7 +212,7 @@ export default function FamilyHomeView() {
             setBusy(false)
           }
         }}>
-          ☀️ 现在发起一次问安
+          <Sun className="icon-inline" size={16} /> 现在发起一次问安
         </button>
       </section>
 

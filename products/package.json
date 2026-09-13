@@ -5,14 +5,14 @@
   "description": "晚晴康养产品系列：晚晴·照护（机构版）与 晚晴伴（居家版）",
   "type": "module",
   "scripts": {
-    "care:install": "npm install --prefix care/service && npm install --prefix care/agent && npm install --prefix care/client",
+    "care:install": "npm install --prefix care/service && npm install --prefix care/agent && npm install --prefix care/client && npm install --prefix care/gateway",
     "care:service": "node care/service/server.mjs",
     "care:agent": "node care/agent/server.mjs",
     "care:gateway": "node care/gateway/server.mjs",
     "care:client": "npm run dev --prefix care/client",
     "care:preflight": "node care/bootstrap/preflight.mjs",
     "care": "npm run care:preflight && concurrently -n service,agent,gateway,client -c yellow,cyan,green,magenta --kill-others-on-fail \"npm run care:service\" \"npm run care:agent\" \"npm run care:gateway\" \"npm run care:client\"",
-    "home:install": "npm install --prefix home/service && npm install --prefix home/agent && npm install --prefix home/client",
+    "home:install": "npm install --prefix home/service && npm install --prefix home/agent && npm install --prefix home/client && npm install --prefix home/gateway",
     "home:service": "node home/service/server.mjs",
     "home:agent": "node home/agent/server.mjs",
     "home:gateway": "node home/gateway/server.mjs",
@@ -28,13 +28,6 @@
     "hub": "npm run hub:preflight && concurrently -n service,agent,gateway,client -c yellow,cyan,green,magenta --kill-others-on-fail \"npm run hub:service\" \"npm run hub:agent\" \"npm run hub:gateway\" \"npm run hub:client\""
   },
   "devDependencies": {
-    "concurrently": "^9.1.2",
-    "hub:install": "npm install --prefix hub/service && npm install --prefix hub/agent && npm install --prefix hub/client && npm install --prefix hub/gateway",
-    "hub:service": "node hub/service/server.mjs",
-    "hub:agent": "node hub/agent/server.mjs",
-    "hub:gateway": "node hub/gateway/server.mjs",
-    "hub:client": "npm run dev --prefix hub/client",
-    "hub:preflight": "node hub/bootstrap/preflight.mjs",
-    "hub": "npm run hub:preflight && concurrently -n service,agent,gateway,client -c yellow,cyan,green,magenta --kill-others-on-fail \"npm run hub:service\" \"npm run hub:agent\" \"npm run hub:gateway\" \"npm run hub:client\""
+    "concurrently": "^9.1.2"
   }
 }

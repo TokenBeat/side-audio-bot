@@ -835,3 +835,60 @@ button { font-family: inherit; cursor: pointer; }
 .input-row button:disabled { opacity: 0.5; }
 
 .panel-hint { margin: 10px 0 0; font-size: 13px; color: var(--ink-soft); }
+
+/* ============================================================
+   工艺冲刺追加层：图标体系 / 入场编排 / 交互反馈 / 空态
+   ============================================================ */
+.icon-inline { vertical-align: -3px; margin-right: 4px; }
+.info-card-head .icon-inline, .side-title .icon-inline { color: var(--brand); }
+.status-heart { color: var(--call); display: inline-flex; }
+.status-heart svg { filter: drop-shadow(0 4px 10px rgba(217, 67, 47, 0.35)); }
+.status-heart, .family-flash { display: inline-flex; align-items: center; }
+.family-flash { gap: 2px; }
+.status-facts li .icon-inline { color: var(--brand); }
+.family-panel h3 .icon-inline { color: var(--brand); }
+.song-chips button { display: inline-flex; align-items: center; }
+.song-chips button .icon-inline { color: var(--brand-deep); }
+
+/* —— 入场编排 —— */
+.terminal-frame { animation: frameIn 620ms cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+@keyframes frameIn { from { opacity: 0; transform: translateY(22px) scale(0.985); } to { opacity: 1; transform: none; } }
+.info-column > *, .station-side > *, .family-view > * { animation: panelIn 560ms cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+.info-column > :nth-child(2) { animation-delay: 80ms; }
+.info-column > :nth-child(3) { animation-delay: 140ms; }
+.info-column > :nth-child(4) { animation-delay: 200ms; }
+.family-view > :nth-child(2) { animation-delay: 70ms; }
+.family-view > :nth-child(3) { animation-delay: 130ms; }
+.family-view > :nth-child(4) { animation-delay: 190ms; }
+@keyframes panelIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* —— 交互反馈 —— */
+.info-card, .room-card, .ticket-card, .family-panel, .family-status-card { transition: transform 180ms cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 180ms cubic-bezier(0.2, 0.9, 0.2, 1); }
+.info-card:hover, .ticket-card:hover, .family-panel:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(51, 41, 31, 0.14); }
+.card-action, .ticket-actions button, .alert-action { transition: transform 130ms cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 150ms ease, filter 150ms ease; }
+.card-action:hover, .ticket-actions button:hover, .alert-action:hover { filter: brightness(1.06); box-shadow: 0 6px 16px rgba(232, 114, 42, 0.30); }
+.card-action:active, .ticket-actions button:active, .alert-action:active { transform: scale(0.95); }
+.dock-btn { transition: transform 150ms cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 180ms ease; }
+.dock-btn:hover { transform: translateY(-3px); }
+.dock-btn:active { transform: scale(0.93); }
+.dock-btn.primary.active { box-shadow: 0 0 0 6px rgba(217, 67, 47, 0.18), var(--shadow-pop); animation: callPulse 1.2s ease-in-out infinite; }
+@keyframes callPulse { 0%, 100% { box-shadow: 0 0 0 4px rgba(217, 67, 47, 0.14), var(--shadow-pop); } 50% { box-shadow: 0 0 0 12px rgba(217, 67, 47, 0.05), var(--shadow-pop); } }
+
+/* —— 呼叫红闪增强：光晕呼吸 —— */
+.room-card.state-calling { animation: callingGlow 1.4s ease-in-out infinite; }
+@keyframes callingGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(217, 67, 47, 0.30); } 50% { box-shadow: 0 0 24px 4px rgba(217, 67, 47, 0.28); } }
+
+/* —— 加载/空态：呼吸占位替代裸文本 —— */
+.board-loading, .ticket-empty, .family-loading {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 26px 0; color: var(--ink-faint, #9a938c); font-size: 15px; text-align: center;
+}
+.board-loading::before, .ticket-empty::before, .family-loading::before {
+  content: ''; width: 46px; height: 46px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-soft, #fbe9d9), rgba(255,255,255,0.6));
+  animation: breathe 2.2s ease-in-out infinite;
+}
+@keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.75; } 50% { transform: scale(1.1); opacity: 1; } }
+.ticket-empty { padding: 18px 0; }
+.ticket-empty::before { width: 34px; height: 34px; }
+.dock-note.connecting { color: var(--warn); }

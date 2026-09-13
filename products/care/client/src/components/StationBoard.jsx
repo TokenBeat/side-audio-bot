@@ -1,6 +1,7 @@
 // 护理站大屏：3 米可读。房间网格是主角，呼叫队列是行动区。
 import { useEffect, useMemo, useState } from 'react'
 import useCareState from '../hooks/useCareState'
+import { Zap, TriangleAlert, ClipboardList, HeartPulse, Pill } from 'lucide-react'
 
 const STATE_LABEL = {
   safe: '平安',
@@ -11,8 +12,8 @@ const STATE_LABEL = {
 
 const STATE_ICON = {
   safe: '●',
-  calling: '🔴',
-  reminder: '🟡',
+  calling: '●',
+  reminder: '●',
   offline: '○',
 }
 
@@ -199,7 +200,7 @@ export default function StationBoard() {
                 </div>
                 <div className="room-meta">
                   {room.state === 'reminder' && room.note ? room.note : ''}
-                  {!isCalling && room.state === 'safe' && nextReminder ? `💊 ${nextReminder.time} ${nextReminder.name}` : ''}
+                  {!isCalling && room.state === 'safe' && nextReminder ? <><Pill className="icon-inline" size={14} /> {nextReminder.time} {nextReminder.name}</> : ''}
                   {isCalling && activeTicket ? `${activeTicket.intent} · 等 ${waitingMinutes(activeTicket.createdAt, now)} 分` : ''}
                 </div>
                 {isCalling && activeTicket && (
@@ -212,7 +213,7 @@ export default function StationBoard() {
         </section>
 
         <aside className="station-side">
-          <h2 className="side-title">⚡ 呼叫队列（{openTickets.length}）</h2>
+          <h2 className="side-title"><Zap className="icon-inline" size={18} /> 呼叫队列（{openTickets.length}）</h2>
           <div className="ticket-list">
             {openTickets.map(ticket => (
               <div key={ticket.id} className={`ticket-card ${ticket.urgency === 'urgent' ? 'urgent' : ''} ${ticket.escalated ? 'escalated' : ''}`}>
@@ -227,7 +228,7 @@ export default function StationBoard() {
                   <button type="button" disabled={busy} onClick={() => act('accept', ticket.id)}>受理</button>
                   <button type="button" disabled={busy} onClick={() => act('complete', ticket.id)}>到房完成</button>
                 </div>
-                {ticket.escalated && <div className="ticket-escalated">⚠️ 超时已升级护士长</div>}
+                {ticket.escalated && <div className="ticket-escalated"><TriangleAlert className="icon-inline" size={14} /> 超时已升级护士长</div>}
               </div>
             ))}
             {!openTickets.length && (
@@ -235,7 +236,7 @@ export default function StationBoard() {
             )}
           </div>
 
-          <h2 className="side-title muted">📋 处理中（{acceptedTickets.length}）</h2>
+          <h2 className="side-title muted"><ClipboardList className="icon-inline" size={18} /> 处理中（{acceptedTickets.length}）</h2>
           <div className="ticket-list compact">
             {acceptedTickets.map(ticket => (
               <div key={ticket.id} className="ticket-card accepted">
@@ -253,7 +254,7 @@ export default function StationBoard() {
           </div>
 
           <h2 className={`side-title ${healthAlerts.length ? 'alert' : 'calm'}`}>
-            ❤️ 健康预警（{healthAlerts.length}）
+            <HeartPulse className="icon-inline" size={18} /> 健康预警（{healthAlerts.length}）
           </h2>
           <div className="ticket-list compact">
             {healthAlerts.map(alert => (

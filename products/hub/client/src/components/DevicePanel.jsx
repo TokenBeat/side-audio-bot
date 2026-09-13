@@ -1,5 +1,6 @@
 // 设备控制面板：选中房间的设备列表，开关/滑杆直接控制（现场与远程同一 API）。
 import { deviceControlApi } from '../api'
+import { DeviceIcon } from '../ui/icons'
 
 export default function DevicePanel({ state, selectedRoom, onMutate }) {
   const devices = Object.entries(state?.devices || {})
@@ -22,10 +23,8 @@ export default function DevicePanel({ state, selectedRoom, onMutate }) {
         return (
           <div key={id} className={`device-row ${on === false ? 'off' : ''}`}>
             <div className="device-info">
-              <span className="device-icon">
-                {device.kind === 'light' || device.kind === 'nightlight'
-                  ? '💡'
-                  : device.kind === 'ac' ? '❄️' : device.kind === 'curtain' ? '🪟' : '📺'}
+              <span className={`device-icon kind-${device.kind}`}>
+                <DeviceIcon kind={device.kind} size={24} strokeWidth={1.8} />
               </span>
               <div>
                 <div className="device-name">{device.name}</div>
@@ -65,7 +64,7 @@ export default function DevicePanel({ state, selectedRoom, onMutate }) {
                   className="toggle-pill"
                   onClick={() => mutate(id, { action: 'set', direction: device.position > 50 ? '关' : '开' })}
                 >
-                  {device.position > 50 ? '打开中' : '已关闭'} ⌄
+                  {device.position > 50 ? '打开中' : '已关闭'} <span className="caret">⌄</span>
                 </button>
               ) : (
                 <button

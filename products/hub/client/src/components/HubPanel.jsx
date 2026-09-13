@@ -7,6 +7,11 @@ import useHubState from '../hooks/useHubState'
 import FloorPlan from './FloorPlan'
 import DevicePanel from './DevicePanel'
 import { sceneApi, motionApi, doorApi } from '../api'
+import { SceneIcon } from '../ui/icons'
+import {
+  Cloud, ArrowUpRight, Mic, MicOff, AudioLines, TriangleAlert,
+  Radio, Lock, LockOpen, ScrollText, Moon, DoorOpen, Hand,
+} from '../ui/icons'
 
 const ORB_STATE_LABEL = {
   idle: '点一下，跟我说话',
@@ -116,9 +121,9 @@ export default function HubPanel() {
             <span className="brand-mark">晴</span>
             晚晴·家
           </span>
-          <span className="frame-weather">☁️ {state?.weather?.summary || '多云'}</span>
+          <span className="frame-weather"><Cloud className="icon-inline" size={17} /> {state?.weather?.summary || '多云'}</span>
           <span className="frame-link">
-            <a href="/remote" target="_blank" rel="noreferrer">远程控制 ↗</a>
+            <a href="/remote" target="_blank" rel="noreferrer">远程控制 <ArrowUpRight className="icon-inline" size={14} /></a>
           </span>
           <span className="frame-clock">{now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
           <span className="frame-date">{now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })}</span>
@@ -146,7 +151,7 @@ export default function HubPanel() {
                     className={`scene-chip ${state?.activeScene === scene.id ? 'active' : ''}`}
                     onClick={() => activateScene(scene)}
                   >
-                    <span className="scene-icon">{scene.icon}</span>
+                    <span className="scene-icon"><SceneIcon scene={scene} size={18} strokeWidth={2} /></span>
                     {scene.name}
                   </button>
                 ))}
@@ -166,7 +171,7 @@ export default function HubPanel() {
                 onClick={event => { event.stopPropagation(); toggleVoice() }}
                 aria-label="语音开关"
               >
-                {muted ? '🎙️' : '🗣️'}
+                {muted ? <MicOff size={22} /> : <Mic size={22} />}
                 <span>{muted ? '语音' : '在听'}</span>
               </button>
               <div className="voice-transcript">
@@ -177,9 +182,9 @@ export default function HubPanel() {
                 ) : (
                   <p className={`line ${muted && !session.error ? 'soft' : 'live-hint'}`}>
                     {session.error
-                      ? `⚠️ ${session.error}（若浏览器拒绝过麦克风：点地址栏左侧 🔒 重新允许）`
+                      ? <span className="line-error"><TriangleAlert className="icon-inline" size={15} /> {session.error}（若浏览器拒绝过麦克风：点地址栏左侧的锁形图标重新允许）</span>
                       : muted
-                        ? '👆 点这里开始语音控制 · 试试："打开客厅灯" "我睡了" "空调调到26度" "起夜模式"'
+                        ? <span className="line-hint"><Hand className="icon-inline" size={15} /> 点这里开始语音控制 · 试试："打开客厅灯" "我睡了" "空调调到26度" "起夜模式"</span>
                         : ORB_STATE_LABEL[orbState] || '在听呢，请讲'}
                   </p>
                 )}
@@ -196,7 +201,7 @@ export default function HubPanel() {
             <DevicePanel state={state} selectedRoom={selectedRoom} />
 
             <div className="info-card sensors-card">
-              <div className="info-card-head">📡 传感与联动</div>
+              <div className="info-card-head"><Radio className="icon-inline" size={17} /> 传感与联动</div>
               <div className="sensor-grid">
                 <div className="sensor-cell">
                   <span className="sensor-value">{state?.sensors?.indoorTemp ?? '—'}°</span>
@@ -207,7 +212,7 @@ export default function HubPanel() {
                   <span className="sensor-label">湿度</span>
                 </div>
                 <div className="sensor-cell">
-                  <span className="sensor-value">{state?.sensors?.doorWindow === '全部关闭' ? '🔒' : '🔓'}</span>
+                  <span className="sensor-value sensor-icon">{state?.sensors?.doorWindow === '全部关闭' ? <Lock size={22} /> : <LockOpen size={22} />}</span>
                   <span className="sensor-label">门窗</span>
                 </div>
                 <div className="sensor-cell">
@@ -221,8 +226,8 @@ export default function HubPanel() {
                   motionApi('卧室', { forceNight: true }).then(result => {
                     speak(result?.announced || '夜灯已为你点亮')
                   }).catch(() => {})
-                }}>🌙 模拟起夜（联动夜灯）</button>
-                <button type="button" onClick={() => doorApi('大门', '被打开')}>🚪 模拟开门</button>
+                }}><Moon size={15} /> 模拟起夜（联动夜灯）</button>
+                <button type="button" onClick={() => doorApi('大门', '被打开')}><DoorOpen size={15} /> 模拟开门</button>
               </div>
               {openAlerts.length > 0 && (
                 <div className="alert-list">
@@ -237,7 +242,7 @@ export default function HubPanel() {
             </div>
 
             <div className="info-card activity-card">
-              <div className="info-card-head">📜 动态</div>
+              <div className="info-card-head"><ScrollText className="icon-inline" size={17} /> 动态</div>
               {activities.slice(0, 4).map((activity, index) => (
                 <div key={`${activity.at}-${index}`} className="schedule-row">
                   <span className="schedule-time">{activity.at.slice(11, 16)}</span>
@@ -250,9 +255,10 @@ export default function HubPanel() {
         </div>
 
         <footer className="dock hub-dock">
-          <span className="dock-note">
-            {connected ? '● 全屋在线' : '○ 连接中'}
-            {activeScene ? ` · 当前场景：${activeScene.icon} ${activeScene.name}` : ''}
+          <span className={`dock-note ${connected ? '' : 'connecting'}`}>
+            <span className={`dock-dot ${connected ? 'ok' : 'wait'}`} />
+            {connected ? '全屋在线' : '连接中…'}
+            {activeScene ? ` · 当前场景：${activeScene.name}` : ''}
           </span>
           <span className="dock-note right">现场中控 · 远程同源（/remote）</span>
         </footer>

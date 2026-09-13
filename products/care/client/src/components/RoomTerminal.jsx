@@ -5,6 +5,7 @@ import useVoiceSession from '../hooks/useVoiceSession'
 import useCareState from '../hooks/useCareState'
 import Orb3D from './Orb3D'
 import { speak, warmUpSpeech } from '../audio/announceSpeech'
+import { Cloud, BellRing, HeartPulse, Pill, CalendarDays, Mic, MicOff } from 'lucide-react'
 
 function greeting(now, address) {
   const hour = now.getHours()
@@ -304,7 +305,7 @@ export default function RoomTerminal({ roomId = '302' }) {
             <span className="brand-mark">晴</span>
             晚晴·照护
           </span>
-          <span className="frame-weather">☁️ 多云 18-24°</span>
+          <span className="frame-weather"><Cloud className="icon-inline" size={17} /> 多云 18-24°</span>
           <span className="frame-clock">{now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
           <span className="frame-date">{now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })}</span>
         </header>
@@ -333,7 +334,7 @@ export default function RoomTerminal({ roomId = '302' }) {
                   </p>
                 )}
                 {callStatus && (
-                  <p className={`line call-line tone-${callStatus.tone}`}>🔔 {callStatus.text}</p>
+                  <p className={`line call-line tone-${callStatus.tone}`}><BellRing className="icon-inline" size={15} /> {callStatus.text}</p>
                 )}
               </div>
             )}
@@ -342,7 +343,7 @@ export default function RoomTerminal({ roomId = '302' }) {
           <aside className="info-column">
             {vitals && Object.keys(vitals.measurements).length > 0 && (
               <div className="info-card vitals-card">
-                <div className="info-card-head">❤️ 今日健康数据（{vitals.date.slice(5)} 测）</div>
+                <div className="info-card-head"><HeartPulse className="icon-inline" size={17} /> 今日健康数据（{vitals.date.slice(5)} 测）</div>
                 <div className="vitals-grid">
                   {vitals.measurements.bloodPressure && (
                     <div className={`vital-chip ${vitalAssess('bloodPressure', vitals.measurements.bloodPressure)}`}>
@@ -384,7 +385,7 @@ export default function RoomTerminal({ roomId = '302' }) {
             )}
 
             <div className={`info-card medication-card ${reminderActive ? 'due' : ''} ${medication ? '' : 'done'}`}>
-              <div className="info-card-head">💊 用药提醒</div>
+              <div className="info-card-head"><Pill className="icon-inline" size={17} /> 用药提醒</div>
               {medication ? (
                 <>
                   <div className="info-card-title">{medication.name}</div>
@@ -395,12 +396,12 @@ export default function RoomTerminal({ roomId = '302' }) {
                   <button type="button" className="card-action" onClick={confirmMedication}>我吃好了</button>
                 </>
               ) : (
-                <div className="info-card-title">今天的药都吃好啦 👍</div>
+                <div className="info-card-title">今天的药都吃好啦</div>
               )}
             </div>
 
             <div className="info-card call-card">
-              <div className="info-card-head">🔔 呼叫护理员</div>
+              <div className="info-card-head"><BellRing className="icon-inline" size={17} /> 呼叫护理员</div>
               <div className="info-card-title">有事随时叫我</div>
               <div className="info-card-sub">说话或按下面按钮都行</div>
               {activeCall && (
@@ -411,7 +412,7 @@ export default function RoomTerminal({ roomId = '302' }) {
             </div>
 
             <div className="info-card schedule-card">
-              <div className="info-card-head">📅 院内安排</div>
+              <div className="info-card-head"><CalendarDays className="icon-inline" size={17} /> 院内安排</div>
               {(state?.activities || []).map(activity => (
                 <div key={activity.id} className="schedule-row">
                   <span className="schedule-time">{activity.time}</span>
@@ -434,7 +435,7 @@ export default function RoomTerminal({ roomId = '302' }) {
             onClick={toggleVoice}
             aria-label="语音对话开关"
           >
-            {muted ? '🎙️' : '🗣️'}
+            {muted ? <MicOff size={26} /> : <Mic size={26} />}
             <span>{muted ? '说话' : '在听'}</span>
           </button>
           <div className="dock-temp">
@@ -447,7 +448,7 @@ export default function RoomTerminal({ roomId = '302' }) {
             onClick={() => triggerCall()}
             aria-label="呼叫护理员"
           >
-            🔔
+            <BellRing size={26} />
             <span>{activeCall ? '已呼叫' : '呼叫'}</span>
           </button>
           <button
@@ -456,7 +457,7 @@ export default function RoomTerminal({ roomId = '302' }) {
             onClick={confirmMedication}
             aria-label="确认吃药"
           >
-            💊
+            <Pill size={26} />
             <span>吃药</span>
           </button>
         </footer>
