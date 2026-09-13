@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import useVoiceSession from '../hooks/useVoiceSession'
 import { speak, warmUpSpeech } from '../audio/announceSpeech'
 import useHubState from '../hooks/useHubState'
-import FloorPlan from './FloorPlan'
+import FloorPlan3D from './FloorPlan3D'
 import DevicePanel from './DevicePanel'
 import { sceneApi, motionApi, doorApi } from '../api'
 import { SceneIcon } from '../ui/icons'
@@ -138,10 +138,11 @@ export default function HubPanel() {
                   室内 {state?.sensors?.indoorTemp ?? '—'}° · 湿度 {state?.sensors?.humidity ?? '—'}% · 门窗{state?.sensors?.doorWindow || '—'}
                 </span>
               </div>
-              <FloorPlan
+              <FloorPlan3D
                 state={state}
                 selected={selectedRoom}
                 onSelect={setSelectedRoom}
+                height={330}
               />
               <div className="scene-row">
                 {(state?.scenes || []).map(scene => (

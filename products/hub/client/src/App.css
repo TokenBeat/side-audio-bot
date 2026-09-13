@@ -1095,3 +1095,13 @@ button { font-family: inherit; cursor: pointer; }
 
 .device-icon.lit { animation: iconLit 2.8s ease-in-out infinite; }
 @keyframes iconLit { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.12); } }
+
+/* —— 3D 户型主视觉 —— */
+.floorplan3d-wrap { width: 100%; border-radius: 18px; overflow: hidden; }
+.f3d-label {
+  display: inline-block; padding: 3px 12px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9); color: var(--ink);
+  font-size: 14px; font-weight: 700; white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(51, 41, 31, 0.14);
+  pointer-events: none; user-select: none;
+}
