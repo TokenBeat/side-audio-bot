@@ -2,7 +2,7 @@
 // 健康、问安、提醒、喜好一屏可见；点歌/语音提醒/留言从这里传到老人终端，
 // 由终端的 AI 开口转达——照护的心既要被看到，也要传过去。
 import { useMemo, useState } from 'react'
-import { Heart, CircleDot, Sun, Pill, Phone, HeartHandshake, Music, AlarmClock, MessageCircleHeart, Check, TriangleAlert } from 'lucide-react'
+import { Heart, CircleDot, Sun, Pill, Phone, HeartHandshake, Music, AlarmClock, MessageCircleHeart, Check, TriangleAlert, NotebookText } from 'lucide-react'
 import useHomeState from '../hooks/useHomeState'
 
 const CHECKIN_STATUS = {
@@ -12,6 +12,67 @@ const CHECKIN_STATUS = {
 }
 
 const SONG_CHOICES = ['秦腔经典', '豫剧选段', '京剧经典', '评书', '怀旧金曲']
+
+
+// 周报卡：近 7 天问安/体征/提醒完成度一屏回看。
+function WeeklyCard({ weekly }) {
+  if (!weekly?.length) return null
+  const doneCount = weekly.filter(day => day.checkin?.status === 'done').length
+  const missed = weekly.filter(day => day.checkin?.status !== 'done')
+  const systolics = weekly.map(day => day.vitals?.systolic).filter(value => value != null)
+  const bpMin = Math.min(...systolics) - 4
+  const bpMax = Math.max(...systolics) + 4
+  const width = 560
+  const height = 54
+  const step = systolics.length > 1 ? (width - 40) / (systolics.length - 1) : 0
+  const bpPath = systolics.map((value, index) => {
+    const x = 20 + index * step
+    const y = height - 12 - ((value - bpMin) / (bpMax - bpMin)) * (height - 24)
+    return `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`
+  }).join(' ')
+  const weekday = date => ['日', '一', '二', '三', '四', '五', '六'][new Date(`${date}T12:00:00`).getDay()]
+  return (
+    <section className="family-panel weekly-card">
+      <h3><NotebookText className="icon-inline" size={17} /> 这一周</h3>
+      <div className="weekly-checkin">
+        <span className="weekly-row-label">问安</span>
+        {weekly.map((day, index) => (
+          <span
+            key={day.date}
+            className={`weekly-dot ${day.checkin?.status === 'done' ? 'ok' : 'miss'}`}
+            title={`${day.date} ${day.checkin?.status === 'done' ? `问安顺利（${day.checkin?.mood || '状态好'}）` : '未接通'}`}
+          >
+            {weekday(day.date)}
+          </span>
+        ))}
+        <span className="weekly-note">{doneCount}/7 天顺利{missed.length ? '，未接通已回访' : ''}</span>
+      </div>
+      <div className="weekly-bp">
+        <span className="weekly-row-label">血压</span>
+        <svg viewBox={`0 0 ${width} ${height}`} className="weekly-bp-svg" aria-label="7 天血压走势">
+          <path d={bpPath} fill="none" strokeWidth={2.4} className="weekly-bp-line" />
+          {systolics.map((value, index) => {
+            const x = 20 + index * step
+            const y = height - 12 - ((value - bpMin) / (bpMax - bpMin)) * (height - 24)
+            return <circle key={index} cx={x} cy={y} r={3.5} className="weekly-bp-dot" />
+          })}
+        </svg>
+        <span className="weekly-note">{Math.min(...systolics)}~{Math.max(...systolics)} mmHg</span>
+      </div>
+      <div className="weekly-reminders">
+        <span className="weekly-row-label">提醒</span>
+        {weekly.map(day => (
+          <span key={day.date} className="weekly-bar" title={`${day.reminders?.confirmed}/${day.reminders?.total}`}>
+            <i style={{ height: `${((day.reminders?.confirmed || 0) / (day.reminders?.total || 3)) * 100}%` }} />
+          </span>
+        ))}
+        <span className="weekly-note">
+          完成 {weekly.reduce((sum, day) => sum + (day.reminders?.confirmed || 0), 0)}/{weekly.reduce((sum, day) => sum + (day.reminders?.total || 0), 0)} 项
+        </span>
+      </div>
+    </section>
+  )
+}
 
 export default function FamilyHomeView() {
   const { state, activities, connected } = useHomeState()
@@ -128,6 +189,9 @@ export default function FamilyHomeView() {
           <li><Phone className="icon-inline" size={15} /> 紧急联系人：{elder.contacts.map(contact => `${contact.relation}${contact.name}`).join('、')}</li>
         </ul>
       </section>
+
+      {/* —— 周报：近 7 天回看 —— */}
+      <WeeklyCard weekly={state?.weekly} />
 
       {/* —— 照护注入 —— */}
       <section className="family-grid">

@@ -50,6 +50,33 @@ function seedReminders(now) {
   ]
 }
 
+
+// 近 7 天周报种子：问安状态/末次体征/提醒完成度（演示数据，形状贴近真实家庭节律）。
+function seedWeekly(now) {
+  const days = []
+  const statuses = ['done', 'done', 'done', 'no_answer', 'done', 'done', 'done']
+  const moods = ['不错', '很好', '不错', '', '一般', '不错', '很好']
+  for (let index = 6; index >= 0; index -= 1) {
+    const at = now() - index * 24 * 60 * 60 * 1000
+    const date = new Date(at).toISOString().slice(0, 10)
+    const dayIndex = 6 - index
+    const status = index === 0
+      ? 'done'
+      : statuses[dayIndex]
+    days.push({
+      date,
+      checkin: { status, mood: status === 'done' ? moods[dayIndex] : '' },
+      vitals: {
+        systolic: 132 + Math.round(Math.sin(dayIndex * 1.7) * 6),
+        bloodSugar: Math.round((5.8 + Math.cos(dayIndex * 2.1) * 0.6) * 10) / 10,
+        heartRate: 74 + Math.round(Math.sin(dayIndex * 1.3) * 4),
+      },
+      reminders: { total: 3, confirmed: index === 0 ? 1 : (dayIndex % 3 === 0 ? 2 : 3) },
+    })
+  }
+  return days
+}
+
 function initialState(now) {
   return {
     version: 0,
@@ -69,6 +96,7 @@ function initialState(now) {
       },
     },
     sos: null,
+    weekly: seedWeekly(now),
     notifications: [
       {
         id: `n-${randomUUID().slice(0, 8)}`,

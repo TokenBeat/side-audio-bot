@@ -30,7 +30,7 @@
 
 body {
   margin: 0;
-  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-family: "Noto Sans SC Variable", "Source Han Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   background: #e9ebef;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
@@ -914,3 +914,22 @@ button { font-family: inherit; cursor: pointer; }
 @keyframes mediaIn { from { opacity: 0; transform: translateY(12px) scale(0.92); } to { opacity: 1; transform: none; } }
 .dock-media-text { font-size: 18px; font-weight: 700; color: var(--brand-deep); white-space: nowrap; }
 .dock-media .wave-bars.live i { background: var(--brand); }
+
+/* —— 周报卡 —— */
+.weekly-card { border-top: 2.5px solid var(--brand); }
+.weekly-card h3 { display: flex; align-items: center; }
+.weekly-row-label { flex: 0 0 44px; font-size: 15px; font-weight: 700; color: var(--ink-soft); }
+.weekly-checkin, .weekly-bp, .weekly-reminders { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.weekly-dot {
+  flex: 1; text-align: center; padding: 7px 0; border-radius: 10px;
+  font-size: 14px; font-weight: 600; color: #fff;
+}
+.weekly-dot.ok { background: var(--safe); }
+.weekly-dot.miss { background: var(--call); }
+.weekly-dot:last-of-type { outline: 2.5px solid rgba(232, 114, 42, 0.45); outline-offset: 1.5px; }
+.weekly-bp-svg { flex: 1; height: 54px; }
+.weekly-bp-line { stroke: var(--brand); stroke-linecap: round; }
+.weekly-bp-dot { fill: var(--brand-deep); stroke: #fff; stroke-width: 1.5; }
+.weekly-bar { flex: 1; height: 34px; display: flex; align-items: flex-end; border-radius: 5px; background: rgba(51, 41, 31, 0.06); overflow: hidden; }
+.weekly-bar i { display: block; width: 100%; background: linear-gradient(to top, #f2b271, var(--brand)); border-radius: 3px; }
+.weekly-note { margin-left: 4px; font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
