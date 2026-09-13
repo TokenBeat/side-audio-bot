@@ -875,3 +875,20 @@ button { font-family: inherit; cursor: pointer; }
   animation: breathe 2.2s ease-in-out infinite;
 }
 @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.75; } 50% { transform: scale(1.1); opacity: 1; } }
+
+/* —— 纵深：主视觉后景微光晕（与 care 同源） —— */
+.hero-panel { position: relative; overflow: hidden; }
+.hero-panel::before {
+  content: ''; position: absolute; inset: -30%;
+  background:
+    radial-gradient(420px 420px at 30% 22%, rgba(232, 114, 42, 0.14), transparent 65%),
+    radial-gradient(520px 520px at 74% 78%, rgba(62, 124, 91, 0.10), transparent 62%);
+  animation: auraDrift 16s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes auraDrift { from { transform: translate3d(-2%, -2%, 0) scale(1); } to { transform: translate3d(2%, 3%, 0) scale(1.06); } }
+.hero-clock, .hero-room, .hero-greeting, .hero-mic, .hero-subtitle { position: relative; z-index: 1; }
+
+/* —— 数字等宽 —— */
+.hero-clock, .frame-clock, .dock-temp-value, .vital-value, .fv-value,
+.sensor-value, .room-id, .stepper-value { font-variant-numeric: tabular-nums; }

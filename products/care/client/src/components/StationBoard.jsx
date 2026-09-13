@@ -1,7 +1,7 @@
 // 护理站大屏：3 米可读。房间网格是主角，呼叫队列是行动区。
 import { useEffect, useMemo, useState } from 'react'
 import useCareState from '../hooks/useCareState'
-import { Zap, TriangleAlert, ClipboardList, HeartPulse, Pill } from 'lucide-react'
+import { Zap, TriangleAlert, ClipboardList, HeartPulse, Pill, Sun, Moon } from 'lucide-react'
 
 const STATE_LABEL = {
   safe: '平安',
@@ -56,6 +56,18 @@ export default function StationBoard() {
   const { state, activities, connected } = useCareState()
   const [now, setNow] = useState(() => new Date())
   const [busy, setBusy] = useState(false)
+  // 大屏主题：默认深色（3 米可读），可一键切亮色并与终端同源；选择持久化
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem('wanqing-station-theme') || 'dark' } catch { return 'dark' }
+  })
+
+  const toggleTheme = () => {
+    setTheme(current => {
+      const next = current === 'dark' ? 'light' : 'dark'
+      try { localStorage.setItem('wanqing-station-theme', next) } catch {}
+      return next
+    })
+  }
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000)
@@ -135,7 +147,7 @@ export default function StationBoard() {
   }, [state])
 
   return (
-    <div className="station-stage">
+    <div className="station-stage" data-theme={theme}>
       <div className="station-frame">
       <header className="station-topbar">
         <div className="station-brand">
@@ -157,6 +169,10 @@ export default function StationBoard() {
         <div className="station-duty">
           当班：<strong>{onDuty.map(person => person.name).join(' ') || '—'}</strong>
         </div>
+        <button type="button" className="station-theme-toggle" onClick={toggleTheme} aria-label="切换大屏亮暗主题">
+          {theme === 'dark' ? <Sun className="icon-inline" size={15} /> : <Moon className="icon-inline" size={15} />}
+          {theme === 'dark' ? '亮色' : '深色'}
+        </button>
       </header>
 
       <div className="station-body">

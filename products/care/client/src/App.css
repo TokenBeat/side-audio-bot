@@ -892,3 +892,119 @@ button { font-family: inherit; cursor: pointer; }
 .ticket-empty { padding: 18px 0; }
 .ticket-empty::before { width: 34px; height: 34px; }
 .dock-note.connecting { color: var(--warn); }
+
+/* ============================================================
+   护理站主题同源层：深色收敛为 token，亮色为变体（data-theme）
+   与终端浅色共用同一套语义（晨光橙/平安绿/呼叫红），可一键切换
+   ============================================================ */
+.station-stage {
+  --s-ink: #f5ede2;
+  --s-ink-soft: #b9aca0;
+  --s-brand: #ffb37a;
+  --s-safe: #8fd6ab;
+  --s-call: #ff9c8a;
+  --s-warn: #f2c66d;
+  --s-border: rgba(245, 237, 226, 0.09);
+  --s-card: linear-gradient(170deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
+  --s-panel: rgba(255, 255, 255, 0.025);
+  --s-btn-bg: linear-gradient(150deg, #ffb37a, #e8873a);
+  --s-btn-ink: #4a2c12;
+}
+.station-stage[data-theme='light'] {
+  --s-ink: #33291f;
+  --s-ink-soft: #8a7d6d;
+  --s-brand: var(--brand-deep);
+  --s-safe: var(--safe);
+  --s-call: var(--call);
+  --s-warn: #a8720e;
+  --s-border: rgba(51, 41, 31, 0.12);
+  --s-card: linear-gradient(170deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.78));
+  --s-panel: rgba(255, 255, 255, 0.66);
+  --s-btn-bg: linear-gradient(150deg, #f5924a, var(--brand-deep));
+  --s-btn-ink: #fff;
+}
+.station-stage[data-theme='light'] {
+  background:
+    radial-gradient(1100px 620px at 12% -8%, rgba(232, 114, 42, 0.14), transparent 60%),
+    radial-gradient(900px 560px at 96% 108%, rgba(62, 124, 91, 0.12), transparent 55%),
+    var(--stage, linear-gradient(160deg, #edf0f3 0%, #e7eaee 40%, #ece5d8 100%));
+  color: var(--s-ink);
+}
+.station-stage[data-theme='light'] .station-frame {
+  border-color: rgba(51, 41, 31, 0.10);
+  background: var(--s-panel);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.station-stage[data-theme='light'] .station-brand { color: var(--s-brand); }
+.station-stage[data-theme='light'] .station-floor,
+.station-stage[data-theme='light'] .station-date,
+.station-stage[data-theme='light'] .station-duty,
+.station-stage[data-theme='light'] .station-footer,
+.station-stage[data-theme='light'] .station-stats { color: var(--s-ink-soft); }
+.station-stage[data-theme='light'] .station-duty strong { color: var(--s-ink); }
+.station-stage[data-theme='light'] .station-link.ok { color: var(--safe); background: var(--safe-soft); }
+.station-stage[data-theme='light'] .station-link.bad { color: var(--call); background: var(--call-soft); }
+.station-stage[data-theme='light'] .room-card {
+  background: var(--s-card);
+  border-color: var(--s-border);
+  box-shadow: var(--shadow-card, 0 10px 30px rgba(51, 41, 31, 0.08));
+}
+.station-stage[data-theme='light'] .room-card.state-calling {
+  background: linear-gradient(170deg, rgba(217, 67, 47, 0.10), rgba(255, 255, 255, 0.82));
+}
+.station-stage[data-theme='light'] .room-card.state-safe .room-state { color: var(--s-safe); }
+.station-stage[data-theme='light'] .room-card.state-calling .room-state { color: var(--s-call); }
+.station-stage[data-theme='light'] .room-card.state-reminder .room-state { color: var(--s-warn); }
+.station-stage[data-theme='light'] .room-card.state-offline .room-state { color: var(--s-ink-soft); }
+.station-stage[data-theme='light'] .room-meta,
+.station-stage[data-theme='light'] .board-loading { color: var(--s-ink-soft); }
+.station-stage[data-theme='light'] .room-wait { color: var(--s-call); }
+.station-stage[data-theme='light'] .side-title { color: var(--s-brand); }
+.station-stage[data-theme='light'] .side-title.calm { color: var(--s-safe); }
+.station-stage[data-theme='light'] .side-title.muted { color: var(--s-ink-soft); }
+.station-stage[data-theme='light'] .ticket-card {
+  background: var(--s-card);
+  border-color: rgba(217, 67, 47, 0.40);
+}
+.station-stage[data-theme='light'] .ticket-card.accepted { border-color: rgba(62, 124, 91, 0.45); }
+.station-stage[data-theme='light'] .ticket-card.escalated { border-color: rgba(217, 154, 38, 0.55); }
+.station-stage[data-theme='light'] .ticket-head span,
+.station-stage[data-theme='light'] .ticket-empty,
+.station-stage[data-theme='light'] .notification-empty { color: var(--s-ink-soft); }
+.station-stage[data-theme='light'] .ticket-escalated { color: var(--s-warn); }
+.station-stage[data-theme='light'] .ticket-actions button { background: var(--s-btn-bg); color: var(--s-btn-ink); }
+.station-stage[data-theme='light'] .ticket-card.accepted .ticket-actions button {
+  background: linear-gradient(150deg, #5ba67e, var(--safe-deep, #3e7c5b)); color: #fff;
+}
+.station-stage[data-theme='light'] .ticket-empty { border-color: rgba(51, 41, 31, 0.18); }
+.station-stage[data-theme='light'] .station-footer { border-top-color: rgba(51, 41, 31, 0.08); }
+.station-stage[data-theme='light'] .station-clock-time { color: var(--s-ink); }
+
+/* —— 大屏主题切换按钮 —— */
+.station-theme-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 15px; padding: 7px 14px; border-radius: 999px;
+  border: 1px solid var(--s-border);
+  background: var(--s-panel); color: var(--s-ink-soft);
+  cursor: pointer; transition: transform 150ms cubic-bezier(0.2, 0.9, 0.2, 1), color 150ms ease, border-color 150ms ease;
+}
+.station-theme-toggle:hover { color: var(--s-brand); transform: translateY(-1px); }
+.station-theme-toggle:active { transform: scale(0.94); }
+
+/* —— 全产品数字等宽 —— */
+.station-clock-time, .hero-clock, .frame-clock, .dock-temp-value,
+.vital-value, .fv-value, .sensor-value, .room-id, .stepper-value,
+.station-clock-time small, .vital-value small { font-variant-numeric: tabular-nums; }
+
+/* —— 纵深：主视觉后景微光晕（终端与大屏同源） —— */
+.hero-panel { position: relative; overflow: hidden; }
+.hero-panel::before {
+  content: ''; position: absolute; inset: -30%;
+  background:
+    radial-gradient(420px 420px at 30% 22%, rgba(232, 114, 42, 0.14), transparent 65%),
+    radial-gradient(520px 520px at 74% 78%, rgba(62, 124, 91, 0.10), transparent 62%);
+  animation: auraDrift 16s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes auraDrift { from { transform: translate3d(-2%, -2%, 0) scale(1); } to { transform: translate3d(2%, 3%, 0) scale(1.06); } }
+.hero-clock, .hero-room, .hero-greeting, .hero-mic, .hero-subtitle { position: relative; z-index: 1; }
