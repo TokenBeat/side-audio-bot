@@ -23,6 +23,14 @@ cd <仓库根> && COCKPIT_CLIENT_PORT=5180 npm run example:smart-cockpit:client
 
 ### 座舱工艺拆解（我们已经做到 / 还差什么 / 你要做什么）
 
+> **✅ 冲刺已落地（本地提交 a466438…d9ad8da，待推送 origin）**：下表"你要做的"列已全部完成——
+> lucide 图标全量替换 emoji（hub 统一出口 ui/icons.jsx）；错峰入场/悬停/按压反馈；呼吸占位空态；
+> care/home 球体升级 meshPhysicalMaterial+RoomEnvironment+Sparkles；hub 2D 户型升级为 3D 户型
+> （FloorPlan3D：圆角地块/选中浮起/点光源灯泡/设备指示柱/场景暖光）；设备专属动效（空调风感条、
+> 窗帘开合进度、灯光亮度辉光）；语音 wave-bars 声波条；Dock 媒体胶囊（点歌播放中显示）；
+> tabular-nums；护理站主题同源化（--s-* token + data-theme 亮色 + 顶栏一键切换，存 localStorage）。
+> ⬜ 仍开放：标题字体升级（思源黑体可变字重，需字体资源）；hub 真实设备协议接入等见 §4 待办。
+
 | 工艺要素 | 座舱的做法 | 当前晚晴状态 | 你要做的 |
 | --- | --- | --- | --- |
 | 3D 主视觉 | CarModel3D：three.js 车模，光影材质细腻，可交互 | care/home 有 3D 陪伴球（材质偏简单）；hub 无 3D | 球体材质升级（次表面散射感/环境贴图）；hub 加 3D 户型或设备主视觉 |
