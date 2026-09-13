@@ -1,0 +1,9 @@
+{
+  "name": "wanqing-hub-gateway",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "qwen-audio-agent": "file:../../.."
+  }
+}

@@ -37,6 +37,23 @@ export class CareService {
     return this.store.snapshot(careId)
   }
 
+  // 家属照护注入：点歌 / 语音提醒 / 留言（家属端 → 终端开口转达）
+  familyMedia(careId, payload) {
+    return this.store.familyMedia(careId, payload)
+  }
+
+  familyReminder(careId, payload) {
+    return this.store.familyReminder(careId, payload)
+  }
+
+  familyMessage(careId, payload) {
+    return this.store.familyMessage(careId, payload)
+  }
+
+  confirmFamilyReminder(careId, reminderId) {
+    this.store.confirmFamilyReminder(careId, reminderId)
+  }
+
   reset(careId = 'default') {
     return this.store.reset(careId)
   }

@@ -29,6 +29,18 @@ export class HomeService {
     this.store.touchVoice(homeId, notes)
   }
 
+  familyMedia(homeId, payload) {
+    return this.store.familyMedia(homeId, payload)
+  }
+
+  familyReminder(homeId, payload) {
+    return this.store.familyReminder(homeId, payload)
+  }
+
+  familyMessage(homeId, payload) {
+    return this.store.familyMessage(homeId, payload)
+  }
+
   reset(homeId = 'default') {
     return this.store.reset(homeId)
   }

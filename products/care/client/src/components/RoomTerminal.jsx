@@ -236,6 +236,24 @@ export default function RoomTerminal({ roomId = '302' }) {
     }
   }, [activeCall, callStatus])
 
+  // 家属照护注入：点歌 / 语音提醒 / 留言 —— 终端开口转达
+  const spokenFamilyKeyRef = useRef('')
+  useEffect(() => {
+    const familyEvent = activities.find(activity => (
+      activity.category === 'family'
+      && activity.roomId === roomId
+      && !spokenFamilyKeyRef.current.includes(activity.at)
+    ))
+    if (!familyEvent) return
+    spokenFamilyKeyRef.current += `|${familyEvent.at}`
+    speak(familyEvent.message)
+    setTranscript(current => [...current, {
+      role: 'system',
+      content: familyEvent.message,
+      at: Date.now(),
+    }])
+  }, [activities, roomId])
+
   const toggleVoice = () => {
     warmUpSpeech()
     if (muted) {

@@ -12,14 +12,25 @@ export const ROOM_STATE = Object.freeze({
 const CALL_ESCALATE_AFTER_MS = 3 * 60 * 1000
 const OFFLINE_AFTER_MS = 30 * 1000
 
+function matchMediaChannel(query = '') {
+  const text = String(query || '')
+  if (/(豫剧|梆子)/u.test(text)) return { channel: '豫剧选段', station: '戏曲频道' }
+  if (/(秦腔)/u.test(text)) return { channel: '秦腔经典', station: '戏曲频道' }
+  if (/(京剧|京戏)/u.test(text)) return { channel: '京剧经典', station: '戏曲频道' }
+  if (/(黄梅戏)/u.test(text)) return { channel: '黄梅戏精选', station: '戏曲频道' }
+  if (/(评书|相声)/u.test(text)) return { channel: '单田芳评书', station: '曲艺频道' }
+  if (/(歌|音乐|曲)/u.test(text)) return { channel: text || '怀旧金曲', station: '音乐频道' }
+  return { channel: text || '经典戏曲', station: '戏曲频道' }
+}
+
 function seedRooms(now) {
   return [
-    { id: '301', bed: '1 床', resident: { name: '王秀英', address: '王奶奶', age: 82 }, state: ROOM_STATE.SAFE, note: '' },
-    { id: '302', bed: '1 床', resident: { name: '李建国', address: '李爷爷', age: 79 }, state: ROOM_STATE.SAFE, note: '' },
-    { id: '303', bed: '2 床', resident: { name: '张桂兰', address: '张奶奶', age: 86 }, state: ROOM_STATE.SAFE, note: '' },
-    { id: '304', bed: '1 床', resident: { name: '陈阿婆', address: '陈阿婆', age: 88 }, state: ROOM_STATE.SAFE, note: '' },
-    { id: '305', bed: '2 床', resident: { name: '赵德福', address: '赵爷爷', age: 75 }, state: ROOM_STATE.SAFE, note: '' },
-    { id: '306', bed: '1 床', resident: { name: '孙玉梅', address: '孙奶奶', age: 83 }, state: ROOM_STATE.SAFE, note: '' },
+    { id: '301', bed: '1 床', resident: { name: '王秀英', address: '王奶奶', age: 82, likes: ['豫剧', '红烧鱼', '饭后散步'], family: [{ name: '小芳', relation: '女儿' }] }, state: ROOM_STATE.SAFE, note: '' },
+    { id: '302', bed: '1 床', resident: { name: '李建国', address: '李爷爷', age: 79, likes: ['评书', '下象棋', '喝茶'], family: [{ name: '李伟', relation: '儿子' }] }, state: ROOM_STATE.SAFE, note: '' },
+    { id: '303', bed: '2 床', resident: { name: '张桂兰', address: '张奶奶', age: 86, likes: ['合唱', '织毛衣', '甜食'], family: [{ name: '小敏', relation: '女儿' }] }, state: ROOM_STATE.SAFE, note: '' },
+    { id: '304', bed: '1 床', resident: { name: '陈阿婆', address: '陈阿婆', age: 88, likes: ['黄梅戏', '晒太阳'], family: [{ name: '阿俊', relation: '孙子' }] }, state: ROOM_STATE.SAFE, note: '' },
+    { id: '305', bed: '2 床', resident: { name: '赵德福', address: '赵爷爷', age: 75, likes: ['京剧', '读报', '遛弯'], family: [{ name: '赵磊', relation: '儿子' }] }, state: ROOM_STATE.SAFE, note: '' },
+    { id: '306', bed: '1 床', resident: { name: '孙玉梅', address: '孙奶奶', age: 83, likes: ['秦腔', '养花'], family: [{ name: '孙悦', relation: '女儿' }] }, state: ROOM_STATE.SAFE, note: '' },
   ]
 }
 
@@ -148,6 +159,16 @@ function seedActivities(now) {
   ]
 }
 
+function seedMeals(now) {
+  return {
+    [new Date(now()).toISOString().slice(0, 10)]: {
+      breakfast: ['小米粥', '鸡蛋羹', '拌黄瓜'],
+      lunch: ['红烧鱼', '清炒时蔬', '米饭', '番茄蛋汤'],
+      dinner: ['南瓜粥', '素三鲜包子'],
+    },
+  }
+}
+
 function emptyMediacState() {
   return { playing: false, channel: '', station: '' }
 }
@@ -162,6 +183,9 @@ function initialState(now) {
     vitals: seedVitals(now),
     duty: seedDuty(now),
     activities: seedActivities(now),
+    meals: seedMeals(now),
+    familyReminders: [],
+    familyMessages: [],
     media: emptyMediacState(),
     weather: { summary: '多云 18-24°', airQuality: '良' },
   }
@@ -454,6 +478,106 @@ export class CareStateStore {
       record,
       assessment,
       abnormal: assessment.level !== 'normal',
+    }
+  }
+
+  // —— 家属照护注入：点歌 / 语音提醒 / 留言 ——
+  // 终端通过 SSE 活动事件收到 kind，自动开口转达 + 展示卡片。
+  familyMedia(careId, { roomId, query, byName, relation }) {
+    const id = careId || 'default'
+    const room = this.room(id, roomId)
+    if (!room) throw new Error(`未知房间：${roomId}`)
+    const matched = matchMediaChannel(query)
+    this.setMedia(id, { playing: true, channel: matched.channel, station: matched.station })
+    const event = {
+      kind: 'family_media',
+      roomId: room.id,
+      channel: matched.channel,
+      by: `${relation || '家属'}${byName || ''}`,
+      message: `${relation || '家人'}${byName || ''}为您点了${matched.channel}`,
+    }
+    this.#publishFamilyEvent(id, event)
+    return event
+  }
+
+  familyReminder(careId, { roomId, text, byName, relation }) {
+    const id = careId || 'default'
+    const room = this.room(id, roomId)
+    if (!room) throw new Error(`未知房间：${roomId}`)
+    const reminder = {
+      id: `fr-${randomUUID().slice(0, 8)}`,
+      roomId: room.id,
+      text: String(text || '').trim(),
+      by: `${relation || '家属'}${byName || ''}`,
+      at: new Date(this.now()).toISOString(),
+      confirmedAt: '',
+    }
+    this.update(id, state => {
+      state.familyReminders.unshift(reminder)
+    })
+    this.#publishFamilyEvent(id, {
+      kind: 'family_reminder',
+      roomId: room.id,
+      reminderId: reminder.id,
+      text: reminder.text,
+      by: reminder.by,
+      message: `${reminder.by}提醒您：${reminder.text}`,
+    })
+    return reminder
+  }
+
+  familyMessage(careId, { roomId, text, byName, relation }) {
+    const id = careId || 'default'
+    const room = this.room(id, roomId)
+    if (!room) throw new Error(`未知房间：${roomId}`)
+    const message = {
+      id: `fm-${randomUUID().slice(0, 8)}`,
+      roomId: room.id,
+      text: String(text || '').trim(),
+      by: `${relation || '家属'}${byName || ''}`,
+      at: new Date(this.now()).toISOString(),
+    }
+    this.update(id, state => {
+      state.familyMessages.unshift(message)
+    })
+    this.#publishFamilyEvent(id, {
+      kind: 'family_message',
+      roomId: room.id,
+      messageId: message.id,
+      text: message.text,
+      by: message.by,
+      message: `${message.by}给您留言：${message.text}`,
+    })
+    return message
+  }
+
+  confirmFamilyReminder(careId, reminderId) {
+    const id = careId || 'default'
+    this.update(id, state => {
+      const reminder = state.familyReminders.find(item => item.id === reminderId)
+      if (reminder && !reminder.confirmedAt) {
+        reminder.confirmedAt = new Date(this.now()).toISOString()
+      }
+    })
+  }
+
+  #publishFamilyEvent(careId, event) {
+    const id = careId || 'default'
+    const published = Object.freeze({
+      type: 'care.activity',
+      careId: id,
+      at: new Date().toISOString(),
+      category: 'family',
+      status: event.kind,
+      message: event.message,
+      ...event,
+    })
+    for (const listener of this.listeners.get(id) || []) {
+      try {
+        listener(published)
+      } catch {
+        // 观察者不能影响照护操作。
+      }
     }
   }
 

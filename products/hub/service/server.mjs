@@ -1,12 +1,13 @@
-// 晚晴伴场景服务：向老人端/家属端投影状态，暴露前台/后台双面 MCP 工具。
+// 晚晴·照护场景服务：向 UI 投影机构状态，暴露前台/后台双面 MCP 工具。
+// 不属于 Gateway，也不是第二套 qwen-audio-agent 运行时。
 import { createServer } from 'node:http'
 import { pathToFileURL } from 'node:url'
 import {
   StreamableHTTPServerTransport,
 } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { HomeService } from './home-service.mjs'
-import { createHomeMcpServer } from './mcp-server.mjs'
-import { loadHomeEnvironment } from '../bootstrap/environment.mjs'
+import { HubService } from './hub-service.mjs'
+import { createHubMcpServer } from './mcp-server.mjs'
+import { loadHubEnvironment } from '../bootstrap/environment.mjs'
 import {
   BACKEND_TOOL_DEFINITIONS,
   FRONTEND_TOOL_DEFINITIONS,
@@ -14,11 +15,11 @@ import {
 
 const MAX_JSON_BYTES = 64 * 1024
 
-function homeId(request, url, body = {}) {
+function hubId(request, url, body = {}) {
   return String(
-    request.headers['x-home-id']
-    || url.searchParams.get('homeId')
-    || body.homeId
+    request.headers['x-hub-id']
+    || url.searchParams.get('hubId')
+    || body.hubId
     || 'default',
   )
 }
@@ -45,17 +46,18 @@ async function readJson(request) {
   return JSON.parse(Buffer.concat(chunks).toString('utf8'))
 }
 
-export class HomeServiceServer {
+export class HubServiceServer {
   constructor({
-    service = new HomeService(),
+    service = new HubService(),
     host = '127.0.0.1',
-    port = 3111,
+    port = 3110,
   } = {}) {
     this.service = service
     this.host = host
     this.port = port
     this.server = null
     this.sockets = new Set()
+    this.toolCallListeners = new Set()
   }
 
   get origin() {
@@ -94,76 +96,61 @@ export class HomeServiceServer {
     await new Promise(resolve => server.close(resolve))
   }
 
+  subscribeToolCalls(listener) {
+    if (typeof listener !== 'function') {
+      throw new TypeError('Care service tool call listener must be a function')
+    }
+    this.toolCallListeners.add(listener)
+    return () => this.toolCallListeners.delete(listener)
+  }
+
   async #handle(request, response) {
     const url = new URL(request.url || '/', `http://${this.host}`)
     if (request.method === 'OPTIONS') {
       response.writeHead(204, {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'content-type, x-home-id, mcp-protocol-version, mcp-session-id',
+        'Access-Control-Allow-Headers': 'content-type, x-hub-id, mcp-protocol-version, mcp-session-id',
         'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
       })
       response.end()
       return
     }
     if (url.pathname === '/health' && request.method === 'GET') {
-      json(response, 200, { ok: true, service: 'wanqing-home-service' })
+      json(response, 200, { ok: true, service: 'wanqing-hub-service' })
       return
     }
-    if (url.pathname === '/api/home/state' && request.method === 'GET') {
-      json(response, 200, this.service.snapshot(homeId(request, url)))
+    if (url.pathname === '/api/hub/state' && request.method === 'GET') {
+      json(response, 200, this.service.snapshot(hubId(request, url)))
       return
     }
-    if (url.pathname === '/api/home/events' && request.method === 'GET') {
-      this.#events(request, response, homeId(request, url))
+    if (url.pathname === '/api/hub/events' && request.method === 'GET') {
+      this.#events(request, response, hubId(request, url))
       return
     }
-    if (url.pathname === '/api/home/commands' && request.method === 'POST') {
+    if (url.pathname === '/api/hub/commands' && request.method === 'POST') {
       const body = await readJson(request)
       const output = await this.service.execute(body.name, body.arguments || {}, {
-        homeId: homeId(request, url, body),
+        hubId: hubId(request, url, body),
       })
       json(response, 200, output)
       return
     }
-    if (url.pathname === '/api/home/voice-touch' && request.method === 'POST') {
+    if (url.pathname === '/api/hub/motion' && request.method === 'POST') {
+      // 演示控制：模拟人体存在传感器（真实环境来自传感器硬件）。
       const body = await readJson(request)
-      this.service.touchVoice(homeId(request, url, body), body.notes)
+      const result = this.service.motion(hubId(request, url, body), body.room || '卧室')
+      json(response, 200, result)
+      return
+    }
+    if (url.pathname === '/api/hub/door' && request.method === 'POST') {
+      // 演示控制：模拟门窗磁传感器。
+      const body = await readJson(request)
+      this.service.doorWindow(hubId(request, url, body), body.where || '大门', body.status || '被打开')
       json(response, 200, { ok: true })
       return
     }
-    if (url.pathname === '/api/home/simulate-checkin' && request.method === 'POST') {
-      // 演示控制：手动触发一次问安（真实环境由每日定时调度调用 checkin_start）。
-      const output = await this.service.execute('checkin_start', {}, {
-        homeId: homeId(request, url),
-      })
-      json(response, 200, output)
-      return
-    }
-    if (url.pathname === '/api/home/family/media' && request.method === 'POST') {
-      const body = await readJson(request)
-      json(response, 200, this.service.familyMedia(homeId(request, url, body), body))
-      return
-    }
-    if (url.pathname === '/api/home/family/reminder' && request.method === 'POST') {
-      const body = await readJson(request)
-      if (!String(body.text || '').trim()) {
-        json(response, 400, { error: '提醒内容不能为空' })
-        return
-      }
-      json(response, 200, this.service.familyReminder(homeId(request, url, body), body))
-      return
-    }
-    if (url.pathname === '/api/home/family/message' && request.method === 'POST') {
-      const body = await readJson(request)
-      if (!String(body.text || '').trim()) {
-        json(response, 400, { error: '留言内容不能为空' })
-        return
-      }
-      json(response, 200, this.service.familyMessage(homeId(request, url, body), body))
-      return
-    }
-    if (url.pathname === '/api/home/reset' && request.method === 'POST') {
-      json(response, 200, this.service.reset(homeId(request, url)))
+    if (url.pathname === '/api/hub/reset' && request.method === 'POST') {
+      json(response, 200, this.service.reset(hubId(request, url)))
       return
     }
     const mcpSurface = url.pathname === '/mcp/frontend'
@@ -177,7 +164,7 @@ export class HomeServiceServer {
         ? BACKEND_TOOL_DEFINITIONS
         : null
     if (mcpTools && request.method === 'POST') {
-      await this.#mcp(request, response, homeId(request, url), mcpTools, mcpSurface)
+      await this.#mcp(request, response, hubId(request, url), mcpTools, mcpSurface)
       return
     }
     if (mcpTools) {
@@ -217,11 +204,20 @@ export class HomeServiceServer {
   }
 
   async #mcp(request, response, id, tools, surface) {
-    const server = createHomeMcpServer({
+    const server = createHubMcpServer({
       service: this.service,
-      homeId: id,
+      hubId: id,
       tools,
       surface,
+      onToolCall: event => {
+        for (const listener of this.toolCallListeners) {
+          try {
+            listener(event)
+          } catch {
+            // 追踪不影响业务。
+          }
+        }
+      },
     })
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
@@ -236,19 +232,19 @@ export class HomeServiceServer {
   }
 }
 
-export async function startHomeServiceServer(options = {}) {
-  const runtime = new HomeServiceServer(options)
+export async function startHubServiceServer(options = {}) {
+  const runtime = new HubServiceServer(options)
   await runtime.start()
   return runtime
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  loadHomeEnvironment()
-  const runtime = await startHomeServiceServer({
-    host: process.env.HOME_SERVICE_HOST || '127.0.0.1',
-    port: Number(process.env.HOME_SERVICE_PORT) || 3111,
+  loadHubEnvironment()
+  const runtime = await startHubServiceServer({
+    host: process.env.HUB_SERVICE_HOST || '127.0.0.1',
+    port: Number(process.env.HUB_SERVICE_PORT) || 3110,
   })
-  console.log(`晚晴伴 Service listening on ${runtime.origin}`)
+  console.log(`晚晴·家 Service listening on ${runtime.origin}`)
   const close = async () => {
     await runtime.close()
     process.exit(0)

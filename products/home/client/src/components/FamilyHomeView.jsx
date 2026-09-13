@@ -1,5 +1,7 @@
-// 家属端（晚晴伴）：状态大卡 + 通知中心 + SOS 确认 + 演示控制。
-import { useState } from 'react'
+// 家属端（晚晴伴）：老人的全貌仪表盘 + 照护注入。
+// 健康、问安、提醒、喜好一屏可见；点歌/语音提醒/留言从这里传到老人终端，
+// 由终端的 AI 开口转达——照护的心既要被看到，也要传过去。
+import { useMemo, useState } from 'react'
 import useHomeState from '../hooks/useHomeState'
 
 const CHECKIN_STATUS = {
@@ -8,17 +10,43 @@ const CHECKIN_STATUS = {
   no_answer: '问安无应答 ⚠️',
 }
 
+const SONG_CHOICES = ['秦腔经典', '豫剧选段', '京剧经典', '评书', '怀旧金曲']
+
 export default function FamilyHomeView() {
   const { state, activities, connected } = useHomeState()
   const [busy, setBusy] = useState(false)
-  if (!state) {
-    return <div className="family-loading">正在连接晚晴伴…</div>
+  const [reminderText, setReminderText] = useState('')
+  const [messageText, setMessageText] = useState('')
+  const [flash, setFlash] = useState('')
+
+  const elder = state?.elder
+  const sos = state?.sos
+  const sosActive = sos?.status === 'active'
+  const today = state?.checkin?.today
+  const vitals = state?.vitals
+
+  const flashMessage = text => {
+    setFlash(text)
+    setTimeout(() => setFlash(''), 2600)
   }
 
-  const sos = state.sos
-  const sosActive = sos?.status === 'active'
-  const today = state.checkin.today
-  const elder = state.elder
+  const send = async (path, body, doneText) => {
+    setBusy(true)
+    try {
+      const response = await fetch(`/api/home/family/${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          byName: elder?.contacts?.[0]?.name || '',
+          relation: elder?.contacts?.[0]?.relation || '女儿',
+          ...body,
+        }),
+      })
+      if (response.ok) flashMessage(doneText)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const ackSos = async () => {
     setBusy(true)
@@ -26,21 +54,15 @@ export default function FamilyHomeView() {
       await fetch('/api/home/commands', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'sos_manage', arguments: { action: 'ack', byName: elder.contacts[0]?.name || '家属' } }),
+        body: JSON.stringify({ name: 'sos_manage', arguments: { action: 'ack', byName: elder?.contacts?.[0]?.name || '家属' } }),
       })
     } finally {
       setBusy(false)
     }
   }
 
-  const simulateCheckin = async () => {
-    setBusy(true)
-    try {
-      // 演示控制：立刻发起一次问安（真实环境由定时调度触发）。
-      await fetch('/api/home/simulate-checkin', { method: 'POST' })
-    } finally {
-      setBusy(false)
-    }
+  if (!state) {
+    return <div className="family-loading">正在连接晚晴伴…</div>
   }
 
   return (
@@ -54,6 +76,8 @@ export default function FamilyHomeView() {
           {connected ? '已连接家庭网关' : '连接中…'}
         </span>
       </header>
+
+      {flash && <div className="family-flash">✓ {flash}</div>}
 
       {sosActive && (
         <div className="family-sos-banner">
@@ -70,6 +94,7 @@ export default function FamilyHomeView() {
         </div>
       )}
 
+      {/* —— 全貌主卡：今天的人 —— */}
       <section className={`family-status-card ${sosActive || today.status === 'no_answer' ? 'attention' : 'safe'}`}>
         <div className="status-main">
           <span className="status-heart">{sosActive || today.status === 'no_answer' ? '🔴' : '♥'}</span>
@@ -80,6 +105,22 @@ export default function FamilyHomeView() {
             </div>
           </div>
         </div>
+        {vitals && (
+          <div className="family-vitals">
+            <div className="family-vital">
+              <span className="fv-label">血压</span>
+              <span className="fv-value">{vitals.bloodPressure.systolic}/{vitals.bloodPressure.diastolic}</span>
+            </div>
+            <div className="family-vital">
+              <span className="fv-label">血糖（{vitals.bloodSugar.stage}）</span>
+              <span className="fv-value">{vitals.bloodSugar.value}</span>
+            </div>
+            <div className="family-vital">
+              <span className="fv-label">心率</span>
+              <span className="fv-value">{vitals.heartRate.value}</span>
+            </div>
+          </div>
+        )}
         <ul className="status-facts">
           <li>☀️ {CHECKIN_STATUS[today.status] || today.status}：{today.mood || '—'}{today.notes ? ` · ${today.notes}` : ''}</li>
           <li>💊 今日提醒：{state.reminders.filter(item => item.confirmedAt).length}/{state.reminders.length} 已确认</li>
@@ -87,19 +128,103 @@ export default function FamilyHomeView() {
         </ul>
       </section>
 
+      {/* —— 照护注入 —— */}
+      <section className="family-grid">
+        <div className="family-panel">
+          <h3>💗 妈妈的喜好</h3>
+          <div className="likes-chips">
+            {(elder.likes || []).map(like => (
+              <span key={like} className="like-chip">{like}</span>
+            ))}
+          </div>
+          <p className="likes-hint">点下面她爱听的，家里终端马上放</p>
+        </div>
+
+        <div className="family-panel action">
+          <h3>🎵 点给她听</h3>
+          <div className="song-chips">
+            {SONG_CHOICES.map(song => (
+              <button
+                key={song}
+                type="button"
+                disabled={busy}
+                onClick={() => send('media', { query: song }, `已为${elder.address || '妈妈'}点播 ${song}，终端正在放`)}
+              >
+                🎵 {song}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="family-panel action">
+          <h3>⏰ 语音提醒</h3>
+          <div className="input-row">
+            <input
+              value={reminderText}
+              placeholder="比如：下午三点起来走走"
+              onChange={event => setReminderText(event.target.value)}
+            />
+            <button
+              type="button"
+              disabled={busy || !reminderText.trim()}
+              onClick={() => {
+                send('reminder', { text: reminderText }, '提醒已送达，终端会用语音转达')
+                setReminderText('')
+              }}
+            >
+              送去
+            </button>
+          </div>
+        </div>
+
+        <div className="family-panel action">
+          <h3>💬 说句心里话</h3>
+          <div className="input-row">
+            <input
+              value={messageText}
+              placeholder="比如：妈，周末我带孩子看你"
+              onChange={event => setMessageText(event.target.value)}
+            />
+            <button
+              type="button"
+              disabled={busy || !messageText.trim()}
+              onClick={() => {
+                send('message', { text: messageText }, '留言已送达，终端会用语音读给她听')
+                setMessageText('')
+              }}
+            >
+              送去
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section className="family-quick">
         <button type="button" className="quick-call" disabled={busy}>
           📞 跟{elder.address || '妈妈'}说说话
         </button>
-        <button type="button" className="quick-checkin" disabled={busy} onClick={simulateCheckin}>
-          ☀️ 演示：现在发起一次问安
+        <button type="button" className="quick-checkin" disabled={busy} onClick={async () => {
+          setBusy(true)
+          try {
+            await fetch('/api/home/simulate-checkin', { method: 'POST' })
+          } finally {
+            setBusy(false)
+          }
+        }}>
+          ☀️ 现在发起一次问安
         </button>
       </section>
 
       <section className="family-notifications">
         <h2>通知</h2>
         <div className="notification-list">
-          {state.notifications.slice(0, 12).map(notification => (
+          {activities.slice(0, 8).map((activity, index) => (
+            <div key={`${activity.at}-${index}`} className={`notification-item level-${activity.level || 'info'}`}>
+              <span className="notification-time">{activity.at.slice(11, 16)}</span>
+              <span className="notification-text">{activity.message}</span>
+            </div>
+          ))}
+          {state.notifications.slice(0, 6).map(notification => (
             <div key={notification.id} className={`notification-item level-${notification.level}`}>
               <span className="notification-time">{notification.at.slice(5, 16).replace('T', ' ')}</span>
               <span className="notification-text">
@@ -108,7 +233,6 @@ export default function FamilyHomeView() {
               </span>
             </div>
           ))}
-          {!state.notifications.length && <div className="notification-empty">暂时没有通知</div>}
         </div>
       </section>
 

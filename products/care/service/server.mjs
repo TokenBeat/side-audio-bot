@@ -141,6 +141,29 @@ export class CareServiceServer {
       json(response, 200, { ok: true })
       return
     }
+    if (url.pathname === '/api/care/family/media' && request.method === 'POST') {
+      const body = await readJson(request)
+      json(response, 200, this.service.familyMedia(careId(request, url, body), body))
+      return
+    }
+    if (url.pathname === '/api/care/family/reminder' && request.method === 'POST') {
+      const body = await readJson(request)
+      if (!String(body.text || '').trim()) {
+        json(response, 400, { error: '提醒内容不能为空' })
+        return
+      }
+      json(response, 200, this.service.familyReminder(careId(request, url, body), body))
+      return
+    }
+    if (url.pathname === '/api/care/family/message' && request.method === 'POST') {
+      const body = await readJson(request)
+      if (!String(body.text || '').trim()) {
+        json(response, 400, { error: '留言内容不能为空' })
+        return
+      }
+      json(response, 200, this.service.familyMessage(careId(request, url, body), body))
+      return
+    }
     if (url.pathname === '/api/care/reset' && request.method === 'POST') {
       json(response, 200, this.service.reset(careId(request, url)))
       return

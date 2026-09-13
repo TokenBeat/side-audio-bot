@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import useVoiceSession from '../hooks/useVoiceSession'
 import useHomeState from '../hooks/useHomeState'
 import Orb3D from './Orb3D'
+import { speak, warmUpSpeech } from '../audio/announceSpeech'
 
 function greeting(now, address) {
   const hour = now.getHours()
@@ -34,7 +35,7 @@ const ORB_STATE_LABEL = {
 }
 
 export default function ElderTerminal() {
-  const { state } = useHomeState()
+  const { state, activities } = useHomeState()
   const [now, setNow] = useState(() => new Date())
   const [muted, setMuted] = useState(true)
   const [transcript, setTranscript] = useState([])
@@ -106,6 +107,23 @@ export default function ElderTerminal() {
     if (!checkinActive) autoStartedRef.current = false
   }, [checkinActive, muted, session])
 
+  // 家属照护注入：点歌 / 语音提醒 / 留言 —— 终端开口转达
+  const spokenFamilyKeyRef = useRef('')
+  useEffect(() => {
+    const familyEvent = activities.find(activity => (
+      activity.category === 'family'
+      && !spokenFamilyKeyRef.current.includes(activity.at)
+    ))
+    if (!familyEvent) return
+    spokenFamilyKeyRef.current += `|${familyEvent.at}`
+    speak(familyEvent.message)
+    setTranscript(current => [...current, {
+      role: 'system',
+      content: familyEvent.message,
+      at: Date.now(),
+    }])
+  }, [activities])
+
   const startSosPress = () => {
     pressTimerRef.current = setTimeout(() => {
       pressTimerRef.current = null
@@ -148,6 +166,7 @@ export default function ElderTerminal() {
   }
 
   const toggleVoice = () => {
+    warmUpSpeech()
     if (muted) {
       if (session.activateVoice()) setMuted(false)
     } else {

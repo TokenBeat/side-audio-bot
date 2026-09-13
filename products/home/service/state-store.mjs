@@ -4,6 +4,17 @@ import { randomUUID } from 'node:crypto'
 export const SOS_WINDOW_MS = 30 * 1000
 export const CHECKIN_NOANSWER_MS = 60 * 1000
 
+function matchMediaChannel(query = '') {
+  const text = String(query || '')
+  if (/(豫剧|梆子)/u.test(text)) return { channel: '豫剧选段' }
+  if (/(秦腔)/u.test(text)) return { channel: '秦腔经典' }
+  if (/(京剧|京戏)/u.test(text)) return { channel: '京剧经典' }
+  if (/(黄梅戏)/u.test(text)) return { channel: '黄梅戏精选' }
+  if (/(评书|相声)/u.test(text)) return { channel: '单田芳评书' }
+  if (/(歌|音乐|曲)/u.test(text)) return { channel: text || '怀旧金曲' }
+  return { channel: text || '经典戏曲' }
+}
+
 function seedElder(now) {
   return {
     name: '张秀兰',
@@ -11,10 +22,21 @@ function seedElder(now) {
     age: 78,
     mood: '不错',
     lastVoiceAt: new Date(now() - 3600 * 1000).toISOString(),
+    likes: ['秦腔', '养花', '和楼下老姐妹聊天'],
     contacts: [
       { name: '小雨', relation: '女儿', phone: '138****0000', level: 1 },
       { name: '小林', relation: '儿子', phone: '139****1111', level: 2 },
     ],
+  }
+}
+
+function seedVitals(now) {
+  const morning = new Date(now())
+  morning.setHours(7, 30, 0, 0)
+  return {
+    bloodPressure: { at: morning.toISOString(), systolic: 136, diastolic: 84 },
+    bloodSugar: { at: morning.toISOString(), value: 6.2, stage: '空腹' },
+    heartRate: { at: morning.toISOString(), value: 76 },
   }
 }
 
@@ -33,6 +55,9 @@ function initialState(now) {
     version: 0,
     elder: seedElder(now),
     reminders: seedReminders(now),
+    vitals: seedVitals(now),
+    familyReminders: [],
+    familyMessages: [],
     checkin: {
       time: '09:00',
       today: {
@@ -369,5 +394,92 @@ export class HomeStateStore {
     this.update(id, state => {
       state.media = { playing: playing === true, channel: String(channel || '') }
     })
+  }
+
+  // —— 家属照护注入：点歌 / 语音提醒 / 留言 ——
+  #publishFamilyEvent(homeId, event) {
+    const id = homeId || 'default'
+    const published = Object.freeze({
+      type: 'home.activity',
+      homeId: id,
+      at: new Date().toISOString(),
+      category: 'family',
+      status: event.kind,
+      message: event.message,
+      ...event,
+    })
+    for (const listener of this.listeners.get(id) || []) {
+      try {
+        listener(published)
+      } catch {
+        // 观察者不能影响照护操作。
+      }
+    }
+  }
+
+  familyMedia(homeId, { query, byName, relation }) {
+    const id = homeId || 'default'
+    const matched = matchMediaChannel(query)
+    this.setMedia(id, { playing: true, channel: matched.channel })
+    const event = {
+      kind: 'family_media',
+      channel: matched.channel,
+      by: `${relation || '家属'}${byName || ''}`,
+      message: `${relation || '家人'}${byName || ''}为您点了${matched.channel}`,
+    }
+    this.#publishFamilyEvent(id, event)
+    return event
+  }
+
+  familyReminder(homeId, { text, byName, relation }) {
+    const id = homeId || 'default'
+    const state = this.#stateOf(id)
+    const reminder = {
+      id: `fr-${randomUUID().slice(0, 8)}`,
+      text: String(text || '').trim(),
+      by: `${relation || '家属'}${byName || ''}`,
+      at: new Date(this.now()).toISOString(),
+      confirmedAt: '',
+    }
+    this.update(id, next => {
+      next.reminders.unshift({
+        id: reminder.id,
+        kind: 'family',
+        name: reminder.text,
+        time: new Date(this.now()).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        note: `来自${reminder.by}`,
+        confirmedAt: '',
+      })
+    })
+    this.#publishFamilyEvent(id, {
+      kind: 'family_reminder',
+      reminderId: reminder.id,
+      text: reminder.text,
+      by: reminder.by,
+      message: `${reminder.by}提醒您：${reminder.text}`,
+    })
+    return reminder
+  }
+
+  familyMessage(homeId, { text, byName, relation }) {
+    const id = homeId || 'default'
+    const state = this.#stateOf(id)
+    const message = {
+      id: `fm-${randomUUID().slice(0, 8)}`,
+      text: String(text || '').trim(),
+      by: `${relation || '家属'}${byName || ''}`,
+      at: new Date(this.now()).toISOString(),
+    }
+    this.update(id, next => {
+      next.familyMessages.unshift(message)
+    })
+    this.#publishFamilyEvent(id, {
+      kind: 'family_message',
+      messageId: message.id,
+      text: message.text,
+      by: message.by,
+      message: `${message.by}给您留言：${message.text}`,
+    })
+    return message
   }
 }

@@ -1,0 +1,9 @@
+{
+  "name": "wanqing-hub-service",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
+  }
+}
