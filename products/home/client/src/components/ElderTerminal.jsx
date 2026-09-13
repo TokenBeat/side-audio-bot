@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useVoiceSession from '../hooks/useVoiceSession'
 import useHomeState from '../hooks/useHomeState'
-import { Cloud, Sun, Pill, Home as HomeIcon, Check, Mic, MicOff, Heart, BellRing } from 'lucide-react'
+import { Cloud, Sun, Pill, Home as HomeIcon, Check, Mic, MicOff, Heart, BellRing, Siren } from 'lucide-react'
 import Orb3D from './Orb3D'
 import { speak, warmUpSpeech } from '../audio/announceSpeech'
 
@@ -188,6 +188,8 @@ export default function ElderTerminal() {
 
   const remindersDone = (state?.reminders || []).filter(item => item.confirmedAt).length
 
+  const media = state?.media
+
   return (
     <div className="terminal-stage">
       <div className="terminal-frame">
@@ -244,7 +246,7 @@ export default function ElderTerminal() {
             </div>
 
             <div className="info-card call-card sos-info">
-              <div className="info-card-head">🆘 紧急求助</div>
+              <div className="info-card-head"><Siren className="icon-inline" size={17} /> 紧急求助</div>
               <div className="info-card-title">长按下面红色按钮</div>
               <div className="info-card-sub">
                 {sosActive
@@ -284,10 +286,17 @@ export default function ElderTerminal() {
             {muted ? <MicOff size={26} /> : <Mic size={26} />}
             <span>{muted ? '说话' : '在听'}</span>
           </button>
-          <div className="dock-temp">
-            <span className="dock-temp-value">{state?.weather?.summary?.match(/\d+°/)?.[0] || '18°'}</span>
-            <span className="dock-temp-label">室内舒适</span>
-          </div>
+          {media?.playing ? (
+            <div className="dock-media" role="status">
+              <span className="wave-bars live" aria-hidden="true"><i /><i /><i /><i /><i /></span>
+              <span className="dock-media-text">正在放 {media.channel || '戏曲'}</span>
+            </div>
+          ) : (
+            <div className="dock-temp">
+              <span className="dock-temp-value">{state?.weather?.summary?.match(/\d+°/)?.[0] || '18°'}</span>
+              <span className="dock-temp-label">室内舒适</span>
+            </div>
+          )}
           {checkinActive ? (
             <button type="button" className="dock-btn primary checkin" onClick={finishCheckin} aria-label="完成问安">
               <Sun size={26} />
@@ -309,7 +318,7 @@ export default function ElderTerminal() {
             onTouchEnd={cancelSosPress}
             aria-label="紧急求助"
           >
-            🆘
+            <Siren size={26} />
             <span>{sosActive ? '已通知' : '求助'}</span>
           </button>
         </footer>

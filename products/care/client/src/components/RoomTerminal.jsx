@@ -297,6 +297,8 @@ export default function RoomTerminal({ roomId = '302' }) {
       ? session.error
       : ORB_STATE_LABEL[orbState] || ORB_STATE_LABEL.idle
 
+  const media = state?.media
+
   return (
     <div className="terminal-stage">
       <div className="terminal-frame">
@@ -438,10 +440,17 @@ export default function RoomTerminal({ roomId = '302' }) {
             {muted ? <MicOff size={26} /> : <Mic size={26} />}
             <span>{muted ? '说话' : '在听'}</span>
           </button>
-          <div className="dock-temp">
-            <span className="dock-temp-value">{state?.weather?.summary?.match(/\d+°/)?.[0] || '18°'}</span>
-            <span className="dock-temp-label">室温舒适</span>
-          </div>
+          {media?.playing ? (
+            <div className="dock-media" role="status">
+              <span className="wave-bars live" aria-hidden="true"><i /><i /><i /><i /><i /></span>
+              <span className="dock-media-text">正在放 {media.station || media.channel || '戏曲'}</span>
+            </div>
+          ) : (
+            <div className="dock-temp">
+              <span className="dock-temp-value">{state?.weather?.summary?.match(/\d+°/)?.[0] || '18°'}</span>
+              <span className="dock-temp-label">室温舒适</span>
+            </div>
+          )}
           <button
             type="button"
             className={`dock-btn primary call ${activeCall ? 'active' : ''}`}

@@ -892,3 +892,25 @@ button { font-family: inherit; cursor: pointer; }
 /* —— 数字等宽 —— */
 .hero-clock, .frame-clock, .dock-temp-value, .vital-value, .fv-value,
 .sensor-value, .room-id, .stepper-value { font-variant-numeric: tabular-nums; }
+
+/* —— 语音声波条 + Dock 媒体胶囊（与 hub/care 同源） —— */
+.wave-bars { display: inline-flex; align-items: flex-end; gap: 3px; height: 18px; margin-right: 8px; }
+.wave-bars i { width: 3.5px; border-radius: 2px; background: var(--safe); opacity: 0.35; height: 40%; }
+.wave-bars.live i { animation: waveEq 0.9s ease-in-out infinite; opacity: 1; }
+.wave-bars.live i:nth-child(1) { animation-delay: 0ms; height: 55%; }
+.wave-bars.live i:nth-child(2) { animation-delay: 120ms; height: 95%; }
+.wave-bars.live i:nth-child(3) { animation-delay: 240ms; height: 70%; }
+.wave-bars.live i:nth-child(4) { animation-delay: 360ms; height: 100%; }
+.wave-bars.live i:nth-child(5) { animation-delay: 480ms; height: 60%; }
+@keyframes waveEq { 0%, 100% { transform: scaleY(0.45); } 50% { transform: scaleY(1); } }
+.dock-media {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 24px; border-radius: 999px;
+  background: linear-gradient(150deg, #fff3e4, #ffe4c6);
+  border: 1.5px solid rgba(232, 114, 42, 0.35);
+  box-shadow: 0 8px 22px rgba(232, 114, 42, 0.22);
+  animation: mediaIn 480ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+@keyframes mediaIn { from { opacity: 0; transform: translateY(12px) scale(0.92); } to { opacity: 1; transform: none; } }
+.dock-media-text { font-size: 18px; font-weight: 700; color: var(--brand-deep); white-space: nowrap; }
+.dock-media .wave-bars.live i { background: var(--brand); }

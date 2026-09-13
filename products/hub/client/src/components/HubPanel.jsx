@@ -191,6 +191,9 @@ export default function HubPanel() {
                 )}
               </div>
               <div className="voice-orb-mini">
+                <span className={`wave-bars ${orbState === 'listening' || orbState === 'speaking' ? 'live' : ''}`} aria-hidden="true">
+                  <i /><i /><i /><i /><i />
+                </span>
                 <span className={`mini-orb ${orbState}`} style={{
                   transform: `scale(${1 + (orbState === 'listening' ? session.inputLevel : orbState === 'speaking' ? session.outputLevel : 0) * 0.4})`,
                 }} />
