@@ -1,12 +1,12 @@
 // 晚晴·家中控屏：户型图主视觉 + 设备面板 + 场景 Dock + 语音。
 // 布局对标座舱：设备框 + 左主视觉 + 右控制列 + 底部 Dock。
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import useVoiceSession from '../hooks/useVoiceSession'
+import { speak, warmUpSpeech } from '../audio/announceSpeech'
 import useHubState from '../hooks/useHubState'
 import FloorPlan from './FloorPlan'
 import DevicePanel from './DevicePanel'
 import { sceneApi, motionApi, doorApi } from '../api'
-import { speak, warmUpSpeech } from '../audio/announceSpeech'
 
 const ORB_STATE_LABEL = {
   idle: '点一下，跟我说话',
@@ -53,6 +53,35 @@ export default function HubPanel() {
     return () => clearInterval(timer)
   }, [])
 
+  // —— 语音确认：设备状态一变，中控开口说结果（语音控制闭环的"回复"）——
+  const prevDevicesRef = useRef(null)
+  const spokenDeltaRef = useRef('')
+  useEffect(() => {
+    if (!state?.devices) return
+    const previous = prevDevicesRef.current
+    prevDevicesRef.current = state.devices
+    if (!previous || muted) return
+    const names = []
+    for (const [deviceId, device] of Object.entries(state.devices)) {
+      const before = previous[deviceId]
+      if (!before) continue
+      if (before.kind === 'light' && before.on !== device.on) {
+        names.push(`${device.name}${device.on ? '打开了' : '关了'}`)
+      } else if (before.kind === 'ac' && (before.on !== device.on || before.temp !== device.temp)) {
+        names.push(device.on ? `${device.name}已${device.mode || ''}${device.temp}度` : `${device.name}关了`)
+      } else if (before.kind === 'curtain' && before.position !== device.position) {
+        names.push(`${device.name}${device.position >= 50 ? '打开了' : '拉上了'}`)
+      } else if (before.kind === 'tv' && before.on !== device.on) {
+        names.push(`${device.name}${device.on ? '打开了' : '关了'}`)
+      }
+    }
+    if (!names.length) return
+    const key = names.join('|')
+    if (spokenDeltaRef.current === key) return
+    spokenDeltaRef.current = key
+    speak(`好的，${names.slice(0, 2).join('，')}。`)
+  }, [state?.devices, muted])
+
   const activeScene = useMemo(() => (
     state?.scenes?.find(scene => scene.id === state?.activeScene)
   ), [state])
@@ -60,6 +89,7 @@ export default function HubPanel() {
   const lastLine = transcript[transcript.length - 1]
 
   const toggleVoice = () => {
+    warmUpSpeech()
     if (muted) {
       if (session.activateVoice()) setMuted(false)
     } else {
@@ -123,11 +153,17 @@ export default function HubPanel() {
               </div>
             </div>
 
-            <div className="voice-line glass">
+            <div
+              className={`voice-line glass ${muted ? '' : 'listening'}`}
+              onClick={toggleVoice}
+              role="button"
+              tabIndex={0}
+              aria-label={muted ? '开始语音控制' : '语音控制中，点击暂停'}
+            >
               <button
                 type="button"
                 className={`dock-btn mic small ${muted ? '' : 'live'}`}
-                onClick={toggleVoice}
+                onClick={event => { event.stopPropagation(); toggleVoice() }}
                 aria-label="语音开关"
               >
                 {muted ? '🎙️' : '🗣️'}
@@ -139,8 +175,12 @@ export default function HubPanel() {
                     {lastLine.role === 'user' ? '您' : '晚晴'}：{lastLine.content}
                   </p>
                 ) : (
-                  <p className="line soft">
-                    {muted ? '点左边说话：开个灯 / 我睡了 / 空调调到26度 / 起夜' : ORB_STATE_LABEL[orbState] || '在听呢'}
+                  <p className={`line ${muted && !session.error ? 'soft' : 'live-hint'}`}>
+                    {session.error
+                      ? `⚠️ ${session.error}（若浏览器拒绝过麦克风：点地址栏左侧 🔒 重新允许）`
+                      : muted
+                        ? '👆 点这里开始语音控制 · 试试："打开客厅灯" "我睡了" "空调调到26度" "起夜模式"'
+                        : ORB_STATE_LABEL[orbState] || '在听呢，请讲'}
                   </p>
                 )}
               </div>

@@ -998,3 +998,11 @@ button { font-family: inherit; cursor: pointer; }
 .hub-left .voice-line { flex-shrink: 0; }
 .floorplan-svg { max-height: 100%; }
 .terminal-columns.hub-columns { overflow: hidden; }
+
+/* 语音条：激活态与提示 */
+.voice-line { cursor: pointer; transition: border-color 160ms ease, box-shadow 160ms ease; }
+.voice-line.listening {
+  border-color: rgba(62, 124, 91, 0.45);
+  box-shadow: 0 10px 30px rgba(62, 124, 91, 0.18);
+}
+.voice-line .line.live-hint { color: var(--safe); font-weight: 600; }
