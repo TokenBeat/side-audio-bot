@@ -3,7 +3,7 @@
 // 点歌、语音提醒、留言从这里"注入"照护，由终端的 AI 开口转达。
 import { useEffect, useMemo, useState } from 'react'
 import useCareState from '../hooks/useCareState'
-import { Heart, CircleDot, Pill, BellRing, Utensils, HeartHandshake, Music, AlarmClock, MessageCircleHeart, Check } from 'lucide-react'
+import { Heart, CircleDot, Pill, BellRing, Utensils, HeartHandshake, Music, AlarmClock, MessageCircleHeart, Check, TrendingUp } from 'lucide-react'
 
 function latestVitalsOf(vitalsByDay) {
   if (!vitalsByDay) return null
@@ -43,6 +43,92 @@ function vitalValueText(kind, entry) {
 }
 
 const SONG_CHOICES = ['豫剧选段', '秦腔经典', '京剧经典', '评书', '怀旧金曲']
+
+
+// 近 7 天每日末次测量序列，供趋势图表使用。
+function vitalsTrendOf(vitalsByDay, kind) {
+  if (!vitalsByDay) return []
+  const days = Object.keys(vitalsByDay).sort().slice(-7)
+  const points = []
+  for (const day of days) {
+    const entries = vitalsByDay[day]?.[kind]
+    if (!Array.isArray(entries) || !entries.length) continue
+    points.push({ date: day, entry: entries[entries.length - 1] })
+  }
+  return points
+}
+
+function trendValue(kind, entry) {
+  if (!entry) return null
+  if (kind === 'bloodPressure') return entry.systolic
+  return entry.value
+}
+
+function trendRange(kind) {
+  if (kind === 'bloodPressure') return { min: 90, max: 170, warn: 140, unit: 'mmHg（高压）' }
+  if (kind === 'bloodSugar') return { min: 3, max: 11, warn: 7, unit: 'mmol/L' }
+  if (kind === 'heartRate') return { min: 50, max: 110, warn: 100, unit: '次/分' }
+  return { min: 88, max: 100, warn: 93, unit: '%' }
+}
+
+const TREND_KINDS = ['bloodPressure', 'bloodSugar', 'heartRate', 'bloodOxygen']
+
+function VitalsTrendChart({ vitalsByDay }) {
+  const [kind, setKind] = useState('bloodPressure')
+  const points = useMemo(() => vitalsTrendOf(vitalsByDay, kind), [vitalsByDay, kind])
+  const range = trendRange(kind)
+  const width = 560
+  const height = 120
+  const toXY = (point, index) => {
+    const x = points.length > 1 ? (index / (points.length - 1)) * (width - 28) + 24 : width / 2
+    const clamped = Math.min(range.max, Math.max(range.min, trendValue(kind, point.entry)))
+    const y = height - 22 - ((clamped - range.min) / (range.max - range.min)) * (height - 40)
+    return { x, y }
+  }
+  const linePath = points.map((point, index) => {
+    const { x, y } = toXY(point, index)
+    return `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`
+  }).join(' ')
+  const warnY = height - 22 - ((range.warn - range.min) / (range.max - range.min)) * (height - 40)
+  return (
+    <div className="family-panel trend-chart-card">
+      <h3><TrendingUp className="icon-inline" size={17} /> 近 7 天健康趋势</h3>
+      <div className="trend-kinds">
+        {TREND_KINDS.map(item => (
+          <button
+            key={item}
+            type="button"
+            className={`trend-kind ${item === kind ? 'active' : ''}`}
+            onClick={() => setKind(item)}
+          >
+            {VITAL_LABELS[item]}
+          </button>
+        ))}
+      </div>
+      {points.length >= 2 ? (
+        <svg viewBox={`0 0 ${width} ${height}`} className="trend-svg" aria-label={`近 7 天${VITAL_LABELS[kind]}趋势`}>
+          <line x1="24" x2={width - 4} y1={warnY} y2={warnY} className="trend-warn-line" />
+          <text x={width - 6} y={warnY - 4} className="trend-warn-text" textAnchor="end">参考线 {range.warn}</text>
+          <path d={linePath} className="trend-line" fill="none" strokeWidth={2.6} />
+          {points.map((point, index) => {
+            const { x, y } = toXY(point, index)
+            const abnormal = vitalAssess(kind, point.entry) !== 'normal'
+            return (
+              <g key={point.date}>
+                <circle cx={x} cy={y} r={4.5} className={`trend-dot ${abnormal ? 'bad' : ''}`} />
+                <text x={x} y={height - 6} className="trend-date" textAnchor="middle">{point.date.slice(5)}</text>
+                <text x={x} y={y - 10} className="trend-value" textAnchor="middle">{trendValue(kind, point.entry)}</text>
+              </g>
+            )
+          })}
+        </svg>
+      ) : (
+        <div className="trend-empty">数据累积中，明天就能看到曲线啦</div>
+      )}
+      <span className="trend-unit">{range.unit} · 红点表示当天测量偏高/偏低</span>
+    </div>
+  )
+}
 
 export default function FamilyView({ roomId }) {
   const { state, activities, connected } = useCareState()
@@ -154,6 +240,9 @@ export default function FamilyView({ roomId }) {
             : '今天还没有呼叫'}</li>
         </ul>
       </section>
+
+      {/* —— 近 7 天健康趋势 —— */}
+      <VitalsTrendChart vitalsByDay={state?.vitals?.[room?.id]} />
 
       {/* —— 今日生活：吃饭 + 活动 + 喜好 —— */}
       <section className="family-grid">

@@ -30,7 +30,7 @@
 
 body {
   margin: 0;
-  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-family: "Noto Sans SC Variable", "Source Han Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   background: #e9ebef;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
@@ -1030,3 +1030,25 @@ button { font-family: inherit; cursor: pointer; }
 @keyframes mediaIn { from { opacity: 0; transform: translateY(12px) scale(0.92); } to { opacity: 1; transform: none; } }
 .dock-media-text { font-size: 18px; font-weight: 700; color: var(--brand-deep); white-space: nowrap; }
 .dock-media .wave-bars.live i { background: var(--brand); }
+
+/* —— 家属端 7 天健康趋势图 —— */
+.trend-chart-card { border-top: 2.5px solid var(--brand); }
+.trend-kinds { display: flex; gap: 8px; margin: 6px 0 10px; }
+.trend-kind {
+  padding: 7px 16px; border-radius: 999px; font-size: 15px; font-weight: 600;
+  border: 1.5px solid rgba(51, 41, 31, 0.15); background: rgba(255, 255, 255, 0.85); color: var(--ink-soft);
+  transition: transform 130ms cubic-bezier(0.2, 0.9, 0.2, 1), background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+.trend-kind:hover { transform: translateY(-1px); }
+.trend-kind:active { transform: scale(0.94); }
+.trend-kind.active { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-deep); }
+.trend-svg { width: 100%; display: block; }
+.trend-line { stroke: var(--brand); stroke-linecap: round; stroke-linejoin: round; }
+.trend-warn-line { stroke: var(--call); stroke-dasharray: 4 4; opacity: 0.55; }
+.trend-warn-text { font-size: 11px; fill: var(--call); }
+.trend-dot { fill: var(--safe); stroke: #fff; stroke-width: 2; }
+.trend-dot.bad { fill: var(--call); }
+.trend-date { font-size: 11px; fill: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.trend-value { font-size: 12px; font-weight: 700; fill: var(--ink); font-variant-numeric: tabular-nums; }
+.trend-empty { padding: 22px 0; text-align: center; color: var(--ink-faint); font-size: 15px; }
+.trend-unit { font-size: 12px; color: var(--ink-soft); }
