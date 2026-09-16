@@ -1,24 +1,24 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createWebRetrieval } from 'qwen-audio-agent/web-retrieval'
+import { createWebRetrieval } from 'side-audio-bot/web-retrieval'
 import { resolveWebSearchConfiguration } from '../shared/web-search-configuration.mjs'
 
 test('public retrieval factory shares the default provider without starting Gateway state', () => {
   const runtime = createWebRetrieval({ env: {} })
   assert.deepEqual(runtime.capabilities(), ['web-search', 'url-fetch'])
   assert.equal(runtime.describe().searchProvider.key, 'so360')
-  assert.deepEqual(createWebRetrieval({ env: { QWEN_AUDIO_WEB_SEARCH_PROVIDER: 'none' }, urlFetcher: null }).capabilities(), [])
+  assert.deepEqual(createWebRetrieval({ env: { SIDE_AUDIO_WEB_SEARCH_PROVIDER: 'none' }, urlFetcher: null }).capabilities(), [])
 })
 
 test('pure search configuration preserves existing provider and credential selection', () => {
   assert.equal(resolveWebSearchConfiguration({}).provider, 'so360')
-  const preset = resolveWebSearchConfiguration({ QWEN_AUDIO_WEB_SEARCH_PROVIDER: 'bailian', DASHSCOPE_API_KEY: 'test-only-key' })
+  const preset = resolveWebSearchConfiguration({ SIDE_AUDIO_WEB_SEARCH_PROVIDER: 'bailian', DASHSCOPE_API_KEY: 'test-only-key' })
   assert.equal(preset.mcpToken, 'test-only-key')
   assert.equal(preset.mcpTool, 'bailian_web_search')
-  const custom = resolveWebSearchConfiguration({ QWEN_AUDIO_WEB_SEARCH_MCP_URL: 'https://example.com/mcp', DASHSCOPE_API_KEY: 'test-only-key' })
+  const custom = resolveWebSearchConfiguration({ SIDE_AUDIO_WEB_SEARCH_MCP_URL: 'https://example.com/mcp', DASHSCOPE_API_KEY: 'test-only-key' })
   assert.equal(custom.provider, 'mcp')
   assert.equal(custom.mcpToken, '')
-  assert.throws(() => resolveWebSearchConfiguration({ QWEN_AUDIO_WEB_SEARCH_PROVIDER: 'unknown' }), /不支持/)
+  assert.throws(() => resolveWebSearchConfiguration({ SIDE_AUDIO_WEB_SEARCH_PROVIDER: 'unknown' }), /不支持/)
 })
 
 test('public retrieval uses existing normalization and cancellation contracts', async () => {
@@ -46,7 +46,7 @@ test('public retrieval uses existing normalization and cancellation contracts', 
 })
 
 test('public URL retrieval retains private-network, protocol and credential protections', async () => {
-  const runtime = createWebRetrieval({ env: { QWEN_AUDIO_WEB_SEARCH_PROVIDER: 'none' } })
+  const runtime = createWebRetrieval({ env: { SIDE_AUDIO_WEB_SEARCH_PROVIDER: 'none' } })
   for (const [url, code] of [
     ['http://127.0.0.1/private', 'private_network_forbidden'],
     ['http://[::ffff:127.0.0.1]/private', 'private_network_forbidden'],

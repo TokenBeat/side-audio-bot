@@ -97,7 +97,7 @@ test('example README sections, links, commands and contributor lists stay biling
   const english = read('README.md')
   const chinese = read('README_ZH.md')
   const headings = [
-    ['# Qwen Audio Agent Smart Cockpit Example', '# Qwen Audio Agent 智能座舱示例'],
+    ['# Side Audio Bot Smart Cockpit Example', '# Side Audio Bot 智能座舱示例'],
     ['## Demo', '## 座舱演示'],
     ['## Architecture', '## 架构'],
     ['## Benchmark Results', '## 评测结果'],

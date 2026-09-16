@@ -1,8 +1,8 @@
-# Qwen Audio Agent VoiceMem 配置示例
+# Side Audio Bot VoiceMem 配置示例
 
 [English](README.md) | 中文
 
-这是一个可运行的配置示例：在 qwen-audio-agent 外部安装
+这是一个可运行的配置示例：在 side-audio-bot 外部安装
 [VoiceMem](https://github.com/xzf-thu/VoiceMem)，再通过框架的 Node.js 连接器启用。用户可以在
 自然对话中表达偏好和长期事实，并在新的语音 Session 中继续召回这些信息。
 
@@ -26,7 +26,7 @@
 
 | 组件 | 职责 |
 |---|---|
-| qwen-audio-agent Gateway | 实时语音对话、记忆工具和 Provider 生命周期。 |
+| side-audio-bot Gateway | 实时语音对话、记忆工具和 Provider 生命周期。 |
 | [VoiceMem 连接器](../../server/src/memory/providers/voicemem/provider.mjs) | 框架内的 Node.js `MemoryProvider` 接口、同步偏好快照、用户隔离和子进程管理。 |
 | [示例 Python Sidecar](sidecar/server.py) | 示例自带的 JSONL 进程边界，调用 VoiceMem 公开 Python API。 |
 | VoiceMem | 记忆抽取、整理、结构化存储和语义检索。 |
@@ -76,7 +76,7 @@ node --env-file=.env.local gateway.mjs
 
 ```dotenv
 DASHSCOPE_API_KEY=your_dashscope_api_key
-QWEN_AUDIO_MEMORY_PROVIDER=voicemem
+SIDE_AUDIO_MEMORY_PROVIDER=voicemem
 VOICEMEM_SIDECAR=/absolute/path/to/examples/voicemem/sidecar/server.py
 OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 VOICEMEM_CHAT_MODEL=qwen3.8-flash
@@ -123,7 +123,7 @@ VOICEMEM_INPUT_MODE=audio
 
 ## 数据存储
 
-隔离示例的数据保存在 `.qwen-audio/runtime/memory/voicemem/`：
+隔离示例的数据保存在 `.side-audio/runtime/memory/voicemem/`：
 
 | 路径 | 内容 |
 |---|---|

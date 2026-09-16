@@ -9,7 +9,7 @@ import { collectDiagnostics, formatDiagnostics, readTurnTimeline } from '../src/
 import { inspectSessionJournals } from '../../server/src/session/session-journal-inspection.mjs'
 
 async function fixture(t) {
-  const directory = await mkdtemp(join(tmpdir(), 'qwaudio-diagnostics-'))
+  const directory = await mkdtemp(join(tmpdir(), 'sideaudio-diagnostics-'))
   t.after(() => rm(directory, { recursive: true, force: true }))
   return directory
 }
@@ -46,7 +46,7 @@ test('a configured key does not imply Realtime readiness; raw errors and secrets
   const report = await collectDiagnostics({
     environment: { stateDirectory: directory, configPath: join(directory, 'config.env') },
     options: { url: 'http://127.0.0.1:3101' },
-    env: { DASHSCOPE_API_KEY: 'sk-private-key', QWEN_AUDIO_FRONTEND_MCP_CONFIG: join(directory, 'missing-secret.json') },
+    env: { DASHSCOPE_API_KEY: 'sk-private-key', SIDE_AUDIO_FRONTEND_MCP_CONFIG: join(directory, 'missing-secret.json') },
     fetchImpl: async () => response({ ...health,
       voiceClients: { realtime: { unavailable: 1, error: 'private-provider-response' } },
       frontendMcp: { ok: false, error: 'private-mcp-response' },

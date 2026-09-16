@@ -95,7 +95,7 @@ import { createElectronGatewayCredentialStore } from './gateway-credential-store
 
 // Gateway paths belong to the Gateway; Electron's userData holds only client
 // preferences, credentials, presentation assets and local caches.
-app.setName('Qwen Audio Agent')
+app.setName('Side Audio Bot')
 const clientPaths = desktopClientPaths(app.getPath('userData'))
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -115,7 +115,7 @@ const runtimeEnvironment = loadRuntimeEnvironment({
   generateSecret: false,
 })
 // Child Gateway processes must use the selected Gateway state root.
-process.env.QWAUDIO_STATE_DIR = runtimeEnvironment.stateDirectory
+process.env.SIDEAUDIO_STATE_DIR = runtimeEnvironment.stateDirectory
 expandProcessPath({ cacheFile: clientPaths.pathCacheFile })
 const logger = createLogger({
   component: 'desktop',
@@ -193,8 +193,8 @@ let lastRuntimeError = ''
 let desktopUpdater = null
 let tray = null
 let gatewayAccessToken = String(
-  process.env.QWEN_AUDIO_GATEWAY_CLIENT_TOKEN
-  || process.env.QWEN_AUDIO_AGENT_ACCESS_TOKEN
+  process.env.SIDE_AUDIO_GATEWAY_CLIENT_TOKEN
+  || process.env.SIDE_AUDIO_BOT_ACCESS_TOKEN
   || '',
 ).trim()
 let pendingGatewayPairingCode = null
@@ -212,7 +212,7 @@ const desktopWakeWord = new DesktopWakeWordRuntime({
 })
 desktopWakeWord.setEnabled(desktopWakeWordEnabled)
 
-ipcMain.on('qwen-audio-agent:wake-word-audio', (event, payload) => {
+ipcMain.on('side-audio-bot:wake-word-audio', (event, payload) => {
   if (
     !desktopWakeWordEnabled
     || desktopPresence.state !== 'hidden'
@@ -238,7 +238,7 @@ function configuredOrigin() {
 
 async function selectDesktopGatewayCredential(origin) {
   gatewayAccessToken = await desktopGatewayCredential(
-    origin, desktopGatewayProfiles, process.env.QWEN_AUDIO_GATEWAY_CLIENT_TOKEN || '',
+    origin, desktopGatewayProfiles, process.env.SIDE_AUDIO_GATEWAY_CLIENT_TOKEN || '',
   )
   return gatewayAccessToken
 }
@@ -265,7 +265,7 @@ function configuredGatewayEnvironment() {
     configured: {
       ...configuredNonEmpty,
       ...runtimePathEnvironment(runtimeEnvironment),
-      QWEN_AUDIO_DESKTOP_AUTO_HIDE_SECONDS: String(settings.autoHideSeconds),
+      SIDE_AUDIO_DESKTOP_AUTO_HIDE_SECONDS: String(settings.autoHideSeconds),
     },
     runtimeRoot,
     sourceRoot,
@@ -320,10 +320,10 @@ async function startLocalGateway(origin, accessToken = gatewayAccessToken) {
       logger: logger.child({ subsystem: 'embedded_gateway' }),
     })
     embeddedGateway.onGatewayMessage = message => {
-      if (message?.type !== 'qwen-audio-agent:offline-notification') return
+      if (message?.type !== 'side-audio-bot:offline-notification') return
       const task = message.task || {}
       new Notification({
-        title: '千问 Audio 提醒',
+        title: 'Side Audio 提醒',
         body: String(task.result || task.objective || ''),
       }).show()
     }
@@ -337,13 +337,13 @@ async function startLocalGateway(origin, accessToken = gatewayAccessToken) {
         gateway.start().then(restarted => {
           lastRuntimeError = ''
           appOrigin = restarted
-          process.env.QWEN_AUDIO_AGENT_URL = restarted
+          process.env.SIDE_AUDIO_BOT_URL = restarted
           if (
             mainWindow
             && !mainWindow.isDestroyed()
             && desktopPresence.state !== 'hidden'
           ) {
-            void loadQwenAudioAgent(mainWindow)
+            void loadSideAudioAgent(mainWindow)
           }
         }).catch(error => {
           lastRuntimeError = error?.message || String(error)
@@ -398,9 +398,9 @@ async function startConfiguredRuntime(settings = configuredOrigin().settings) {
   appOrigin = isLoopbackUrl(configuredGatewayOrigin)
     ? await startLocalGateway(configuredGatewayOrigin)
     : configuredGatewayOrigin
-  process.env.QWEN_AUDIO_AGENT_URL = appOrigin
-  process.env.QWEN_AUDIO_ORB_STYLE = settings.orbStyle
-  process.env.QWEN_AUDIO_ORB_SKIN = settings.orbSkin
+  process.env.SIDE_AUDIO_BOT_URL = appOrigin
+  process.env.SIDE_AUDIO_ORB_STYLE = settings.orbStyle
+  process.env.SIDE_AUDIO_ORB_SKIN = settings.orbSkin
   await ensureDesktopUi()
   lastRuntimeError = ''
   return appOrigin
@@ -478,12 +478,12 @@ async function showUnavailable(window) {
   clearTimeout(reconnectTimer)
   reconnectTimer = setTimeout(() => {
     if (mainWindow === window && !window.isDestroyed()) {
-      void loadQwenAudioAgent(window)
+      void loadSideAudioAgent(window)
     }
   }, 3000)
 }
 
-async function loadQwenAudioAgent(window) {
+async function loadSideAudioAgent(window) {
   try {
     if (!rendererServer) throw new Error('desktop renderer is unavailable')
     const settings = desktopSettingsStore.load()
@@ -509,7 +509,7 @@ async function loadQwenAudioAgent(window) {
 
 function sendDesktopClientSettings(window, settings) {
   if (!window || window.isDestroyed()) return
-  window.webContents.send('qwen-audio-agent:client-settings', {
+  window.webContents.send('side-audio-bot:client-settings', {
     orbSkin: effectiveOrbSkin(settings.orbSkin),
     autoHideSeconds: settings.autoHideSeconds,
     wakeWordEnabled: settings.wakeWordEnabled,
@@ -556,7 +556,7 @@ function createTray() {
     }
     if (process.platform === 'darwin') icon.setTemplateImage(true)
     tray = new Tray(icon)
-    tray.setToolTip('Qwen Audio Agent')
+    tray.setToolTip('Side Audio Bot')
   }
   tray.setContextMenu(Menu.buildFromTemplate([
     {
@@ -569,7 +569,7 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: desktopText('退出 Qwen Audio Agent'),
+      label: desktopText('退出 Side Audio Bot'),
       click: () => app.quit(),
     },
   ]))
@@ -598,7 +598,7 @@ function createWindow() {
     alwaysOnTop: true,
     hasShadow: false,
     backgroundColor: '#00000000',
-    title: 'qwen-audio-agent',
+    title: 'side-audio-bot',
     autoHideMenuBar: true,
     skipTaskbar: true,
     show: false,
@@ -642,7 +642,7 @@ function createWindow() {
     }
   })
 
-  loadQwenAudioAgent(window)
+  loadSideAudioAgent(window)
   return window
 }
 
@@ -726,7 +726,7 @@ const orbShell = bindOrbShell({
 
 function sendDesktopTaskPlacement() {
   mainWindow?.webContents.send(
-    'qwen-audio-agent:task-card-placement',
+    'side-audio-bot:task-card-placement',
     {
       placement: desktopTaskPlacement,
       orbOffsetX: desktopOrbOffsetX,
@@ -822,12 +822,12 @@ function updateDesktopTaskSurface(value) {
   }
 }
 
-ipcMain.on('qwen-audio-agent:task-card-count', (event, value) => {
+ipcMain.on('side-audio-bot:task-card-count', (event, value) => {
   if (!mainWindow || event.sender !== mainWindow.webContents) return
   updateDesktopTaskSurface(value)
 })
 
-ipcMain.handle('qwen-audio-agent:wake-shortcut-pause', event => {
+ipcMain.handle('side-audio-bot:wake-shortcut-pause', event => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权修改显示快捷键')
   }
@@ -835,14 +835,14 @@ ipcMain.handle('qwen-audio-agent:wake-shortcut-pause', event => {
   return true
 })
 
-ipcMain.handle('qwen-audio-agent:wake-shortcut-resume', event => {
+ipcMain.handle('side-audio-bot:wake-shortcut-resume', event => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权修改显示快捷键')
   }
   return desktopPresence.resumeShortcut()
 })
 
-ipcMain.on('qwen-audio-agent:open-external', async (event, value) => {
+ipcMain.on('side-audio-bot:open-external', async (event, value) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) return
   let target
   try {
@@ -862,7 +862,7 @@ ipcMain.on('qwen-audio-agent:open-external', async (event, value) => {
   if (response === 0) void shell.openExternal(target.href)
 })
 
-ipcMain.handle('qwen-audio-agent:settings-load', async event => {
+ipcMain.handle('side-audio-bot:settings-load', async event => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权读取设置')
   }
@@ -890,7 +890,7 @@ ipcMain.handle('qwen-audio-agent:settings-load', async event => {
   }
 })
 
-ipcMain.handle('qwen-audio-agent:set-node-path', async (event, nodePath) => {
+ipcMain.handle('side-audio-bot:set-node-path', async (event, nodePath) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权设置 Node.js 路径')
   }
@@ -905,7 +905,7 @@ ipcMain.handle('qwen-audio-agent:set-node-path', async (event, nodePath) => {
   desktopSettingsStore.save({ nodePath: trimmed })
 
   // 立即生效：直接操作 PATH，不依赖 spawnSync（打包后可能不可用）
-  process.env.QWEN_AUDIO_AGENT_NODE_PATH = trimmed
+  process.env.SIDE_AUDIO_BOT_NODE_PATH = trimmed
   process.env.PATH = mergeSearchPath(process.env.PATH, trimmed, {
     platform: process.platform,
     prepend: false,
@@ -922,14 +922,14 @@ ipcMain.handle('qwen-audio-agent:set-node-path', async (event, nodePath) => {
   return { ok: true }
 })
 
-ipcMain.handle('qwen-audio-agent:settings-runtime-status', async event => {
+ipcMain.handle('side-audio-bot:settings-runtime-status', async event => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权读取运行状态')
   }
   return runtimeStatus()
 })
 
-ipcMain.handle('qwen-audio-agent:open-logs', async event => {
+ipcMain.handle('side-audio-bot:open-logs', async event => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权打开日志目录')
   }
@@ -961,7 +961,7 @@ const backendManagement = createDesktopBackendManagement({
   onInstallProgress: progress => {
     if (settingsWindow && !settingsWindow.isDestroyed()) {
       settingsWindow.webContents.send(
-        'qwen-audio-agent:backend-install-progress',
+        'side-audio-bot:backend-install-progress',
         progress,
       )
     }
@@ -974,35 +974,35 @@ const backendManagement = createDesktopBackendManagement({
   },
 })
 
-ipcMain.handle('qwen-audio-agent:settings-detect-backends', async (event, options) => {
+ipcMain.handle('side-audio-bot:settings-detect-backends', async (event, options) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权检测后台 Agent')
   }
   return backendManagement.detectBackends({ force: options?.force === true })
 })
 
-ipcMain.handle('qwen-audio-agent:backend-install', async (event, payload) => {
+ipcMain.handle('side-audio-bot:backend-install', async (event, payload) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权安装后台 Agent')
   }
   return backendManagement.install(payload)
 })
 
-ipcMain.handle('qwen-audio-agent:backend-configure', async (event, payload) => {
+ipcMain.handle('side-audio-bot:backend-configure', async (event, payload) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权启动后台 Agent 配置')
   }
   return backendManagement.configure(payload)
 })
 
-ipcMain.handle('qwen-audio-agent:updater-status', event => {
+ipcMain.handle('side-audio-bot:updater-status', event => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权读取更新状态')
   }
   return desktopUpdater?.state() || null
 })
 
-ipcMain.handle('qwen-audio-agent:updater-check', async event => {
+ipcMain.handle('side-audio-bot:updater-check', async event => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权检查更新')
   }
@@ -1010,7 +1010,7 @@ ipcMain.handle('qwen-audio-agent:updater-check', async event => {
 })
 
 // 仅在安装包已下载完成时允许触发安装，避免误重启。
-ipcMain.handle('qwen-audio-agent:updater-install', event => {
+ipcMain.handle('side-audio-bot:updater-install', event => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权安装更新')
   }
@@ -1019,7 +1019,7 @@ ipcMain.handle('qwen-audio-agent:updater-install', event => {
   }
 })
 
-ipcMain.handle('qwen-audio-agent:settings-save', async (event, settings) => {
+ipcMain.handle('side-audio-bot:settings-save', async (event, settings) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权保存设置')
   }
@@ -1040,7 +1040,7 @@ async function applyDesktopSettings(settings) {
     profileStore: desktopGatewayProfiles,
     clientInstanceId: desktopGatewayClientInstanceId,
     label: app.getName(),
-    fallbackAccessToken: process.env.QWEN_AUDIO_GATEWAY_CLIENT_TOKEN || '',
+    fallbackAccessToken: process.env.SIDE_AUDIO_GATEWAY_CLIENT_TOKEN || '',
   })
   const credentialChanged = connection.credential !== gatewayAccessToken
   if (!remote && !connection.connected && !realtimeSettingsConfigured(normalized)) {
@@ -1188,13 +1188,13 @@ async function applyDesktopSettings(settings) {
   setupRequired = false
   lastRuntimeError = ''
   gatewayAccessToken = connection.credential
-  process.env.QWEN_AUDIO_AGENT_URL = appOrigin
-  process.env.QWEN_AUDIO_ORB_STYLE = normalized.orbStyle
-  process.env.QWEN_AUDIO_ORB_SKIN = normalized.orbSkin
+  process.env.SIDE_AUDIO_BOT_URL = appOrigin
+  process.env.SIDE_AUDIO_ORB_STYLE = normalized.orbStyle
+  process.env.SIDE_AUDIO_ORB_SKIN = normalized.orbSkin
   await ensureDesktopUi()
   const desktopRendererChanged = (
     // orbBloub 外观现已走 sendDesktopClientSettings 热应用，与 orbSkin/autoHide/language 一致，
-    // 无需触发 loadQwenAudioAgent 重载。仅 gateway 切换/重启/凭证变更才重载渲染器。
+    // 无需触发 loadSideAudioAgent 重载。仅 gateway 切换/重启/凭证变更才重载渲染器。
     (gatewayChanged || credentialChanged)
     && mainWindow
     && !mainWindow.isDestroyed()
@@ -1205,7 +1205,7 @@ async function applyDesktopSettings(settings) {
     // client instead of carrying its wake-word-only sleep state across the
     // restart.
     desktopPresence.wake('settings')
-    void loadQwenAudioAgent(mainWindow)
+    void loadSideAudioAgent(mainWindow)
   } else if (mainWindow && !mainWindow.isDestroyed()) {
     // Client-owned presentation and presence preferences are hot-applied in
     // the renderer. They must not replace the Gateway Client connection (and
@@ -1223,7 +1223,7 @@ async function applyDesktopSettings(settings) {
   }
 }
 
-ipcMain.handle('qwen-audio-agent:skin-import', async event => {
+ipcMain.handle('side-audio-bot:skin-import', async event => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权导入皮肤')
   }
@@ -1244,7 +1244,7 @@ ipcMain.handle('qwen-audio-agent:skin-import', async event => {
   return imported
 })
 
-ipcMain.handle('qwen-audio-agent:skin-remove', async (event, id) => {
+ipcMain.handle('side-audio-bot:skin-remove', async (event, id) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) {
     throw new Error('无权删除皮肤')
   }
@@ -1254,7 +1254,7 @@ ipcMain.handle('qwen-audio-agent:skin-remove', async (event, id) => {
 })
 
 function gatewayPairingCodeFromArguments(argv = []) {
-  return argv.find(value => String(value || '').startsWith('qwaudio://connect')) || null
+  return argv.find(value => String(value || '').startsWith('sideaudio://connect')) || null
 }
 
 async function applyGatewayPairingCode(value) {
@@ -1290,9 +1290,9 @@ async function consumeGatewayPairingCode(value) {
 }
 
 if (process.defaultApp && process.argv[1]) {
-  app.setAsDefaultProtocolClient('qwaudio', process.execPath, [resolve(process.argv[1])])
+  app.setAsDefaultProtocolClient('sideaudio', process.execPath, [resolve(process.argv[1])])
 } else {
-  app.setAsDefaultProtocolClient('qwaudio')
+  app.setAsDefaultProtocolClient('sideaudio')
 }
 
 app.on('open-url', (event, value) => {
@@ -1346,7 +1346,7 @@ if (!app.requestSingleInstanceLock()) {
       notify: status => {
         if (settingsWindow && !settingsWindow.isDestroyed()) {
           settingsWindow.webContents.send(
-            'qwen-audio-agent:updater-status',
+            'side-audio-bot:updater-status',
             status,
           )
         }
@@ -1379,7 +1379,7 @@ if (!app.requestSingleInstanceLock()) {
   }).catch(error => {
     const message = error?.stack || error?.message || String(error)
     logger.fatal('desktop.start_failed', { error, message })
-    dialog.showErrorBox('Qwen Audio Agent 无法启动', message)
+    dialog.showErrorBox('Side Audio Bot 无法启动', message)
     app.quit()
   })
 

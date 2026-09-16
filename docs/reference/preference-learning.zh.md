@@ -1,6 +1,6 @@
 # 偏好学习机制
 
-设 `QWEN_AUDIO_PREFERENCE_LEARNING=on` 后，会话结束时会从这一场对话里观察用户画像，
+设 `SIDE_AUDIO_PREFERENCE_LEARNING=on` 后，会话结束时会从这一场对话里观察用户画像，
 跨会话攒够确认再写进 `USER.md`。默认关闭，因为它每场会话多一次模型调用。
 
 只观察四个字段，取值空间刻意收窄：

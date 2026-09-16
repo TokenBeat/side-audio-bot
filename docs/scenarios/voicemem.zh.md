@@ -1,6 +1,6 @@
 # VoiceMem
 
-qwen-audio-agent 提供 [VoiceMem](https://github.com/xzf-thu/VoiceMem) 的 Node.js
+side-audio-bot 提供 [VoiceMem](https://github.com/xzf-thu/VoiceMem) 的 Node.js
 连接器；本示例把 VoiceMem 与 Python Sidecar 安装在核心框架之外，再配置 Gateway 使用。
 语音前台继续使用相同的 `memory` 工具和上下文语义，VoiceMem 负责存储、自动学习、
 整理和语义检索。
@@ -20,7 +20,7 @@ qwen-audio-agent 提供 [VoiceMem](https://github.com/xzf-thu/VoiceMem) 的 Node
 
 | 组件 | 职责 |
 |---|---|
-| qwen-audio-agent Gateway | Realtime 对话、记忆工具和 Provider 生命周期 |
+| side-audio-bot Gateway | Realtime 对话、记忆工具和 Provider 生命周期 |
 | Node.js 连接器 | 框架内的 `MemoryProvider` 接口、有界同步快照、用户隔离和进程托管 |
 | 示例 Python Sidecar | 通过 JSONL 对接 VoiceMem 的公开 Python API |
 | VoiceMem | 记忆抽取、整理、结构化存储和语义检索 |
@@ -56,7 +56,7 @@ cp examples/voicemem/.env.example \
 在 `.env.local` 中填写 `DASHSCOPE_API_KEY`，然后运行：
 
 ```dotenv
-QWEN_AUDIO_MEMORY_PROVIDER=voicemem
+SIDE_AUDIO_MEMORY_PROVIDER=voicemem
 VOICEMEM_SIDECAR=/absolute/path/to/examples/voicemem/sidecar/server.py
 VOICEMEM_INPUT_MODE=text
 ```
@@ -85,7 +85,7 @@ model；未安装时保持关闭，不影响 ASR 和记忆抽取。
 
 百炼推荐配置使用 `qwen3.8-flash` 进行记忆抽取与整理，使用维度为 `1024` 的
 `text-embedding-v4` 进行语义检索。全部环境变量见示例的
-[完整配置说明](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/voicemem)。
+[完整配置说明](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/voicemem)。
 
 ## 体验方法
 
@@ -97,7 +97,7 @@ model；未安装时保持关闭，不影响 ASR 和记忆抽取。
 
 ## 数据存储
 
-隔离示例将数据保存在 `.qwen-audio/runtime/memory/voicemem/`：
+隔离示例将数据保存在 `.side-audio/runtime/memory/voicemem/`：
 
 | 路径 | 内容 |
 |---|---|

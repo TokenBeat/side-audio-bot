@@ -1,6 +1,6 @@
-# Contributing to qwen-audio-agent
+# Contributing to side-audio-bot
 
-感谢你帮助改进 qwen-audio-agent。
+感谢你帮助改进 side-audio-bot。
 
 ## 开发环境
 

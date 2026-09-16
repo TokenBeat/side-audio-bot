@@ -9,7 +9,7 @@ import { homedir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { resolveRuntimePaths, runtimePathEnvironment } from '../../shared/runtime-paths.mjs'
 
-export const GATEWAY_SERVICE_LABEL = 'com.qwen-audio-agent.gateway'
+export const GATEWAY_SERVICE_LABEL = 'com.side-audio-bot.gateway'
 
 function xml(value) {
   return String(value)
@@ -55,11 +55,11 @@ export function gatewayServiceDefinition({
   serviceEnvironment = {},
   serviceMetadata = {},
 } = {}) {
-  if (!configDirectory) throw new Error('缺少 qwen-audio-agent 配置目录')
-  if (!gatewayPath) throw new Error('缺少 qwen-audio-agent Gateway 路径')
+  if (!configDirectory) throw new Error('缺少 side-audio-bot 配置目录')
+  if (!gatewayPath) throw new Error('缺少 side-audio-bot Gateway 路径')
   const paths = resolveRuntimePaths({
-    env: { ...serviceEnvironment, QWAUDIO_CONFIG_DIR: configDirectory,
-      ...(stateDirectory ? { QWAUDIO_STATE_DIR: stateDirectory } : {}) },
+    env: { ...serviceEnvironment, SIDEAUDIO_CONFIG_DIR: configDirectory,
+      ...(stateDirectory ? { SIDEAUDIO_STATE_DIR: stateDirectory } : {}) },
     homeDirectory,
   })
   const logsDirectory = resolve(paths.stateDirectory, 'logs')
@@ -67,8 +67,8 @@ export function gatewayServiceDefinition({
   const command = [nodePath, gatewayPath]
   const workingDirectory = dirname(gatewayPath)
   const environment = {
-    QWEN_AUDIO_GATEWAY_OWNER: 'service',
-    QWEN_AUDIO_LOG_CONSOLE: '0',
+    SIDE_AUDIO_GATEWAY_OWNER: 'service',
+    SIDE_AUDIO_LOG_CONSOLE: '0',
     PATH: pathEnvironment,
     ...serviceEnvironment,
     ...runtimePathEnvironment(paths),
@@ -127,10 +127,10 @@ ${Object.entries(environment).map(([key, value]) => (
   if (platform === 'linux') {
     const servicePath = resolve(
       xdgConfigHome,
-      'systemd/user/qwen-audio-agent-gateway.service',
+      'systemd/user/side-audio-bot-gateway.service',
     )
     const content = `[Unit]
-Description=qwen-audio-agent Gateway
+Description=side-audio-bot Gateway
 After=network-online.target
 Wants=network-online.target
 
@@ -259,7 +259,7 @@ async function launchdAction(action, definition, {
   }
   if (!installed) {
     throw new Error(
-      'Gateway 后台服务尚未安装；请先执行 qwenaudio gateway install',
+      'Gateway 后台服务尚未安装；请先执行 sideaudio gateway install',
     )
   }
   if (action === 'start') {
@@ -311,7 +311,7 @@ async function systemdStatus(execute) {
       '--user',
       'is-active',
       '--quiet',
-      'qwen-audio-agent-gateway.service',
+      'side-audio-bot-gateway.service',
     ])
     return true
   } catch {
@@ -320,7 +320,7 @@ async function systemdStatus(execute) {
 }
 
 async function systemdAction(action, definition, { execute } = {}) {
-  const unit = 'qwen-audio-agent-gateway.service'
+  const unit = 'side-audio-bot-gateway.service'
   const installed = fileExists(definition.servicePath)
   if (action === 'status') {
     return {
@@ -348,7 +348,7 @@ async function systemdAction(action, definition, { execute } = {}) {
   }
   if (!installed) {
     throw new Error(
-      'Gateway 后台服务尚未安装；请先执行 qwenaudio gateway install',
+      'Gateway 后台服务尚未安装；请先执行 sideaudio gateway install',
     )
   }
   await execute('systemctl', ['--user', action, unit])

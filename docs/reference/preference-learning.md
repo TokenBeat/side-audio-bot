@@ -1,6 +1,6 @@
 # Preference Learning
 
-With `QWEN_AUDIO_PREFERENCE_LEARNING=on`, the Gateway observes user traits from a
+With `SIDE_AUDIO_PREFERENCE_LEARNING=on`, the Gateway observes user traits from a
 finished session and writes them to `USER.md` only after enough cross-session
 confirmation. It is off by default because it adds one model call per session.
 

@@ -17,7 +17,7 @@ import {
 } from '../shared/logger.mjs'
 
 function temporaryDirectory(t) {
-  const directory = mkdtempSync(resolve(tmpdir(), 'qwaudio-logger-'))
+  const directory = mkdtempSync(resolve(tmpdir(), 'sideaudio-logger-'))
   t.after(() => rmSync(directory, { recursive: true, force: true }))
   return directory
 }
@@ -101,8 +101,8 @@ test('honors log levels and rotates bounded files', async t => {
     level: 'warn',
     consoleEnabled: false,
     env: {
-      QWEN_AUDIO_LOG_MAX_BYTES: '1024',
-      QWEN_AUDIO_LOG_MAX_FILES: '3',
+      SIDE_AUDIO_LOG_MAX_BYTES: '1024',
+      SIDE_AUDIO_LOG_MAX_FILES: '3',
     },
   })
 

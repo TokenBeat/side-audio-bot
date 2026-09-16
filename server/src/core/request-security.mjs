@@ -2,7 +2,7 @@ import { config } from './config.mjs'
 import { isIP } from 'node:net'
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]', '::1'])
-const TRUSTED_NATIVE_CLIENT_ORIGINS = new Set(['https://qwaudio.local'])
+const TRUSTED_NATIVE_CLIENT_ORIGINS = new Set(['https://sideaudio.local'])
 
 function normalizedOrigin(value) {
   if (typeof value !== 'string' || !value.trim()) return ''

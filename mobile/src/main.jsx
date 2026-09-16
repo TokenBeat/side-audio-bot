@@ -40,7 +40,7 @@ function MobileApp() {
       const next = await pairMobileGateway(String(value).trim(), {
         request: mobilePairingRequest,
         deviceId: await mobileDeviceId(),
-        label: 'Qwen Audio Agent Mobile',
+        label: 'Side Audio Bot Mobile',
       })
       await saveMobileGatewayProfile(next)
       await activateProfile(next)

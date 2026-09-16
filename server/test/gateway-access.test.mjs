@@ -101,7 +101,7 @@ test('exchanges a remote Bearer credential for a revocable HTTP-only session', (
   }), res)
   assert.equal(identity.ownerId, 'user_personal')
   assert.equal(identity.access, 'remote')
-  assert.match(res.headers['set-cookie'], /qwen_audio_agent_access=/)
+  assert.match(res.headers['set-cookie'], /side_audio_bot_access=/)
   assert.match(res.headers['set-cookie'], /HttpOnly/)
   assert.doesNotMatch(res.headers['set-cookie'], new RegExp(ACCESS_TOKEN))
 
@@ -155,7 +155,7 @@ test('accepts a remote browser credential in the WebSocket subprotocol header', 
     ...request(),
     headers: {
       ...request().headers,
-      'sec-websocket-protocol': `qwaudio.gcp.v6, qwaudio.bearer.${ACCESS_TOKEN}`,
+      'sec-websocket-protocol': `sideaudio.gcp.v6, sideaudio.bearer.${ACCESS_TOKEN}`,
     },
   })
   assert.equal(authenticated.ownerId, 'user_personal')

@@ -1,6 +1,6 @@
 # Knowledge Provider
 
-qwen-audio-agent defines one small JavaScript Provider interface. It is not a
+side-audio-bot defines one small JavaScript Provider interface. It is not a
 wire protocol and does not prescribe a vector database, embedding model,
 parser, chunking policy, or index. An application can use the built-in local
 library or connect an existing RAG or enterprise knowledge system with a thin
@@ -41,7 +41,7 @@ A Provider must implement `describe()` and `retrieve()`:
 ```js
 import {
   KNOWLEDGE_PROVIDER_PROTOCOL_VERSION,
-} from 'qwen-audio-agent/knowledge-provider'
+} from 'side-audio-bot/knowledge-provider'
 
 const provider = {
   describe() {
@@ -174,7 +174,7 @@ createGatewayApplication({
 ## Built-in basic implementation
 
 The repository internally includes `LocalKnowledgeProvider`, enabled by
-`QWEN_AUDIO_DOMAIN_LIBRARY=on`. It is a useful basic implementation, not a full
+`SIDE_AUDIO_DOMAIN_LIBRARY=on`. It is a useful basic implementation, not a full
 RAG stack:
 
 - Markdown, TXT, and similar text files are copied directly into the local library;
@@ -199,7 +199,7 @@ documents report that no converter is available.
 Inject a Provider at the application composition root:
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 
 const gateway = createGatewayApplication({ knowledgeProvider: provider })
 ```
@@ -218,7 +218,7 @@ Vendor clients, remote job IDs, vector-store collection IDs, and raw responses
 stay inside the Adapter and never cross into the Gateway, Realtime, or clients.
 
 The repository's
-[`examples/lightrag`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/lightrag)
+[`examples/lightrag`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/lightrag)
 is a complete external Provider example. It uses the LightRAG REST API for retrieval, upload,
 listing, and deletion, and collapses asynchronous indexing into this interface.
 

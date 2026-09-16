@@ -13,7 +13,7 @@ const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '::1', '[::1]'])
 
 function permissionMode(env) {
   const mode = String(
-    env.QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE || 'native',
+    env.SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE || 'native',
   ).toLowerCase()
   if (!['native', 'full'].includes(mode)) {
     throw new Error(`不支持的后台权限模式：${mode}（可选 native、full）`)
@@ -23,7 +23,7 @@ function permissionMode(env) {
 
 function backendOwnership(driver, env) {
   const requested = String(
-    env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP || '',
+    env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP || '',
   ).trim().toLowerCase()
   if (requested && !['owned', 'external'].includes(requested)) {
     throw new Error(`不支持的后台进程归属：${requested}`)
@@ -190,7 +190,7 @@ export async function startManagedBackend({
   const backend = resolveManagedBackend(env)
   if (!backend) return new ManagedBackendRuntime(null, { platform })
   const driver = backendRuntimeDriver(backend.protocol)
-  env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP = backend.ownership
+  env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP = backend.ownership
   applyBackendPermissionMode(env, backend)
   if (!driver.separateManagedProcess) {
     return new ManagedBackendRuntime(null, { platform })

@@ -10,7 +10,7 @@ import { decodeSessionJournal } from '../src/session/session-journal-format.mjs'
 import { replaySession } from '../src/session/session-replay.mjs'
 
 async function journalFixture() {
-  const directory = await mkdtemp(join(tmpdir(), 'qwaudio-session-'))
+  const directory = await mkdtemp(join(tmpdir(), 'sideaudio-session-'))
   return new SessionJournal({ filePath: join(directory, 'session.jsonl'), sessionId: 'session-1' })
 }
 
@@ -95,7 +95,7 @@ test('preserves a complete final record without a newline before appending', asy
 })
 
 test('batch history recovery uses the same decoder without mutating files', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'qwaudio-session-registry-'))
+  const directory = await mkdtemp(join(tmpdir(), 'sideaudio-session-registry-'))
   const registry = new SessionJournalRegistry({ directory })
   await registry.append({ ownerId: 'owner', sessionId: 'session-1', event: {
     type: SessionEventType.USER_MESSAGE, payload: { text: 'hello' },
@@ -126,7 +126,7 @@ test('concurrent opening and appending cannot duplicate the header', async () =>
 })
 
 test('task recovery compares task lifetimes instead of sequence numbers from different sessions', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'qwaudio-session-revision-'))
+  const directory = await mkdtemp(join(tmpdir(), 'sideaudio-session-revision-'))
   const registry = new SessionJournalRegistry({ directory })
   for (let seq = 0; seq < 4; seq += 1) {
     await registry.append({ ownerId: 'owner', sessionId: 'old', event: {

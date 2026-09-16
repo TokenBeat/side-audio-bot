@@ -37,7 +37,7 @@ Gateway 会为附件分配会话内稳定的输入 ID；因此先发送图片、
 
 macOS 始终使用 CoreAudio AEC 全双工：播报期间持续收音，支持直接说话打断，
 无需额外配置。CoreAudio 辅助程序默认编译到
-`~/Library/Caches/qwaudio/tui/macos-voice-io`，首次启动时自动构建。
+`~/Library/Caches/sideaudio/tui/macos-voice-io`，首次启动时自动构建。
 
 ## Linux / Windows
 
@@ -48,7 +48,7 @@ macOS 始终使用 CoreAudio AEC 全双工：播报期间持续收音，支持�
 也可以开启无回声消除的全双工模式：
 
 ```bash
-qwenaudio tui --audio-mode full
+sideaudio tui --audio-mode full
 ```
 
 此模式没有回声消除，请佩戴耳机，避免扬声器声音造成误识别或误打断。
@@ -60,7 +60,7 @@ qwenaudio tui --audio-mode full
 默认音频模式也可通过环境变量持久设置：
 
 ```dotenv
-QWEN_AUDIO_AGENT_TUI_AUDIO_MODE=half
+SIDE_AUDIO_BOT_TUI_AUDIO_MODE=half
 ```
 
 设为 `full` 等效于 `--audio-mode full`。完整参数见

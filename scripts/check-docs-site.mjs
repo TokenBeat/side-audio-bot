@@ -12,7 +12,7 @@ function htmlFiles(directory) {
 
 // Inspect trusted VitePress output, including generated navigation. The regular
 // build catches missing Markdown pages; this also checks section fragments.
-export function checkDocsSite(directory, base = '/qwen-audio-agent/') {
+export function checkDocsSite(directory, base = '/side-audio-bot/') {
   const root = resolve(directory)
   const origin = 'https://manual.invalid'
   const prefix = `/${base.split('/').filter(Boolean).join('/')}/`.replace('//', '/')

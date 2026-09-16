@@ -142,7 +142,7 @@ function omitEntry(path, name) {
 }
 
 test('prunes composition imports and entries with LF and CRLF line endings', t => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-pruning-newlines-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-pruning-newlines-'))
   t.after(() => rmSync(directory, { recursive: true, force: true }))
   const path = join(directory, 'modules.mjs')
   for (const newline of ['\n', '\r\n']) {
@@ -165,7 +165,7 @@ test('prunes composition imports and entries with LF and CRLF line endings', t =
 
 for (const removed of [['memory'], ['knowledge'], ['memory', 'knowledge']]) {
   test(`Gateway can chat after deleting ${removed.join(' + ')} directories`, { timeout: 25_000 }, async t => {
-    const directory = mkdtempSync(join(tmpdir(), 'qwaudio-pruned-source-'))
+    const directory = mkdtempSync(join(tmpdir(), 'sideaudio-pruned-source-'))
     t.after(() => rmSync(directory, { recursive: true, force: true }))
     for (const path of ['server/src', 'shared', 'config']) {
       cpSync(join(root, path), join(directory, path), { recursive: true })
@@ -184,13 +184,13 @@ for (const removed of [['memory'], ['knowledge'], ['memory', 'knowledge']]) {
       cwd: directory,
       env: {
         ...process.env,
-        QWEN_AUDIO_AGENT_RUNTIME_ROOT: directory,
-        QWAUDIO_CONFIG_DIR: join(directory, 'settings'),
-        QWAUDIO_DATA_DIR: join(directory, 'data'),
-        QWAUDIO_STATE_DIR: join(directory, 'state'),
+        SIDE_AUDIO_BOT_RUNTIME_ROOT: directory,
+        SIDEAUDIO_CONFIG_DIR: join(directory, 'settings'),
+        SIDEAUDIO_DATA_DIR: join(directory, 'data'),
+        SIDEAUDIO_STATE_DIR: join(directory, 'state'),
         AGENT_PROTOCOL: 'none',
         DASHSCOPE_API_KEY: '',
-        QWEN_AUDIO_MEMORY_API_KEY: '',
+        SIDE_AUDIO_MEMORY_API_KEY: '',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 20_000,

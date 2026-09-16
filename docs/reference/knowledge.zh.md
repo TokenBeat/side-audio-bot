@@ -1,6 +1,6 @@
 # 知识库 Provider
 
-qwen-audio-agent 只定义一个轻量的 JavaScript Provider 接口。它不是网络协议，也不规定
+side-audio-bot 只定义一个轻量的 JavaScript Provider 接口。它不是网络协议，也不规定
 向量数据库、Embedding 模型、解析器、切分策略或索引实现。应用可以使用仓库内置的本机
 资料库，也可以用少量 Adapter 代码接入已有的 RAG 或企业知识系统。
 
@@ -37,7 +37,7 @@ Provider 必须实现 `describe()` 和 `retrieve()`：
 ```js
 import {
   KNOWLEDGE_PROVIDER_PROTOCOL_VERSION,
-} from 'qwen-audio-agent/knowledge-provider'
+} from 'side-audio-bot/knowledge-provider'
 
 const provider = {
   describe() {
@@ -164,7 +164,7 @@ createGatewayApplication({
 
 ## 内置基础实现
 
-仓库内部提供 `LocalKnowledgeProvider`，通过 `QWEN_AUDIO_DOMAIN_LIBRARY=on` 启用。
+仓库内部提供 `LocalKnowledgeProvider`，通过 `SIDE_AUDIO_DOMAIN_LIBRARY=on` 启用。
 它是一个可直接使用的基础实现，不是完整 RAG：
 
 - Markdown、TXT 等文本直接复制进本机资料目录；
@@ -186,7 +186,7 @@ Gateway 不会随着入库次数累积活跃 Session。Agent 只是这个基础 
 在应用 Composition Root 注入 Provider：
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 
 const gateway = createGatewayApplication({ knowledgeProvider: provider })
 ```
@@ -204,7 +204,7 @@ Adapter 只做字段和调用方式转换：
 供应商 Client、远程 Job ID、向量库 Collection ID 和原始响应对象都留在 Adapter 内，
 不能泄漏到 Gateway、Realtime 或客户端。
 
-仓库中的 [`examples/lightrag`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/lightrag)
+仓库中的 [`examples/lightrag`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/lightrag)
 是完整的外部 Provider 示例：它使用 LightRAG REST API 完成检索、上传、列表和删除，
 并把异步索引状态收敛到上述接口。
 

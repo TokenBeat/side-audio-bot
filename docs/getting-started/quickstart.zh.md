@@ -16,7 +16,7 @@
 ### 1. 创建配置
 
 ```bash
-qwenaudio config
+sideaudio config
 ```
 
 命令会显示配置文件路径，并创建带注释的 `config.env` 模板。
@@ -38,7 +38,7 @@ QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-plus
 # 后台 Agent：留空或设为 none 时启动仅前台模式
 AGENT_PROTOCOL=qwen
 # 后台模型：显式设置通过 ACP 标准覆盖；留空沿用 Agent 配置
-QWEN_AUDIO_AGENT_BACKEND_MODEL=
+SIDE_AUDIO_BOT_BACKEND_MODEL=
 ```
 
 没有现成后台时，可选用支持一键托管的 [OpenCode / OpenClaw](../configuration/backend.zh.md#模型选择)。
@@ -50,19 +50,19 @@ QWEN_AUDIO_AGENT_BACKEND_MODEL=
 在一个终端中启动 Gateway：
 
 ```bash
-qwenaudio
+sideaudio
 ```
 
 另开一个终端，启动 TUI：
 
 ```bash
-qwenaudio tui
+sideaudio tui
 ```
 
 也可以使用浏览器界面（默认 `http://127.0.0.1:3101`）：
 
 ```bash
-qwenaudio webui
+sideaudio webui
 ```
 
 ## 确认运行成功
@@ -78,7 +78,7 @@ qwenaudio webui
 
 不设置 `AGENT_PROTOCOL`（或设为 `none`）时，Gateway 不启动后台 Agent；聊天及已启用的前台工具仍可使用。
 需要后台执行的请求会返回明确说明，不会创建任务或猜测执行结果。也可以用
-`qwenaudio --backend none` 显式启动仅前台模式。
+`sideaudio --backend none` 显式启动仅前台模式。
 
 后台 Agent 的选择、一键安装、权限模式和常驻服务见
 [后台 Agent](../backends/overview.zh.md)，更多配置项见

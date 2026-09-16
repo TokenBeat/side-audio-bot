@@ -31,7 +31,7 @@ export function createCockpitFrontendMcpConfiguration({
 }
 
 export function writeCockpitFrontendProfileBundle({
-  root = process.env.QWAUDIO_CONFIG_DIR,
+  root = process.env.SIDEAUDIO_CONFIG_DIR,
   frontendMcpUrl = process.env.COCKPIT_FRONTEND_MCP_URL,
 } = {}) {
   if (!root) throw new Error('Cockpit frontend profile bundle root is required')

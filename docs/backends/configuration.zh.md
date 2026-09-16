@@ -6,7 +6,7 @@
 ## OpenClaw
 
 OpenClaw 默认地址为 `http://127.0.0.1:18789`。显式设置
-`OPENCLAW_BASE_URL` 时，qwen-audio-agent 会把该 Gateway 作为外部黑盒直接连接，
+`OPENCLAW_BASE_URL` 时，side-audio-bot 会把该 Gateway 作为外部黑盒直接连接，
 不会另起 OpenClaw Gateway，也不会读取、复制或修改它的模型认证数据：
 
 ```dotenv
@@ -24,13 +24,13 @@ OPENCLAW_BASE_URL=wss://openclaw.example.com
 OPENCLAW_GATEWAY_TOKEN=replace-with-your-token
 ```
 
-外部模式仍会在 qwen-audio-agent 本机启动轻量的官方 `openclaw acp` bridge，并通过
-stdio ACP 与它通信；该 bridge 再连接用户管理的远程 Gateway。qwen-audio-agent 不会
+外部模式仍会在 side-audio-bot 本机启动轻量的官方 `openclaw acp` bridge，并通过
+stdio ACP 与它通信；该 bridge 再连接用户管理的远程 Gateway。side-audio-bot 不会
 启动、停止、改端口或修改远程 Gateway。远程模式不做 300ms 本地端口预判，而由官方
 bridge 返回实际的网络、TLS 和认证错误。如果本机安全软件终止 bridge，本轮会明确失败，
 但远程 Gateway 不受影响。
 
-如果本机安全策略只拦截 qwen-audio-agent 的 OpenClaw 启动包装层，可以显式指定一个
+如果本机安全策略只拦截 side-audio-bot 的 OpenClaw 启动包装层，可以显式指定一个
 受信任的 OpenClaw 可执行文件，Gateway 将直接用它启动轻量 bridge：
 
 ```dotenv
@@ -38,11 +38,11 @@ OPENCLAW_ACP_BIN=/absolute/path/to/openclaw
 ```
 
 这不会改变远程 Gateway 的所有权；该进程仍只是本地 ACP bridge，并随
-qwen-audio-agent Gateway 关闭。
+side-audio-bot Gateway 关闭。
 
 未设置 `OPENCLAW_BASE_URL` 时，默认优先启动用户环境中的 `openclaw`。同时提供
 `DASHSCOPE_API_KEY` 和
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` 时，会为 qwen-audio-agent 进程生成独立的
+`SIDE_AUDIO_BOT_BACKEND_MODEL` 时，会为 side-audio-bot 进程生成独立的
 百炼配置和状态目录，不修改用户原生配置。未指定后台模型时则继承用户的原生
 配置、模型和认证，但不会在独立实例中启用钉钉等外部消息渠道。自管模式下若原配置
 启用了 Gateway Token，会自动读取并用于本地 ACP 连接；也可以通过
@@ -59,11 +59,11 @@ OpenClaw 私有 `sessions.patch` 接口修改模型。
 Gateway 通过 `opencode acp` 与它交互，并管理用于打开原生 Session
 界面的本地服务。没有兼容安装时会自动使用固定 npm 包，用户不需要另行安装或
 启动服务。`OPENCODE_BASE_URL` 是该本地 Session UI 服务的地址，并不是可供
-qwen-audio-agent 连接的远程 ACP 执行地址：
+side-audio-bot 连接的远程 ACP 执行地址：
 
 ```dotenv
 AGENT_PROTOCOL=opencode
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 ## Qoder
@@ -72,7 +72,7 @@ Qoder 使用本机 `qodercli --acp`，没有 HTTP 后台地址：
 
 ```dotenv
 AGENT_PROTOCOL=qoder
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 统一 ACP Adapter 为每个用户维护一个固定的原生协调 Session，并通过 ACP 的
@@ -97,7 +97,7 @@ Code 自身配置。
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 首次认证请直接运行 `qwen`，然后使用 `/auth`；已经移除的 `qwen auth` 不会被调用。
@@ -120,7 +120,7 @@ Code `0.3.7` 或更高版本。
 可使用统一安装命令安装官方 CLI：
 
 ```bash
-qwenaudio install minimax
+sideaudio install minimax
 ```
 
 首次认证：
@@ -134,7 +134,7 @@ Global 账号可使用 `mcode login --region global`；自定义 Provider 或 AP
 
 ```dotenv
 AGENT_PROTOCOL=minimax
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 高级配置：
@@ -144,16 +144,16 @@ MINIMAX_CODE_BIN=
 MINIMAX_CODE_WORKSPACE=
 ```
 
-建议不要用 `QWEN_AUDIO_AGENT_BACKEND_MODEL` 覆盖 MiniMax Code 的模型；如果显式设置，
+建议不要用 `SIDE_AUDIO_BOT_BACKEND_MODEL` 覆盖 MiniMax Code 的模型；如果显式设置，
 Gateway 只会在 MiniMax ACP 声明兼容的标准 `configOptions` 时尝试覆盖，否则会明确报错。
-由于 MiniMax Code 的公开文档没有声明 skills.sh 兼容的用户目录，`qwenaudio skill` 不会
+由于 MiniMax Code 的公开文档没有声明 skills.sh 兼容的用户目录，`sideaudio skill` 不会
 把技能复制到其私有 Skill/Plugin 存储，请使用 MiniMax Code 自己的管理流程。
 
 ## Kimi Code
 
 Kimi Code（[MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code)）
 通过官方原生 ACP 入口 `kimi acp` 接入。当前集成验证并要求 Kimi Code `0.31.0`
-或更高版本；`qwenaudio setup --backend kimi` 会同时检查可执行文件和版本，并拒绝
+或更高版本；`sideaudio setup --backend kimi` 会同时检查可执行文件和版本，并拒绝
 低于兼容基线的旧实现。
 
 可使用官方安装脚本安装经过验证的版本：
@@ -168,7 +168,7 @@ curl -fsSL https://code.kimi.com/kimi-code/install.sh | \
 
 ```dotenv
 AGENT_PROTOCOL=kimi
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 也可以使用 Kimi Code 官方的临时模型环境变量，在不改写
@@ -181,12 +181,12 @@ KIMI_MODEL_API_KEY=your-kimi-code-key
 KIMI_MODEL_BASE_URL=https://api.kimi.com/coding/v1
 ```
 
-`config.env` 由 qwen-audio-agent 创建为仅当前用户可读写的 `0600` 文件，禁止将
+`config.env` 由 side-audio-bot 创建为仅当前用户可读写的 `0600` 文件，禁止将
 实际 API Key 写入仓库。Kimi Code 的原生配置、OAuth 凭据和 Session 存储默认仍
-由 Kimi 自己管理；qwen-audio-agent 不修改这些文件。设置 `KIMI_CODE_HOME` 可以
+由 Kimi 自己管理；side-audio-bot 不修改这些文件。设置 `KIMI_CODE_HOME` 可以
 显式选择另一套 Kimi 数据目录，设置 `KIMI_WORKSPACE` 可以覆盖协调工作区。
 
-显式设置 `QWEN_AUDIO_AGENT_BACKEND_MODEL` 时，Gateway 会通过 ACP
+显式设置 `SIDE_AUDIO_BOT_BACKEND_MODEL` 时，Gateway 会通过 ACP
 `session/set_config_option` 覆盖 Kimi Session 模型并确认生效；留空则由 Kimi
 选择自身默认模型。高级配置：
 
@@ -221,11 +221,11 @@ Hermes Agent（[nousresearch/hermes-agent](https://github.com/nousresearch/herme
 
 ```dotenv
 AGENT_PROTOCOL=hermes
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Hermes 默认使用自身配置的模型与 provider。显式设置
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` 时，Gateway 才会通过 ACP 覆盖其 Session
+`SIDE_AUDIO_BOT_BACKEND_MODEL` 时，Gateway 才会通过 ACP 覆盖其 Session
 模型。首次使用前可运行 `hermes acp --check` 检查依赖。高级配置：
 
 ```dotenv
@@ -245,11 +245,11 @@ CodeBuddy Code（腾讯 `@tencent-ai/codebuddy-code`）使用
 
 ```dotenv
 AGENT_PROTOCOL=codebuddy
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 默认直接使用 CodeBuddy 已有的模型配置。显式设置
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` 时，只会在 CodeBuddy ACP 声明标准模型选项后
+`SIDE_AUDIO_BOT_BACKEND_MODEL` 时，只会在 CodeBuddy ACP 声明标准模型选项后
 通过 `session/set_config_option` 覆盖；Gateway 不传 `--model`，也不生成项目级
 `.codebuddy/models.json`。高级配置：
 
@@ -271,11 +271,11 @@ Codex（[openai/codex](https://github.com/openai/codex)）通过 ACP 项目维�
 
 ```dotenv
 AGENT_PROTOCOL=codex
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 默认复用用户的 `~/.codex`、登录状态和模型。显式设置
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` 时，只通过 ACP 标准模型选项覆盖 Session；
+`SIDE_AUDIO_BOT_BACKEND_MODEL` 时，只通过 ACP 标准模型选项覆盖 Session；
 `CODEX_BASE_URL` 只配置自定义 Provider 地址，不再向 `CODEX_CONFIG` 写入模型。
 两者都不会修改用户配置文件。高级配置：
 
@@ -297,11 +297,11 @@ Claude Code 通过 Zed 维护的
 
 ```dotenv
 AGENT_PROTOCOL=claude
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 模型和凭据默认由 Claude Code 自己管理，并复用 `~/.claude` 中已有的登录状态；
-也可以设置 `ANTHROPIC_API_KEY`。显式设置 `QWEN_AUDIO_AGENT_BACKEND_MODEL`
+也可以设置 `ANTHROPIC_API_KEY`。显式设置 `SIDE_AUDIO_BOT_BACKEND_MODEL`
 时，Gateway 才会通过 ACP 覆盖其 Session 模型。高级配置：
 
 ```dotenv
@@ -326,7 +326,7 @@ Pi（earendil-works 的 [pi coding agent](https://pi.dev)，npm 包
 一键安装会同时安装本体与适配器：
 
 ```bash
-qwenaudio install pi
+sideaudio install pi
 ```
 
 也可以手动安装这两个包：
@@ -354,14 +354,14 @@ PI_ACP_RUNTIME=auto
 ```
 
 - `PI_BIN` / `PI_ACP_BIN` 分别覆盖 pi 本体与 pi-acp 适配器的可执行文件路径。
-- `PI_WORKSPACE` 覆盖工作目录（默认 `~/.config/qwaudio/data/workspace`，与其他托管后台共享）。
+- `PI_WORKSPACE` 覆盖工作目录（默认 `~/.config/sideaudio/data/workspace`，与其他托管后台共享）。
 - `PI_ACP_RUNTIME`（`auto` / `binary` / `package`）控制适配器使用本地二进制
   还是通过 `npx` 按需启动。
 
 > **警告：Pi 没有任何权限审批机制。** Pi 官方明确 "No Built-in Sandbox"——
 > read、write、bash 直接以当前用户权限执行；pi-acp 也未实现 ACP
 > `session/request_permission`。因此无论
-> `QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` 如何配置，Pi 都**始终等效
+> `SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` 如何配置，Pi 都**始终等效
 > `full` 权限**，语音会话中不会出现任何权限确认环节。只在可信项目和可信
 > 提示词环境中使用。
 

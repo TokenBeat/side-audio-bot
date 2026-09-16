@@ -5,7 +5,7 @@
 After configuring the backend Agent, you can run a unified read-only check:
 
 ```bash
-qwenaudio setup
+sideaudio setup
 ```
 
 It checks the backend executable, ACP integration method, and necessary Adapters, and clearly
@@ -18,8 +18,8 @@ itself.
 To check only a specified backend or get machine-readable results:
 
 ```bash
-qwenaudio setup --backend codex
-qwenaudio setup --json
+sideaudio setup --backend codex
+sideaudio setup --json
 ```
 
 The JSON output uses the same shared detection module as the CLI, which can be directly reused
@@ -31,9 +31,9 @@ Backend Agents that are not installed can be installed on the local machine usin
 command:
 
 ```bash
-qwenaudio install codex
-qwenaudio install deepseek
-qwenaudio install minimax
+sideaudio install codex
+sideaudio install deepseek
+sideaudio install minimax
 ```
 
 - Before installation, it detects and only fills in missing components: a native ACP backend is
@@ -81,7 +81,7 @@ DEEPSEEK_HARNESS_MODEL=deepseek-v4-pro
 `AGENT_PROTOCOL` has no default value and is also an optional configuration. When left blank,
 the Gateway does not start a Backend Agent; frontend chat and enabled tools remain available; requests requiring backend execution
 will return a clear error without creating tasks or guessing execution results.
-You can also use `qwenaudio --backend none` to explicitly start frontend-only mode.
+You can also use `sideaudio --backend none` to explicitly start frontend-only mode.
 
 ## Model Selection
 
@@ -89,7 +89,7 @@ Leave the backend model empty to use native defaults. Only an explicit value req
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_MODEL=
+SIDE_AUDIO_BOT_BACKEND_MODEL=
 ```
 
 When unset, the Gateway neither sends nor guesses a model and never calls the setting interface.
@@ -136,7 +136,7 @@ See [shared backend workspace](../guides/skills.md#shared-backend-workspace).
 
 ## Backend Permission Modes
 
-`QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` can be set to:
+`SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` can be set to:
 
 - `native` (default): Permissions are determined and requested by the backend Agent itself;
   the Gateway only forwards them as-is.

@@ -11,7 +11,7 @@ import { homedir } from 'node:os'
 import { resolve } from 'node:path'
 import { resolveRuntimePaths } from './runtime-paths.mjs'
 
-export const LOG_SCHEMA = 'qwaudio.log/v1'
+export const LOG_SCHEMA = 'sideaudio.log/v1'
 export const LOG_LEVELS = Object.freeze({
   trace: 10,
   debug: 20,
@@ -49,7 +49,7 @@ export function defaultLogDirectory(
   env = process.env,
   homeDirectory = homedir(),
 ) {
-  if (env.QWEN_AUDIO_LOG_DIR) return resolve(env.QWEN_AUDIO_LOG_DIR)
+  if (env.SIDE_AUDIO_LOG_DIR) return resolve(env.SIDE_AUDIO_LOG_DIR)
   return resolve(resolveRuntimePaths({ env, homeDirectory }).stateDirectory, 'logs')
 }
 
@@ -242,7 +242,7 @@ export function createLogger({
   fileName = `${component}.log`,
   env = process.env,
   directory = defaultLogDirectory(env),
-  level = normalizeLogLevel(env.QWEN_AUDIO_LOG_LEVEL, 'info'),
+  level = normalizeLogLevel(env.SIDE_AUDIO_LOG_LEVEL, 'info'),
   consoleEnabled,
   fileEnabled,
   stdout = process.stdout,
@@ -250,8 +250,8 @@ export function createLogger({
   base = {},
   sink,
 } = {}) {
-  consoleEnabled ??= env.QWEN_AUDIO_LOG_CONSOLE !== '0'
-  fileEnabled ??= env.QWEN_AUDIO_LOG_FILE !== '0'
+  consoleEnabled ??= env.SIDE_AUDIO_LOG_CONSOLE !== '0'
+  fileEnabled ??= env.SIDE_AUDIO_LOG_FILE !== '0'
   const selectedLevel = normalizeLogLevel(level, 'info')
   const threshold = LOG_LEVELS[selectedLevel]
   let fileFailureReported = false
@@ -260,13 +260,13 @@ export function createLogger({
         directory,
         fileName,
         maxBytes: boundedInteger(
-          env.QWEN_AUDIO_LOG_MAX_BYTES,
+          env.SIDE_AUDIO_LOG_MAX_BYTES,
           DEFAULT_MAX_BYTES,
           1024,
           1024 * 1024 * 1024,
         ),
         maxFiles: boundedInteger(
-          env.QWEN_AUDIO_LOG_MAX_FILES,
+          env.SIDE_AUDIO_LOG_MAX_FILES,
           DEFAULT_MAX_FILES,
           1,
           100,
@@ -274,7 +274,7 @@ export function createLogger({
         onError: error => {
           if (fileFailureReported || !consoleEnabled) return
           fileFailureReported = true
-          stderr.write(`qwen-audio-agent 日志写入失败：${scrubString(error.message)}\n`)
+          stderr.write(`side-audio-bot 日志写入失败：${scrubString(error.message)}\n`)
         },
       })
     : null)

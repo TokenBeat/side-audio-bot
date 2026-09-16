@@ -24,11 +24,11 @@ export function gatewayOptionsEnvironment({
   logConsole,
 } = {}) {
   const env = {}
-  if (configDir !== undefined) env.QWAUDIO_CONFIG_DIR = String(configDir)
-  if (dataDir !== undefined) env.QWAUDIO_DATA_DIR = String(dataDir)
-  if (stateDir !== undefined) env.QWAUDIO_STATE_DIR = String(stateDir)
-  if (cacheDir !== undefined) env.QWAUDIO_CACHE_DIR = String(cacheDir)
-  if (workspace !== undefined) env.QWAUDIO_WORKSPACE = String(workspace)
+  if (configDir !== undefined) env.SIDEAUDIO_CONFIG_DIR = String(configDir)
+  if (dataDir !== undefined) env.SIDEAUDIO_DATA_DIR = String(dataDir)
+  if (stateDir !== undefined) env.SIDEAUDIO_STATE_DIR = String(stateDir)
+  if (cacheDir !== undefined) env.SIDEAUDIO_CACHE_DIR = String(cacheDir)
+  if (workspace !== undefined) env.SIDEAUDIO_WORKSPACE = String(workspace)
   if (host !== undefined) env.HOST = String(host)
   if (port !== undefined) env.PORT = String(port)
   if (backend !== undefined) {
@@ -36,9 +36,9 @@ export function gatewayOptionsEnvironment({
       ? ''
       : String(backend)
   }
-  if (owner !== undefined) env.QWEN_AUDIO_GATEWAY_OWNER = String(owner)
+  if (owner !== undefined) env.SIDE_AUDIO_GATEWAY_OWNER = String(owner)
   if (logConsole !== undefined) {
-    env.QWEN_AUDIO_LOG_CONSOLE = logConsole ? '1' : '0'
+    env.SIDE_AUDIO_LOG_CONSOLE = logConsole ? '1' : '0'
   }
   return env
 }

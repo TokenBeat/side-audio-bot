@@ -70,7 +70,7 @@ export class InputArbitration {
     const holder = String(owner || '').trim().slice(0, 80)
     if (!holder) {
       const error = new Error('input.suspend 需要 owner')
-      error.code = 'QWAUDIO_INPUT_OWNER_REQUIRED'
+      error.code = 'SIDEAUDIO_INPUT_OWNER_REQUIRED'
       throw error
     }
     const wasSuspended = this.suspended

@@ -1,4 +1,4 @@
-# Extending qwen-audio-agent
+# Extending side-audio-bot
 
 This section is for developers integrating clients, voice services, Backend Agents, or knowledge systems through existing extension interfaces.
 To configure built-in capabilities, start with [Configuration](configuration.md) and [Quickstart](getting-started/quickstart.md).
@@ -54,7 +54,7 @@ provider with another memory engine, without changing the voice runtime.
 [Memory Provider](reference/memory-provider.md)
 
 VoiceMem installation and configuration example:
-[`examples/voicemem`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/voicemem).
+[`examples/voicemem`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/voicemem).
 
 ## Client: Build Your Own
 

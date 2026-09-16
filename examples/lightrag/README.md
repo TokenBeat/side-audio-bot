@@ -1,9 +1,9 @@
-# Qwen Audio Agent LightRAG Integration Example
+# Side Audio Bot LightRAG Integration Example
 
 English | [中文](README_ZH.md)
 
 This example connects an independently deployed
-[LightRAG](https://github.com/HKUDS/LightRAG) instance to qwen-audio-agent. LightRAG owns
+[LightRAG](https://github.com/HKUDS/LightRAG) instance to side-audio-bot. LightRAG owns
 document parsing, chunking, embeddings, indexing, and retrieval. The Gateway only consumes it
 through the generic `KnowledgeProvider` boundary; it does not install, start, or reconfigure
 LightRAG.
@@ -25,7 +25,7 @@ LightRAG.
 
 | Component | Responsibility |
 |---|---|
-| qwen-audio-agent Gateway | Realtime voice conversation, knowledge tools, and ingestion task lifecycle. |
+| side-audio-bot Gateway | Realtime voice conversation, knowledge tools, and ingestion task lifecycle. |
 | [`LightRagKnowledgeProvider`](lightrag-provider.mjs) | Maps LightRAG APIs to the generic `KnowledgeProvider`. |
 | [`LightRagClient`](lightrag-client.mjs) | LightRAG URL, authentication, workspace, timeouts, and HTTP errors. |
 | User-managed LightRAG Server | Document parsing, chunking, embeddings, graph, indexing, and retrieval. |
@@ -37,7 +37,7 @@ responses never cross the provider boundary.
 ## Quick start
 
 Use the Node.js version required by the repository and install `uv` first. From the
-qwen-audio-agent repository root:
+side-audio-bot repository root:
 
 ```bash
 npm ci
@@ -89,7 +89,7 @@ for complete model, parser, and storage configuration.
 
 ### Start the example Gateway
 
-From the qwen-audio-agent repository root:
+From the side-audio-bot repository root:
 
 ```bash
 cp examples/lightrag/.env.example examples/lightrag/.env.local
@@ -107,7 +107,7 @@ LIGHTRAG_WORKSPACE=
 LIGHTRAG_QUERY_MODE=mix
 ```
 
-`DASHSCOPE_API_KEY` belongs only to the qwen-audio-agent voice frontend. LightRAG uses the model
+`DASHSCOPE_API_KEY` belongs only to the side-audio-bot voice frontend. LightRAG uses the model
 configuration of its own process. The two processes do not automatically share configuration,
 even when they call the same model provider.
 

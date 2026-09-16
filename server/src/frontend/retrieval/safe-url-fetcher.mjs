@@ -218,7 +218,7 @@ export class SafeUrlFetcher {
     maxChars = 40_000,
     maxRedirects = 3,
     allowPrivateNetwork = false,
-    userAgent = 'qwen-audio-agent/1.0 (+https://github.com/QwenAudio/qwen-audio-agent)',
+    userAgent = 'side-audio-bot/1.0 (+https://github.com/TokenBeat/side-audio-bot)',
   } = {}) {
     this.timeoutMs = timeoutMs
     this.maxBytes = maxBytes

@@ -33,8 +33,8 @@ providerWss.on('connection', socket => {
   socket.send(JSON.stringify({ type: 'session.updated', session: {} }))
 })
 
-process.env.QWAUDIO_CONFIG_DIR = mkdtempSync(join(tmpdir(), 'qwaudio-sleep-'))
-process.env.QWEN_AUDIO_AGENT_AUTH_SECRET = 'test-secret-that-is-long-enough-1234567890'
+process.env.SIDEAUDIO_CONFIG_DIR = mkdtempSync(join(tmpdir(), 'sideaudio-sleep-'))
+process.env.SIDE_AUDIO_BOT_AUTH_SECRET = 'test-secret-that-is-long-enough-1234567890'
 process.env.DASHSCOPE_API_KEY = 'sk-fake'
 await new Promise(resolve => providerServer.listen(0, '127.0.0.1', resolve))
 process.env.QWEN_AUDIO_REALTIME_BASE_URL = (
@@ -68,7 +68,7 @@ async function startGateway() {
   const server = createServer()
   attachRealtimeGateway(server, {
     identityManager: new IdentityManager({
-      secret: process.env.QWEN_AUDIO_AGENT_AUTH_SECRET,
+      secret: process.env.SIDE_AUDIO_BOT_AUTH_SECRET,
       mode: 'personal',
     }),
     memoryService: fakeMemoryStore(),

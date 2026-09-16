@@ -12,11 +12,11 @@ an `AGENT_PROTOCOL` value or a Desktop setting.
 ## Connect an agent
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
-import { createBackendAgentHost } from 'qwen-audio-agent/backend-adapter-sdk'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
+import { createBackendAgentHost } from 'side-audio-bot/backend-adapter-sdk'
 import {
   createA2ABackendAdapter,
-} from 'qwen-audio-agent/a2a-backend-adapter'
+} from 'side-audio-bot/a2a-backend-adapter'
 
 const backend = createA2ABackendAdapter({
   agentCardUrl: 'https://agent.example/.well-known/agent-card.json',

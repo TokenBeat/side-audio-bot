@@ -80,10 +80,10 @@ export const GATEWAY_CAPABILITIES = Object.freeze([
   // A local operator can issue a revocable per-device token already wrapped
   // with the exact WS/WSS endpoint. Clients need no HTTP pairing exchange.
   'gateway.direct-device-connection',
-  // qwen-audio-agent/electron: a CommonJS entry an Electron main process can
+  // side-audio-bot/electron: a CommonJS entry an Electron main process can
   // require, which loads every ESM contract.
   'host.electron-entry',
-  // qwen-audio-agent/gateway-process: GatewayProcess forks, awaits the
+  // side-audio-bot/gateway-process: GatewayProcess forks, awaits the
   // readiness report, restarts, and tells a planned exit from a crash. The
   // desktop app runs the same implementation.
   'host.gateway-process',
@@ -144,20 +144,20 @@ export const GATEWAY_CAPABILITIES = Object.freeze([
   // Client may explicitly replace that owner's current Client; monotonically
   // increasing lease generations fence late messages and stale releases.
   'realtime.gateway-client-protocol-v6-owner-takeover',
-  // The orb shell contract ships: qwen-audio-agent/orb/preload plus
+  // The orb shell contract ships: side-audio-bot/orb/preload plus
   // orb/main's bindOrbShell, so a host may run the floating orb form.
   'desktop.orb-shell',
-  // qwen-audio-agent/orb/window owns the orb window recipe: createOrbWindow
+  // side-audio-bot/orb/window owns the orb window recipe: createOrbWindow
   // applies it and hands back a handle whose destroy() is the host's
   // synchronous teardown path.
   'desktop.orb-window-factory',
-  // qwen-audio-agent/orb/placement covers the default anchor, display
+  // side-audio-bot/orb/placement covers the default anchor, display
   // clamping and drop persistence.
   'desktop.orb-placement',
   // The orb's position is remembered by this package (settings store
   // ui-state) when a configDir is given.
   'desktop.orb-position-store',
-  // qwen-audio-agent/skin-store: importing, listing, removing and resolving
+  // side-audio-bot/skin-store: importing, listing, removing and resolving
   // orb skins is a published library surface.
   'desktop.skin-store',
 ])

@@ -152,7 +152,7 @@ if (isMain) {
     throw new Error(`npm 成品缺少公开导出目标：${missingExports.join(', ')}`)
   }
   const required = [
-    'cli/bin/qwenaudio.mjs',
+    'cli/bin/sideaudio.mjs',
     'config/backends/deepseek-harness/cordis.yml',
     'config/backends/openclaw/openclaw.json5',
     'CONTRIBUTING.md',

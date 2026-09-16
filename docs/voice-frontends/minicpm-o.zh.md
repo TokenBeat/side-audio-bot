@@ -1,6 +1,6 @@
 # 使用 MiniCPM-o Realtime 前台
 
-qwen-audio-agent 可以通过面壁智能公开的 Realtime 协议连接
+side-audio-bot 可以通过面壁智能公开的 Realtime 协议连接
 [MiniCPM-o 4.5](https://github.com/OpenBMB/MiniCPM-o-Demo)。服务可以是用户自行部署的
 本地实例，也可以是兼容该协议的云端实例；Gateway 不安装模型或管理推理进程。
 

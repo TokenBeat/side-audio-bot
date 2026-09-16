@@ -135,7 +135,7 @@ test('accepts the common command shorthand for stdio servers', () => {
 })
 
 test('loads and validates a versioned frontend MCP JSON file', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwen-audio-mcp-'))
+  const directory = mkdtempSync(join(tmpdir(), 'side-audio-mcp-'))
   const filePath = join(directory, 'mcp.json')
   try {
     writeFileSync(filePath, JSON.stringify(configuration()), 'utf8')

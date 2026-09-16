@@ -18,7 +18,7 @@
 import { readFileSync } from 'node:fs'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
-import { A2ABackendAdapter } from 'qwen-audio-agent/a2a-backend-adapter'
+import { A2ABackendAdapter } from 'side-audio-bot/a2a-backend-adapter'
 import { CockpitServiceServer } from '../../service/server.mjs'
 import { startCockpitAgentServer } from '../../agent/server.mjs'
 import { surfaceForCockpitTool } from '../../service/tools/registry.mjs'

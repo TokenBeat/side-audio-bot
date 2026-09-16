@@ -1,4 +1,4 @@
-package com.qwenaudio.agent;
+package com.sideaudio.agent;
 
 import com.getcapacitor.BridgeActivity;
 

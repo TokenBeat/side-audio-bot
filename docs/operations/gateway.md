@@ -5,30 +5,30 @@ clients. Choose a run mode:
 
 | Mode | Start | Stop |
 | --- | --- | --- |
-| Foreground terminal | `qwenaudio` or `qwenaudio gateway` | Press `Ctrl-C` in that terminal. |
-| User background service | `qwenaudio gateway install` installs and starts it | `qwenaudio gateway stop`; remove it with `gateway uninstall`. |
+| Foreground terminal | `sideaudio` or `sideaudio gateway` | Press `Ctrl-C` in that terminal. |
+| User background service | `sideaudio gateway install` installs and starts it | `sideaudio gateway stop`; remove it with `gateway uninstall`. |
 | Embedded Desktop Gateway | Open Desktop; it starts and manages the Gateway | Quitting stops its own Gateway, not a borrowed or remote service. |
 
 ## Applying Configuration Changes
 
 - **Foreground run**: press `Ctrl-C` in the Gateway terminal, then rerun the original command.
-- **Background service**: run `qwenaudio gateway restart`. Without an installed service, this reports that the service is not installed.
+- **Background service**: run `sideaudio gateway restart`. Without an installed service, this reports that the service is not installed.
 - **Desktop**: change Settings and click Apply. After directly editing the file, quit and reopen the app.
   Client-only settings such as skins and wake preferences should not require a Gateway restart.
 - **Remote connection**: change and restart the Gateway on its actual host. Local settings do not reconfigure a remote server.
 
 Background services do not retain credentials temporarily exported in a terminal. Put persistent
-settings in the `config.env` shown by `qwenaudio config`.
+settings in the `config.env` shown by `sideaudio config`.
 
 ## Background Service Commands
 
 ```bash
-qwenaudio gateway install
-qwenaudio gateway status
-qwenaudio gateway restart
-qwenaudio gateway stop
-qwenaudio gateway start
-qwenaudio gateway uninstall
+sideaudio gateway install
+sideaudio gateway status
+sideaudio gateway restart
+sideaudio gateway stop
+sideaudio gateway start
+sideaudio gateway uninstall
 ```
 
 The service reads configuration on startup. `install`, `start`, and `restart` refresh the user
@@ -54,7 +54,7 @@ See [OpenClaw settings](../backends/configuration.md#openclaw).
 
 ## Check the Runtime
 
-- `qwenaudio gateway status` checks the user background service.
-- `qwenaudio doctor` checks configuration and connectivity without starting models or microphones.
+- `sideaudio gateway status` checks the user background service.
+- `sideaudio doctor` checks configuration and connectivity without starting models or microphones.
 - See [local logs](../configuration/advanced.md#local-logs) for locations and rotation.
 - See [remote connections](remote-access.md) for phones and other computers.

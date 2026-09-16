@@ -5,7 +5,7 @@ assistant to take action. Desktop exposes common settings in its Settings page; 
 the configuration file with:
 
 ```bash
-qwenaudio config
+sideaudio config
 ```
 
 The command shows the exact path and creates a template if missing. Never commit API keys,
@@ -23,7 +23,7 @@ If your Backend Agent is already installed and configured, simply select it. For
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_MODEL=
+SIDE_AUDIO_BOT_BACKEND_MODEL=
 ```
 
 An empty backend model preserves the Agent's own configuration; setting it explicitly requests an
@@ -45,7 +45,7 @@ restart foreground runs, use `gateway restart` for installed services, or click 
 
 ## Configuration and Data Directories
 
-The product root defaults to `~/.config/qwaudio`. Gateway and TUI manage their own files
+The product root defaults to `~/.config/sideaudio`. Gateway and TUI manage their own files
 within it; ownership does not require a separate top-level directory for every process:
 
 | Content | Default path, relative to root | Desktop and CLI |
@@ -64,11 +64,11 @@ Native backend sessions belong to the backend, not to the workspace's project fi
 
 | Environment variable | Purpose | Default |
 | --- | --- | --- |
-| `QWAUDIO_CONFIG_DIR` | Product root; set before startup | `$XDG_CONFIG_HOME/qwaudio`, or `~/.config/qwaudio` |
-| `QWAUDIO_DATA_DIR` | Shared user data | `<config-dir>/data` |
-| `QWAUDIO_STATE_DIR` | Current Gateway's persistent state | CLI: `<config-dir>/state`; desktop-hosted: `<config-dir>/state/desktop` |
-| `QWAUDIO_CACHE_DIR` | Rebuildable cache | `<config-dir>/cache` |
-| `QWAUDIO_WORKSPACE` | Default workspace for all backends | `<data-dir>/workspace` |
+| `SIDEAUDIO_CONFIG_DIR` | Product root; set before startup | `$XDG_CONFIG_HOME/sideaudio`, or `~/.config/sideaudio` |
+| `SIDEAUDIO_DATA_DIR` | Shared user data | `<config-dir>/data` |
+| `SIDEAUDIO_STATE_DIR` | Current Gateway's persistent state | CLI: `<config-dir>/state`; desktop-hosted: `<config-dir>/state/desktop` |
+| `SIDEAUDIO_CACHE_DIR` | Rebuildable cache | `<config-dir>/cache` |
+| `SIDEAUDIO_WORKSPACE` | Default workspace for all backends | `<data-dir>/workspace` |
 
 Except for the product root itself, the Gateway directory options above can also be set in `config.env`.
 Prefer absolute paths. A backend-specific workspace, such as `QODER_WORKSPACE`, takes precedence.
@@ -82,9 +82,9 @@ explicitly configure their locations or arrange files while stopped. Old files a
 
 Desktop uses the platform application data directory:
 
-- macOS: `~/Library/Application Support/Qwen Audio Agent`
-- Windows: `%APPDATA%/Qwen Audio Agent`
-- Linux: `$XDG_CONFIG_HOME/Qwen Audio Agent`, defaulting to `~/.config/Qwen Audio Agent`
+- macOS: `~/Library/Application Support/Side Audio Bot`
+- Windows: `%APPDATA%/Side Audio Bot`
+- Linux: `$XDG_CONFIG_HOME/Side Audio Bot`, defaulting to `~/.config/Side Audio Bot`
 
 `settings.env` stores the Gateway connection address, language, appearance and wake preferences;
 `ui-state.json` stores window placement and client session identifiers. Connection credentials,
@@ -93,12 +93,12 @@ Electron manages browser storage. Voice service and backend settings from the sa
 are still written to the Gateway's `config.env`.
 
 TUI connection profiles and credentials live in `<config-dir>/tui/`, defaulting to
-`~/.config/qwaudio/tui/`, alongside instance locks and diagnostic logs. The CLI's
+`~/.config/sideaudio/tui/`, alongside instance locks and diagnostic logs. The CLI's
 `connect`, `disconnect` and `tui` commands manage these files; Gateway never reads or writes them.
 
-Changing `QWAUDIO_CONFIG_DIR` also relocates TUI state. Changing Gateway-only
-`QWAUDIO_DATA_DIR`, `QWAUDIO_STATE_DIR` or `QWAUDIO_CACHE_DIR` does not.
-Set `QWAUDIO_TUI_DIR` before startup only when a separate location is needed.
+Changing `SIDEAUDIO_CONFIG_DIR` also relocates TUI state. Changing Gateway-only
+`SIDEAUDIO_DATA_DIR`, `SIDEAUDIO_STATE_DIR` or `SIDEAUDIO_CACHE_DIR` does not.
+Set `SIDEAUDIO_TUI_DIR` before startup only when a separate location is needed.
 None of these variables relocate the Desktop application directory.
 WebUI authentication, language and session identifiers use browser cookies and local storage.
 

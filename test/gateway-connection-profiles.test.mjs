@@ -20,7 +20,7 @@ function profile(id, overrides = {}) {
 }
 
 test('connection profile persistence never serializes credentials', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-profiles-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-profiles-'))
   const filePath = join(directory, 'gateway-connections.json')
   const credentials = createMemoryGatewayCredentialStore()
   const store = new GatewayConnectionProfileStore({ filePath, credentialStore: credentials })
@@ -35,7 +35,7 @@ test('connection profile persistence never serializes credentials', async () => 
 })
 
 test('connection profiles update credentials and metadata by profile id', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-profiles-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-profiles-'))
   const filePath = join(directory, 'gateway-connections.json')
   const store = new GatewayConnectionProfileStore({
     filePath,

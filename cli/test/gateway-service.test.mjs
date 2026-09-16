@@ -10,7 +10,7 @@ import {
 } from '../src/gateway-service.mjs'
 
 function temporaryDirectory() {
-  return mkdtempSync(resolve(tmpdir(), 'qwen-audio-agent-service-'))
+  return mkdtempSync(resolve(tmpdir(), 'side-audio-bot-service-'))
 }
 
 test('service logs, metadata and child state always use the same resolved directory', () => {
@@ -20,13 +20,13 @@ test('service logs, metadata and child state always use the same resolved direct
     configDirectory: '/profiles/shared-config',
     stateDirectory: '/instances/selected',
     gatewayPath: '/app/server.mjs',
-    serviceEnvironment: { QWAUDIO_STATE_DIR: '/instances/ignored', QWAUDIO_DATA_DIR: '/assets' },
+    serviceEnvironment: { SIDEAUDIO_STATE_DIR: '/instances/ignored', SIDEAUDIO_DATA_DIR: '/assets' },
   })
   assert.equal(definition.metadataPath, resolve('/instances/selected/gateway-service.json'))
   assert.equal(definition.logsDirectory, resolve('/instances/selected/logs'))
-  assert.match(definition.content, /QWAUDIO_STATE_DIR=.*selected/)
+  assert.match(definition.content, /SIDEAUDIO_STATE_DIR=.*selected/)
   assert.doesNotMatch(definition.content, /instances\/ignored/)
-  assert.match(definition.content, /QWAUDIO_DATA_DIR=.*assets/)
+  assert.match(definition.content, /SIDEAUDIO_DATA_DIR=.*assets/)
 })
 
 test('builds a launchd user service that runs the Gateway in foreground', () => {
@@ -111,7 +111,7 @@ test('installs a systemd user service with restart protection', async () => {
       installed.servicePath,
       resolve(
         root,
-        'xdg/systemd/user/qwen-audio-agent-gateway.service',
+        'xdg/systemd/user/side-audio-bot-gateway.service',
       ),
     )
     const unit = readFileSync(installed.servicePath, 'utf8')
@@ -124,7 +124,7 @@ test('installs a systemd user service with restart protection', async () => {
       '--user',
       'enable',
       '--now',
-      'qwen-audio-agent-gateway.service',
+      'side-audio-bot-gateway.service',
     ])
   } finally {
     rmSync(root, { recursive: true, force: true })

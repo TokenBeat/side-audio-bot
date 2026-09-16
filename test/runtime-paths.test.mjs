@@ -11,13 +11,13 @@ import { gatewayOptionsEnvironment } from '../shared/gateway/options.mjs'
 import { tuiClientDirectory } from '../shared/client-paths.mjs'
 
 function fixture(t) {
-  const root = mkdtempSync(resolve(tmpdir(), 'qwaudio-paths-'))
+  const root = mkdtempSync(resolve(tmpdir(), 'sideaudio-paths-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   return root
 }
 
 test('default layout separates user assets, state and disposable cache', () => {
-  const config = resolve('/user/.config/qwaudio')
+  const config = resolve('/user/.config/sideaudio')
   assert.deepEqual(resolveRuntimePaths({ env: {}, homeDirectory: '/user' }), {
     configDirectory: config,
     dataDirectory: resolve(config, 'data'),
@@ -26,15 +26,15 @@ test('default layout separates user assets, state and disposable cache', () => {
     sharedWorkspace: resolve(config, 'data/workspace'),
   })
   const custom = resolveRuntimePaths({ env: { XDG_CONFIG_HOME: '/custom' } })
-  assert.equal(custom.configDirectory, resolve('/custom/qwaudio'))
+  assert.equal(custom.configDirectory, resolve('/custom/sideaudio'))
 })
 
 test('desktop changes only state, not configuration, identity, memory or workspace', t => {
   const root = fixture(t)
-  const options = { root, env: { QWAUDIO_CONFIG_DIR: resolve(root, 'profile') } }
+  const options = { root, env: { SIDEAUDIO_CONFIG_DIR: resolve(root, 'profile') } }
   const cli = loadRuntimeEnvironment(options)
   const desktop = loadRuntimeEnvironment({
-    root, env: { QWAUDIO_CONFIG_DIR: cli.configDirectory }, defaultStateDirectory: 'state/desktop',
+    root, env: { SIDEAUDIO_CONFIG_DIR: cli.configDirectory }, defaultStateDirectory: 'state/desktop',
   })
   for (const key of ['configPath', 'assistantProfilePath', 'identityPath', 'userModelPath',
     'frontendMemoryPath', 'frontendNotesPath', 'sharedWorkspace', 'cacheDirectory']) {
@@ -46,13 +46,13 @@ test('desktop changes only state, not configuration, identity, memory or workspa
 })
 
 test('TUI state follows the product root but ignores Gateway data, state and cache overrides', () => {
-  const env = { QWAUDIO_CONFIG_DIR: '/gateway', QWAUDIO_DATA_DIR: '/data',
-    QWAUDIO_STATE_DIR: '/state', QWAUDIO_CACHE_DIR: '/cache' }
-  assert.equal(tuiClientDirectory({}, '/user'), resolve('/user/.config/qwaudio/tui'))
-  assert.equal(tuiClientDirectory({ XDG_CONFIG_HOME: '/xdg' }), resolve('/xdg/qwaudio/tui'))
+  const env = { SIDEAUDIO_CONFIG_DIR: '/gateway', SIDEAUDIO_DATA_DIR: '/data',
+    SIDEAUDIO_STATE_DIR: '/state', SIDEAUDIO_CACHE_DIR: '/cache' }
+  assert.equal(tuiClientDirectory({}, '/user'), resolve('/user/.config/sideaudio/tui'))
+  assert.equal(tuiClientDirectory({ XDG_CONFIG_HOME: '/xdg' }), resolve('/xdg/sideaudio/tui'))
   assert.equal(tuiClientDirectory(env, '/user'), resolve('/gateway/tui'))
   assert.equal(tuiClientDirectory({ ...env, XDG_CONFIG_HOME: '/xdg' }), resolve('/gateway/tui'))
-  assert.equal(tuiClientDirectory({ ...env, QWAUDIO_TUI_DIR: '/client' }), resolve('/client'))
+  assert.equal(tuiClientDirectory({ ...env, SIDEAUDIO_TUI_DIR: '/client' }), resolve('/client'))
 })
 
 test('config.env directory overrides are resolved before forwarding to children', t => {
@@ -60,10 +60,10 @@ test('config.env directory overrides are resolved before forwarding to children'
   const configDir = resolve(root, 'config')
   mkdirSync(configDir)
   writeFileSync(resolve(configDir, 'config.env'), [
-    'QWAUDIO_DATA_DIR=assets', 'QWAUDIO_STATE_DIR=instance',
-    'QWAUDIO_CACHE_DIR=cache', 'QWAUDIO_WORKSPACE=projects',
+    'SIDEAUDIO_DATA_DIR=assets', 'SIDEAUDIO_STATE_DIR=instance',
+    'SIDEAUDIO_CACHE_DIR=cache', 'SIDEAUDIO_WORKSPACE=projects',
   ].join('\n'))
-  const env = { QWAUDIO_CONFIG_DIR: configDir }
+  const env = { SIDEAUDIO_CONFIG_DIR: configDir }
   const paths = loadRuntimeEnvironment({ root, env, readOnly: true })
   assert.equal(paths.dataDirectory, resolve(root, 'assets'))
   assert.equal(paths.stateDirectory, resolve(root, 'instance'))
@@ -78,8 +78,8 @@ test('config.env directory overrides are resolved before forwarding to children'
 test('all backend defaults follow the shared workspace, with explicit backend overrides', t => {
   const root = fixture(t)
   const paths = loadRuntimeEnvironment({ root, env: {
-    QWAUDIO_CONFIG_DIR: resolve(root, 'profile'),
-    QWAUDIO_WORKSPACE: resolve(root, 'projects'),
+    SIDEAUDIO_CONFIG_DIR: resolve(root, 'profile'),
+    SIDEAUDIO_WORKSPACE: resolve(root, 'projects'),
     QODER_WORKSPACE: resolve(root, 'qoder-project'),
   } })
   assert.equal(paths.openCodeWorkspace, paths.sharedWorkspace)
@@ -89,18 +89,18 @@ test('all backend defaults follow the shared workspace, with explicit backend ov
 })
 
 test('logs and PATH cache follow their own directory overrides', () => {
-  const env = { QWAUDIO_CONFIG_DIR: '/config', QWAUDIO_STATE_DIR: '/state', QWAUDIO_CACHE_DIR: '/cache' }
+  const env = { SIDEAUDIO_CONFIG_DIR: '/config', SIDEAUDIO_STATE_DIR: '/state', SIDEAUDIO_CACHE_DIR: '/cache' }
   assert.equal(defaultLogDirectory(env), resolve('/state/logs'))
   assert.equal(pathCacheFile(env), resolve('/cache/login-shell-path.json'))
-  assert.equal(defaultLogDirectory({ ...env, QWEN_AUDIO_LOG_DIR: '/logs' }), resolve('/logs'))
+  assert.equal(defaultLogDirectory({ ...env, SIDE_AUDIO_LOG_DIR: '/logs' }), resolve('/logs'))
 })
 
 test('a host state default never overrides explicit configuration', t => {
   const root = fixture(t)
   const configDir = resolve(root, 'config')
   mkdirSync(configDir)
-  writeFileSync(resolve(configDir, 'config.env'), 'QWAUDIO_STATE_DIR=chosen-state\n')
-  const paths = loadRuntimeEnvironment({ root, env: { QWAUDIO_CONFIG_DIR: configDir },
+  writeFileSync(resolve(configDir, 'config.env'), 'SIDEAUDIO_STATE_DIR=chosen-state\n')
+  const paths = loadRuntimeEnvironment({ root, env: { SIDEAUDIO_CONFIG_DIR: configDir },
     defaultStateDirectory: resolve(root, 'desktop-state'), readOnly: true })
   assert.equal(paths.stateDirectory, resolve(root, 'chosen-state'))
   assert.equal(resolveRuntimePaths({ env: {}, defaultStateDirectory: resolve(root, 'desktop') }).stateDirectory,
@@ -109,11 +109,11 @@ test('a host state default never overrides explicit configuration', t => {
 
 test('default directories do not leak between embedded profiles through the environment', t => {
   const root = fixture(t)
-  const env = { QWAUDIO_CONFIG_DIR: resolve(root, 'first') }
+  const env = { SIDEAUDIO_CONFIG_DIR: resolve(root, 'first') }
   loadRuntimeEnvironment({ root, env, readOnly: true })
-  assert.equal(env.QWAUDIO_DATA_DIR, undefined)
-  assert.equal(env.QWAUDIO_STATE_DIR, undefined)
-  env.QWAUDIO_CONFIG_DIR = resolve(root, 'second')
+  assert.equal(env.SIDEAUDIO_DATA_DIR, undefined)
+  assert.equal(env.SIDEAUDIO_STATE_DIR, undefined)
+  env.SIDEAUDIO_CONFIG_DIR = resolve(root, 'second')
   const next = loadRuntimeEnvironment({ root, env, readOnly: true })
   assert.equal(next.dataDirectory, resolve(root, 'second/data'))
   assert.equal(next.stateDirectory, resolve(root, 'second/state'))
@@ -125,7 +125,7 @@ test('startup neither reads nor migrates old memory and task locations', t => {
   mkdirSync(configDir)
   writeFileSync(resolve(configDir, 'MEMORY.md'), 'legacy memory')
   writeFileSync(resolve(configDir, 'tasks.json'), 'legacy tasks')
-  const paths = loadRuntimeEnvironment({ root, env: { QWAUDIO_CONFIG_DIR: configDir } })
+  const paths = loadRuntimeEnvironment({ root, env: { SIDEAUDIO_CONFIG_DIR: configDir } })
   assert.doesNotMatch(readFileSync(paths.frontendMemoryPath, 'utf8'), /legacy memory/)
   assert.equal(readFileSync(resolve(configDir, 'MEMORY.md'), 'utf8'), 'legacy memory')
   assert.equal(readFileSync(resolve(configDir, 'tasks.json'), 'utf8'), 'legacy tasks')
@@ -135,7 +135,7 @@ test('startup neither reads nor migrates old memory and task locations', t => {
 test('embedding hosts can specify directories without backend-specific settings', () => {
   assert.deepEqual(gatewayOptionsEnvironment({ configDir: '/config', dataDir: '/data',
     stateDir: '/state', cacheDir: '/cache', workspace: '/projects' }), {
-    QWAUDIO_CONFIG_DIR: '/config', QWAUDIO_DATA_DIR: '/data', QWAUDIO_STATE_DIR: '/state',
-    QWAUDIO_CACHE_DIR: '/cache', QWAUDIO_WORKSPACE: '/projects',
+    SIDEAUDIO_CONFIG_DIR: '/config', SIDEAUDIO_DATA_DIR: '/data', SIDEAUDIO_STATE_DIR: '/state',
+    SIDEAUDIO_CACHE_DIR: '/cache', SIDEAUDIO_WORKSPACE: '/projects',
   })
 })
