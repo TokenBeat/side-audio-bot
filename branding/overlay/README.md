@@ -26,6 +26,8 @@ tells you:
 
 ## News
 
+- **2026-09-16 · [v0.11.1](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.1)**
+  Adds the **StepFun stepaudio-2.5-realtime** model option (front-end voice only) and fixes **Bloub orb easter-egg animations**.
 - **2026-09-06 · [v0.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.0)**
   First official release of side-audio-bot, shipping the realtime voice runtime, desktop app, and backend Agent support. New on top: the brand-new **Bloub orb skin** (hot-applied appearance settings) and the **StepFun StepAudio realtime voice** frontend, switchable alongside the built-in DashScope frontend.
 
