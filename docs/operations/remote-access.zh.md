@@ -25,25 +25,25 @@ Client 始终使用连接码中的 WebSocket Endpoint 与设备 Token。网络�
 同一局域网内直接连接：
 
 ```bash
-qwenaudio gateway --lan
+sideaudio gateway --lan
 ```
 
 该模式将 Gateway 绑定到 `0.0.0.0`，但连接码会写入自动选择的物理网卡 IPv4，而不是
-不可连接的 `0.0.0.0`。需要后台常驻可执行 `qwenaudio gateway install --lan`，或配置
-`QWEN_AUDIO_GATEWAY_LAN=1`。若机器有多个物理网卡，可用
-`QWEN_AUDIO_GATEWAY_LAN_HOST=192.168.x.x` 明确指定地址。
+不可连接的 `0.0.0.0`。需要后台常驻可执行 `sideaudio gateway install --lan`，或配置
+`SIDE_AUDIO_GATEWAY_LAN=1`。若机器有多个物理网卡，可用
+`SIDE_AUDIO_GATEWAY_LAN_HOST=192.168.x.x` 明确指定地址。
 
 使用 Tailnet 前，先安装并登录官方 Tailscale。前台运行：
 
 ```bash
-qwenaudio gateway --tailnet
+sideaudio gateway --tailnet
 ```
 
 命令会等待 `tailscale serve` 输出私有 HTTPS 地址，并在 Gateway 退出时停止本次发布。
-需要后台常驻可执行 `qwenaudio gateway install --tailnet`，或写入 `config.env`：
+需要后台常驻可执行 `sideaudio gateway install --tailnet`，或写入 `config.env`：
 
 ```dotenv
-QWEN_AUDIO_GATEWAY_TAILNET=1
+SIDE_AUDIO_GATEWAY_TAILNET=1
 ```
 
 反向代理不是 Gateway 启动模式。代理与 Gateway 在同一台机器时，可继续使用默认本机模式；
@@ -51,7 +51,7 @@ QWEN_AUDIO_GATEWAY_TAILNET=1
 覆盖客户端使用的公开 Endpoint：
 
 ```bash
-qwenaudio gateway pair --endpoint https://voice.example.com --name "AI Passport"
+sideaudio gateway pair --endpoint https://voice.example.com --name "AI Passport"
 ```
 
 固定 IP 具备受信任的 IP 地址证书时，也可以直接填写 `https://<固定 IP>`。Endpoint 必须
@@ -70,21 +70,21 @@ Tailnet 只有在 `tailscale serve status --json` 确认私有 HTTPS 根路径�
 Endpoint 就绪后，在 Gateway 主机的另一个终端执行：
 
 ```bash
-qwenaudio gateway pair --name "AI Passport"
+sideaudio gateway pair --name "AI Passport"
 ```
 
 命令在网关主机直接签发一个独立、可撤销的设备 Token。二维码使用很短的
 `https://网关/c#凭证`（LAN 为 `http://IP/c#凭证`）链接，并将它作为唯一连接码：
 未安装客户端时扫码会打开 Gateway WebUI，已安装客户端也可以直接扫描或粘贴同一连接码。
-Gateway 不再生成或返回长 `qwaudio://connect#...` Deep Link。凭证只显示一次。
+Gateway 不再生成或返回长 `sideaudio://connect#...` Deep Link。凭证只显示一次。
 
 Desktop、Mobile 等客户端保存凭证后，认证、会话协商、语音、任务、历史与审批都使用同一条
 WebSocket 连接，不需要先调用 HTTPS 配对接口。浏览器扫码页会把 fragment 中的设备 Token
 一次性换成 HttpOnly Cookie；fragment 不会进入 HTTP 请求或访问日志。Endpoint 来自 LAN、
 Tailnet 还是 `pair --endpoint` 覆盖，不影响连接方式。
-使用 `qwenaudio gateway devices` 查看客户端，使用
-`qwenaudio gateway revoke <设备 ID>` 撤销设备。
-滚动升级期间，只有旧版客户端需要使用 `qwenaudio gateway pair --legacy`
+使用 `sideaudio gateway devices` 查看客户端，使用
+`sideaudio gateway revoke <设备 ID>` 撤销设备。
+滚动升级期间，只有旧版客户端需要使用 `sideaudio gateway pair --legacy`
 生成短时一次性配对码。
 
 桌面版在“设置 → 应用程序 → Gateway”粘贴完整连接码，点击“应用”即可保存并连接。
@@ -97,7 +97,7 @@ Tailnet 还是 `pair --endpoint` 覆盖，不影响连接方式。
 - 在客户端确认 Gateway 已连接，再检查语音前台状态；连接码导入成功不等于模型凭据有效。
 - 手机首次使用需允许麦克风权限。Tailscale 只解决网络可达性，不代替 Gateway 配对。
 - 第二个客户端接管后，原客户端断开是预期行为，不是 Gateway 退出。
-- 连接码泄露或需要换设备时，撤销旧设备并在 Gateway 主机重新执行 `qwenaudio gateway pair`。
+- 连接码泄露或需要换设备时，撤销旧设备并在 Gateway 主机重新执行 `sideaudio gateway pair`。
 - Tailnet 地址不可达时，先检查两端 Tailscale 在线且属于同一 Tailnet，再检查策略和 HTTPS 发布状态。
 
 客户端操作见[移动端](../getting-started/mobile.zh.md)与[桌面版](../desktop/overview.zh.md#远程连接)。
@@ -108,7 +108,7 @@ Tailnet 还是 `pair --endpoint` 覆盖，不影响连接方式。
 配置一个个人访问密钥：
 
 ```dotenv
-QWEN_AUDIO_GATEWAY_ACCESS_TOKEN=替换为至少24字符的随机密钥
+SIDE_AUDIO_GATEWAY_ACCESS_TOKEN=替换为至少24字符的随机密钥
 ```
 
 可用 `openssl rand -base64 32` 生成随机密钥。该密钥只用于 Gateway 访问认证，
@@ -120,18 +120,18 @@ Gateway 保持监听 loopback，并精确配置公开 Origin：
 
 ```dotenv
 HOST=127.0.0.1
-QWEN_AUDIO_AGENT_ALLOWED_ORIGINS=https://voice.example.com
+SIDE_AUDIO_BOT_ALLOWED_ORIGINS=https://voice.example.com
 ```
 
 例如，原生 TUI 可通过环境变量连接远程 Gateway，无需把密钥放进 URL：
 
 ```bash
-QWEN_AUDIO_AGENT_URL=https://voice.example.com \
-QWEN_AUDIO_GATEWAY_CLIENT_TOKEN="$ACCESS_TOKEN" \
-qwenaudio tui
+SIDE_AUDIO_BOT_URL=https://voice.example.com \
+SIDE_AUDIO_GATEWAY_CLIENT_TOKEN="$ACCESS_TOKEN" \
+sideaudio tui
 ```
 
-`qwenaudio gateway pair` 通过仅限本机的 `POST /api/access/devices` 直接签发设备连接码。
+`sideaudio gateway pair` 通过仅限本机的 `POST /api/access/devices` 直接签发设备连接码。
 设备可通过 `GET /api/access/devices` 列出，并通过 `DELETE /api/access/devices/:id` 撤销；
 撤销会立即关闭使用该凭证的活动 WSS。旧版短时配对码接口保留用于兼容，但新客户端不依赖它。
 
@@ -139,15 +139,15 @@ qwenaudio tui
 不同用户身份：
 
 ```dotenv
-QWEN_AUDIO_AGENT_ACCESS_KEYS='[{"token":"替换为足够长的随机密钥","owner_id":"user_alice","label":"Alice"}]'
+SIDE_AUDIO_BOT_ACCESS_KEYS='[{"token":"替换为足够长的随机密钥","owner_id":"user_alice","label":"Alice"}]'
 ```
 
 每个用户只有一个活动 Client 租约。第二个 Client 默认被拒绝；相同
 `client.instance_id` 的重连，或显式协商 `session.takeover` 的接管可以替换旧 Client。
 接管会关闭旧连接，并用租约代次阻止旧 Socket 的迟到消息生效。
 
-`QWEN_AUDIO_AGENT_AUTH_SECRET` 只用于签署本地和远程会话身份，不是远程访问密码，
+`SIDE_AUDIO_BOT_AUTH_SECRET` 只用于签署本地和远程会话身份，不是远程访问密码，
 绝不能发送给 Client。
 
-`QWEN_AUDIO_AGENT_ACCESS_TOKEN` 暂时保留为两种配置的旧别名。新配置应使用上面的宿主与
+`SIDE_AUDIO_BOT_ACCESS_TOKEN` 暂时保留为两种配置的旧别名。新配置应使用上面的宿主与
 Client 独立名称，避免把 Client 凭据误当作 Gateway 服务端配置。

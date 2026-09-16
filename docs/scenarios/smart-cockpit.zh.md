@@ -1,6 +1,6 @@
 # 智能座舱
 
-智能座舱是 qwen-audio-agent 的可运行场景示例。用户可以通过自然语音控制车辆、
+智能座舱是 side-audio-bot 的可运行场景示例。用户可以通过自然语音控制车辆、
 规划导航、播放音乐、查询天气、使用闪购和自定义技能，座舱界面会同步展示
 车辆与任务状态。
 
@@ -27,7 +27,7 @@
 
 ## 架构
 
-![智能座舱框架架构图](https://raw.githubusercontent.com/QwenAudio/qwen-audio-agent/main/examples/smart-cockpit/docs/framework-architecture.svg)
+![智能座舱框架架构图](https://raw.githubusercontent.com/TokenBeat/side-audio-bot/main/examples/smart-cockpit/docs/framework-architecture.svg)
 
 前台既负责实时对话，也能直接调用工具；长时间任务及配置为后台执行的业务交给
 座舱 Agent，期间前台仍可交流。Service 为前后台提供共享的场景状态、业务规则和工具执行环境。
@@ -35,12 +35,12 @@
 | 组件 | 示例实现 | 主要接口 |
 |---|---|---|
 | `client/` | React 座舱 UI + Browser Audio | GCP 7.0 / Gateway Client SDK |
-| `gateway/` | qwen-audio-agent Gateway + 前台 Realtime Agent | GCP / MCP / BackendPort |
+| `gateway/` | side-audio-bot Gateway + 前台 Realtime Agent | GCP / MCP / BackendPort |
 | `agent/` | Qwen3.8-Flash 驱动的后台 Agent | A2A 1.0 / MCP |
 | `service/` | 座舱状态、规则、工具和外部服务适配 | HTTP/SSE / MCP |
 
 完整边界和数据流见
-[`examples/smart-cockpit/docs/architecture.md`](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/docs/architecture.md)。
+[`examples/smart-cockpit/docs/architecture.md`](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/docs/architecture.md)。
 
 ## 工具调用
 
@@ -60,7 +60,7 @@ Service 工具为 1 个闪购。Realtime 基础合计 **44**：7 个 Gateway 内
 MCP 工具，尚未计入前台搜索等按能力启用的条件工具。场景方可通过
 `service/tools/surface-routing.json` 调整分流。
 
-后台另外通过公共 `qwen-audio-agent/web-retrieval` 工厂使用 `web_search`、`fetch_url`
+后台另外通过公共 `side-audio-bot/web-retrieval` 工厂使用 `web_search`、`fetch_url`
 两个框架检索工具；它们不计入 38 个场景工具，沿用现有 Provider 配置与安全网页读取防护。
 参见[联网搜索](../guides/web-search.zh.md)：默认免 Key 搜索是实验性兜底，不保证实录时能获取最新新闻。
 
@@ -87,10 +87,10 @@ npm run example:smart-cockpit
 - **工具放置时延：**同一套工具前台直调或后台委托，两侧都经过 Realtime 前台；
   “测试轮数（需工具）”不是任务完成步骤数，也不是有效计时样本数。
 
-成绩统一维护在[准确性结果页](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/bench/results/accuracy.md)，
-时延沿用[原始记录](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/bench/results/voice-surface-short-20260911.json.md)。
+成绩统一维护在[准确性结果页](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/bench/results/accuracy.md)，
+时延沿用[原始记录](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/bench/results/voice-surface-short-20260911.json.md)。
 统计口径、数据来源、限制及复现命令见
-[Benchmark 说明](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/bench/README.md)。
+[Benchmark 说明](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/bench/README.md)。
 
 ## 替换和扩展
 
@@ -101,14 +101,14 @@ npm run example:smart-cockpit
 | 增加场景工具、状态或外部服务 | `service/` 与 `service/tools/` |
 | 调整前台人设或后台任务语义 | `gateway/` |
 
-参考[组件替换指南](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/docs/replacing-components.md)
+参考[组件替换指南](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/docs/replacing-components.md)
 了解完整迁移方法。
 
 ## 作者与致谢
 
 - [Zhang Binbin](https://github.com/robin1001)：负责座舱领域能力的设计与扩展，包括导航、车控、
   音乐工具体系、前后台工具分流与评测用例。
-- [Li Xu](https://github.com/x-lixu)：负责基于 qwen-audio-agent 的场景架构与整体实现，包括客户端、
+- [Li Xu](https://github.com/x-lixu)：负责基于 side-audio-bot 的场景架构与整体实现，包括客户端、
   Gateway、后台 Agent 的边界，实时语音链路以及 A2A/MCP 接入。
 - [Peng Zhendong](https://github.com/pengzhendong)：提供原始座舱 UI 与视觉资源，包括整体界面设计、
   交互形态和相关视觉素材。

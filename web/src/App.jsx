@@ -113,13 +113,13 @@ function modelInputModeList(modes = []) {
 function getSessionId() {
   const requested = requestedSessionId(window.location.search)
   if (requested) {
-    localStorage.setItem('qwen-audio-agent.session', requested)
+    localStorage.setItem('side-audio-bot.session', requested)
     return requested
   }
-  const current = localStorage.getItem('qwen-audio-agent.session')
+  const current = localStorage.getItem('side-audio-bot.session')
   if (current) return current
   const created = crypto.randomUUID()
-  localStorage.setItem('qwen-audio-agent.session', created)
+  localStorage.setItem('side-audio-bot.session', created)
   return created
 }
 
@@ -274,7 +274,7 @@ export default function App() {
 
   useEffect(() => {
     if (!desktopOrbMode) return undefined
-    const bridge = window.qwenAudioAgentDesktop
+    const bridge = window.sideAudioBotDesktop
     if (typeof bridge?.onClientSettings !== 'function') return undefined
     return bridge.onClientSettings(settings => {
       setDesktopClientSettings(current => applyDesktopClientSettings(
@@ -290,7 +290,7 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    const persistSession = window.qwenAudioAgentDesktop?.setConversationSession
+    const persistSession = window.sideAudioBotDesktop?.setConversationSession
     if (!desktopOrbMode || typeof persistSession !== 'function') return
     void persistSession(sessionId).catch(() => {})
   }, [sessionId])
@@ -300,7 +300,7 @@ export default function App() {
   }, [])
 
   const changeDesktopSurface = useCallback(async mode => {
-    const bridge = window.qwenAudioAgentDesktop
+    const bridge = window.sideAudioBotDesktop
     if (!desktopOrbMode || !bridge?.setSurface) return
     try {
       const result = await bridge.setSurface(mode)
@@ -456,7 +456,7 @@ export default function App() {
       .catch(() => {
         if (cancelled) return
         setGatewayRuntime('failed')
-        setActivity(t('qwen-audio-agent Gateway 尚未连接'))
+        setActivity(t('side-audio-bot Gateway 尚未连接'))
         if (desktopOrbMode) refreshTimer = setTimeout(refresh, 1000)
       })
     refresh()
@@ -507,7 +507,7 @@ export default function App() {
       setActivity(t('正在听你说'))
     }
     if (event.type === 'gateway.disconnected') {
-      setActivity(t('qwen-audio-agent Gateway 已断开，正在重连'))
+      setActivity(t('side-audio-bot Gateway 已断开，正在重连'))
       setAgentTasks(items => items.map(task => (
         [
           'queued',
@@ -523,7 +523,7 @@ export default function App() {
     }
     void applyDesktopClientState(event, {
       desktop: desktopOrbMode,
-      bridge: window.qwenAudioAgentDesktop,
+      bridge: window.sideAudioBotDesktop,
       onLifecycle: setDesktopLifecycle,
       lastWakeAt: lastWakeAtRef.current,
     }).catch(() => {})
@@ -532,7 +532,7 @@ export default function App() {
       && event.state === 'detected'
       && desktopOrbMode
     ) {
-      window.qwenAudioAgentDesktop?.wake()
+      window.sideAudioBotDesktop?.wake()
     }
     if (event.type === 'session.recovered') {
       if (sessionIdRef.current !== sessionId) return
@@ -823,7 +823,7 @@ export default function App() {
   // Keep the microphone alive while the desktop orb is hidden and the wake
   // word is enabled, even if the user has muted the realtime conversation.
   // Microphone mute leaves output playback active; wake-word detection still
-  // needs a live input stream to resume on "你好千问" while hidden.
+  // needs a live input stream to resume on "你好煤球" while hidden.
   const voiceEnabledForWakeWord = (
     desktopOrbMode
     && desktopLifecycle === 'hidden'
@@ -850,11 +850,11 @@ export default function App() {
     },
     onClientAction: event => performDesktopClientAction(event, {
       desktop: desktopOrbMode,
-      bridge: window.qwenAudioAgentDesktop,
+      bridge: window.sideAudioBotDesktop,
       onLifecycle: setDesktopLifecycle,
     }),
     onWakeWordAudio: (audio, sampleRate) => {
-      window.qwenAudioAgentDesktop?.acceptWakeWordAudio(audio, sampleRate)
+      window.sideAudioBotDesktop?.acceptWakeWordAudio(audio, sampleRate)
     },
   })
   gatewayCommandsRef.current = voice
@@ -914,7 +914,7 @@ export default function App() {
 
   useEffect(() => {
     if (!desktopOrbMode) return undefined
-    window.qwenAudioAgentDesktop?.loadSurface?.()
+    window.sideAudioBotDesktop?.loadSurface?.()
       .then(result => setDesktopSurfaceMode(
         result?.mode === 'panel' ? 'panel' : 'orb',
       ))
@@ -924,14 +924,14 @@ export default function App() {
 
   useEffect(() => {
     if (!desktopOrbMode) return undefined
-    return window.qwenAudioAgentDesktop?.onTaskCardPlacement?.(
+    return window.sideAudioBotDesktop?.onTaskCardPlacement?.(
       setDesktopTaskLayout,
     )
   }, [])
 
   useEffect(() => {
     if (!desktopOrbMode) return undefined
-    window.qwenAudioAgentDesktop?.setTaskCardCount(
+    window.sideAudioBotDesktop?.setTaskCardCount(
       desktopSurfaceMode === 'panel'
         ? desktopCards.length
         : desktopTasksCollapsed ? 0 : desktopCards.length,
@@ -941,7 +941,7 @@ export default function App() {
 
   useEffect(() => {
     if (!desktopOrbMode) return undefined
-    return () => window.qwenAudioAgentDesktop?.setTaskCardCount(0)
+    return () => window.sideAudioBotDesktop?.setTaskCardCount(0)
   }, [])
   const ownershipLabel = voice.ownership.holder
     ? frontendLabel(voice.ownership.holder)
@@ -964,7 +964,7 @@ export default function App() {
 
   useEffect(() => {
     if (!desktopOrbMode) return undefined
-    const bridge = window.qwenAudioAgentDesktop
+    const bridge = window.sideAudioBotDesktop
     if (!bridge) return undefined
     const applyLifecycle = lifecycle => {
       if (!lifecycle?.state) return
@@ -1010,7 +1010,7 @@ export default function App() {
     // lifecycles separate prevents a slow/denied microphone from leaving the
     // orb permanently in `waking`, which would also disable inactivity sleep.
     if (desktopCanFinishWaking(voice.connectionState)) {
-      window.qwenAudioAgentDesktop?.lifecycleReady()
+      window.sideAudioBotDesktop?.lifecycleReady()
     }
   }, [
     desktopLifecycle,
@@ -1073,7 +1073,7 @@ export default function App() {
     taskDismissTimers.current.forEach(timer => clearTimeout(timer))
     taskDismissTimers.current.clear()
     const next = crypto.randomUUID()
-    localStorage.setItem('qwen-audio-agent.session', next)
+    localStorage.setItem('side-audio-bot.session', next)
     setSessionId(next)
     setMessages([])
     setAgentTasks([])
@@ -1114,7 +1114,7 @@ export default function App() {
   )
 
   const beginOrbDrag = event => {
-    const bridge = window.qwenAudioAgentDesktop
+    const bridge = window.sideAudioBotDesktop
     if (!desktopOrbMode || event.button !== 0 || !bridge) return
     event.currentTarget.setPointerCapture?.(event.pointerId)
     orbDrag.current = {
@@ -1134,7 +1134,7 @@ export default function App() {
       setOrbDragDirection(deltaX > 0 ? 'right' : 'left')
       drag.lastX = event.screenX
     }
-    window.qwenAudioAgentDesktop?.dragMove(event.screenX, event.screenY)
+    window.sideAudioBotDesktop?.dragMove(event.screenX, event.screenY)
   }
 
   const endOrbDrag = event => {
@@ -1143,7 +1143,7 @@ export default function App() {
     orbDrag.current = null
     setOrbDragging(false)
     setOrbDragDirection('')
-    window.qwenAudioAgentDesktop?.dragEnd()
+    window.sideAudioBotDesktop?.dragEnd()
   }
 
   const handleVoiceOrbClick = () => {
@@ -1168,7 +1168,7 @@ export default function App() {
           dragging: orbDragging,
           lifecycle: desktopLifecycle,
         })}
-        aria-label={`qwen-audio · ${voice.visualError || voiceConnectionError ? t('连接异常') : labelFor(orbVisualState)}`}
+        aria-label={`side-audio · ${voice.visualError || voiceConnectionError ? t('连接异常') : labelFor(orbVisualState)}`}
         title={
           desktopLifecycle === 'waking'
             ? t('正在显示悬浮球')
@@ -1255,7 +1255,7 @@ export default function App() {
           <button
             onClick={event => {
               event.stopPropagation()
-              window.qwenAudioAgentDesktop?.openSettings()
+              window.sideAudioBotDesktop?.openSettings()
             }}
             aria-label={t('设置')}
             title={t('设置')}
@@ -1276,7 +1276,7 @@ export default function App() {
             className="danger"
             onClick={event => {
               event.stopPropagation()
-              window.qwenAudioAgentDesktop?.quit()
+              window.sideAudioBotDesktop?.quit()
             }}
             aria-label={t('退出')}
             title={t('退出')}
@@ -1364,7 +1364,7 @@ export default function App() {
   >
     <label>{message.role === 'user'
       ? t('你')
-      : message.companion ? resultLabel(message) : 'qwen-audio'}</label>
+      : message.companion ? resultLabel(message) : 'side-audio'}</label>
     <MessageContent
       role={message.role}
       content={message.content}
@@ -1378,7 +1378,7 @@ export default function App() {
     desktopOrbMode ? ' desktop-conversation-panel' : ''
   }`}>
     <header>
-      <div className="brand"><span>V</span><div>qwen-audio-agent<small>REALTIME VOICE · LIVE</small></div></div>
+      <div className="brand"><span>V</span><div>side-audio-bot<small>REALTIME VOICE · LIVE</small></div></div>
       <a
         className="backend"
         href={backend.url || undefined}

@@ -2,10 +2,10 @@
 
 > Status: **Stable 6.0**<br>
 > Wire version: **7.0.0**<br>
-> Roadmap: [GitHub issue #251](https://github.com/QwenAudio/qwen-audio-agent/issues/251)<br>
+> Roadmap: [GitHub issue #251](https://github.com/TokenBeat/side-audio-bot/issues/251)<br>
 > Current implementation sources of truth: `shared/protocol/gateway-client-protocol.mjs`, `server/src/client/client-event-router.mjs`, `server/src/client/client-command-runtime.mjs`, `shared/protocol/realtime-events.mjs`, `shared/protocol/gateway-events.mjs`, and `server/src/core/gateway-protocol.mjs`
 
-This specification defines the implemented northbound boundary between qwen-audio-agent's Gateway and one active Client Environment per authenticated owner. Current first-party clients use the 6.0 wire protocol; health-contract 5.x aliases remain temporarily available for compatibility.
+This specification defines the implemented northbound boundary between side-audio-bot's Gateway and one active Client Environment per authenticated owner. Current first-party clients use the 6.0 wire protocol; health-contract 5.x aliases remain temporarily available for compatibility.
 
 ## 1. Product boundary
 
@@ -53,13 +53,13 @@ model context, Task events, or logs.
 - A native Client sends `Authorization: Bearer <token>` in the WebSocket handshake.
   A browser carries the same token through the WebSocket subprotocol.
 - Remote browser origins must be explicitly listed in
-  `QWEN_AUDIO_AGENT_ALLOWED_ORIGINS`. Remote deployments should use a trusted
+  `SIDE_AUDIO_BOT_ALLOWED_ORIGINS`. Remote deployments should use a trusted
   VPN or an HTTPS/WSS reverse proxy; direct public exposure is unsupported.
 - A configured token maps to one owner. The optional
-  `QWEN_AUDIO_AGENT_ACCESS_KEYS` JSON array can map independent tokens to
+  `SIDE_AUDIO_BOT_ACCESS_KEYS` JSON array can map independent tokens to
   independent owners without changing GCP.
 
-The local operator can run `qwenaudio gateway pair` against a running Gateway.
+The local operator can run `sideaudio gateway pair` against a running Gateway.
 It directly creates one short, browser-compatible connection code containing the exact Gateway
 endpoint and a revocable device token; the same code opens the WebUI. Device tokens are persisted
 only as SHA-256 hashes and plaintext credentials are shown once; a native remote Client does not need

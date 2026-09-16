@@ -1,9 +1,9 @@
-# Qwen Audio Agent VoiceMem Setup Example
+# Side Audio Bot VoiceMem Setup Example
 
 English | [中文](README_ZH.md)
 
 This runnable configuration example installs [VoiceMem](https://github.com/xzf-thu/VoiceMem)
-outside qwen-audio-agent and enables it through the framework's Node.js connector. Users can state
+outside side-audio-bot and enables it through the framework's Node.js connector. Users can state
 preferences and durable facts in natural conversation, start a new voice
 Session, and recall that information later.
 
@@ -33,7 +33,7 @@ session-boundary consolidation.
 
 | Component | Responsibility |
 |---|---|
-| qwen-audio-agent Gateway | Realtime conversation, memory tools, and the provider lifecycle. |
+| side-audio-bot Gateway | Realtime conversation, memory tools, and the provider lifecycle. |
 | [VoiceMem connector](../../server/src/memory/providers/voicemem/provider.mjs) | Framework-owned Node.js `MemoryProvider` interface, synchronous preference snapshot, user isolation, and process supervision. |
 | [Example Python sidecar](sidecar/server.py) | Example-owned JSONL process boundary around VoiceMem's public Python API. |
 | VoiceMem | Memory extraction, consolidation, structured storage, and semantic retrieval. |
@@ -88,7 +88,7 @@ OpenAI-compatible client and applies these defaults:
 
 ```dotenv
 DASHSCOPE_API_KEY=your_dashscope_api_key
-QWEN_AUDIO_MEMORY_PROVIDER=voicemem
+SIDE_AUDIO_MEMORY_PROVIDER=voicemem
 VOICEMEM_SIDECAR=/absolute/path/to/examples/voicemem/sidecar/server.py
 OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 VOICEMEM_CHAT_MODEL=qwen3.8-flash
@@ -146,7 +146,7 @@ waiting behind background work.
 
 ## Storage
 
-The isolated example stores state under `.qwen-audio/runtime/memory/voicemem/`:
+The isolated example stores state under `.side-audio/runtime/memory/voicemem/`:
 
 | Path | Content |
 |---|---|

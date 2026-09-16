@@ -30,7 +30,7 @@ module.exports = async function settingsSmoke({ BrowserWindow, ipcMain }) {
     },
   }
   for (const [name, handler] of Object.entries(handlers)) {
-    ipcMain.handle(`qwen-audio-agent:${name}`, handler)
+    ipcMain.handle(`side-audio-bot:${name}`, handler)
   }
   const window = new BrowserWindow({
     width: 650, height: 760, show: false,
@@ -97,6 +97,6 @@ module.exports = async function settingsSmoke({ BrowserWindow, ipcMain }) {
     throw new Error(`${error.message}\n${rendererMessages.join('\n')}`, { cause: error })
   } finally {
     window.destroy()
-    for (const name of Object.keys(handlers)) ipcMain.removeHandler(`qwen-audio-agent:${name}`)
+    for (const name of Object.keys(handlers)) ipcMain.removeHandler(`side-audio-bot:${name}`)
   }
 }

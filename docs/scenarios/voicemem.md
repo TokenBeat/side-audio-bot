@@ -1,6 +1,6 @@
 # VoiceMem
 
-qwen-audio-agent provides a Node.js connector for
+side-audio-bot provides a Node.js connector for
 [VoiceMem](https://github.com/xzf-thu/VoiceMem). This example installs VoiceMem and its Python
 sidecar outside the core framework, then configures the Gateway to use them. The voice frontend
 keeps the same `memory` tool and context semantics while VoiceMem owns storage, automatic
@@ -24,7 +24,7 @@ learning, consolidation, and semantic retrieval.
 
 | Component | Responsibility |
 |---|---|
-| qwen-audio-agent Gateway | Realtime conversation, memory tool, and provider lifecycle |
+| side-audio-bot Gateway | Realtime conversation, memory tool, and provider lifecycle |
 | Node.js connector | Framework-owned `MemoryProvider` interface, bounded synchronous snapshot, owner isolation, and process supervision |
 | Example Python sidecar | JSONL bridge to VoiceMem's public Python API |
 | VoiceMem | Extraction, consolidation, structured storage, and semantic retrieval |
@@ -64,7 +64,7 @@ cp examples/voicemem/.env.example \
 Set `DASHSCOPE_API_KEY` in `.env.local`, then run:
 
 ```dotenv
-QWEN_AUDIO_MEMORY_PROVIDER=voicemem
+SIDE_AUDIO_MEMORY_PROVIDER=voicemem
 VOICEMEM_SIDECAR=/absolute/path/to/examples/voicemem/sidecar/server.py
 VOICEMEM_INPUT_MODE=text
 ```
@@ -95,7 +95,7 @@ VoiceMem's separately distributed speaker model; keep it disabled when that mode
 
 The recommended Model Studio configuration uses `qwen3.8-flash` for extraction and consolidation,
 and `text-embedding-v4` with dimension `1024` for semantic retrieval. See the example's
-[complete setup guide](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/voicemem)
+[complete setup guide](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/voicemem)
 for all environment overrides.
 
 ## Try it
@@ -109,7 +109,7 @@ background and does not block foreground voice conversation.
 
 ## Storage
 
-The isolated example stores state under `.qwen-audio/runtime/memory/voicemem/`:
+The isolated example stores state under `.side-audio/runtime/memory/voicemem/`:
 
 | Path | Content |
 |---|---|

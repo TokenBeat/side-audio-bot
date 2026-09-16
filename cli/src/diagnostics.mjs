@@ -81,7 +81,7 @@ export async function collectDiagnostics({ options, environment, env = process.e
         realtime.configured ? '语音前台配置已填写；此检查不验证密钥额度' : '语音前台缺少必要配置')
     } catch { add('realtime.configuration', 'error', '语音前台配置无效') }
     try {
-      loadFrontendMcpConfiguration({ filePath: env.QWEN_AUDIO_FRONTEND_MCP_CONFIG || '', env })
+      loadFrontendMcpConfiguration({ filePath: env.SIDE_AUDIO_FRONTEND_MCP_CONFIG || '', env })
       add('mcp.configuration', 'ok', '前台 MCP 配置结构有效；未启动 MCP 进程')
     } catch { add('mcp.configuration', 'error', '前台 MCP 配置或引用的环境变量无效') }
     const journals = await inspectSessionJournals(resolve(environment.stateDirectory, 'sessions'))
@@ -116,10 +116,10 @@ export async function collectDiagnostics({ options, environment, env = process.e
       endpoint.state === 'ready' ? '远程发布已就绪；尚未验证客户端到此地址的连通性' : '远程发布尚未就绪')
   }
   const timeline = options.turnId && local
-    ? await readTurnTimeline(defaultLogDirectory({ ...env, QWAUDIO_STATE_DIR: environment.stateDirectory }), options.turnId)
+    ? await readTurnTimeline(defaultLogDirectory({ ...env, SIDEAUDIO_STATE_DIR: environment.stateDirectory }), options.turnId)
     : null
   if (options.turnId && !local) add('timeline', 'skipped', '远程 Gateway 的日志需在对应主机上检查')
-  return { schema: 'qwaudio.diagnostics/v1', ok: checks.every(check => check.status !== 'error'), checks, ...(timeline ? { timeline } : {}) }
+  return { schema: 'sideaudio.diagnostics/v1', ok: checks.every(check => check.status !== 'error'), checks, ...(timeline ? { timeline } : {}) }
 }
 
 export function formatDiagnostics(report) {

@@ -2,7 +2,7 @@
 
 ## 版本选择
 
-- **日常使用**：选择 [GitHub Release](https://github.com/QwenAudio/qwen-audio-agent/releases/latest)
+- **日常使用**：选择 [GitHub Release](https://github.com/TokenBeat/side-audio-bot/releases/latest)
   的桌面安装包，或 npm 最新正式版。
 - **测试新功能**：使用 GitHub `main` 源码。本文档跟随 `main`，不代表所有功能已包含在正式包中。
 - 移动端当前使用[开发测试包](mobile.zh.md#获取测试包)，测试时尽量使用同一批代码构建的 Gateway 与客户端。
@@ -12,11 +12,11 @@
 桌面安装包已包含 Gateway 及其运行环境，**不需要为了启动桌面版另装 Node.js 或 npm**。
 后台 Agent 的安装、登录与配置另见[后台 Agent](../backends/overview.zh.md)。
 
-从[正式发布页](https://github.com/QwenAudio/qwen-audio-agent/releases/latest)下载：
+从[正式发布页](https://github.com/TokenBeat/side-audio-bot/releases/latest)下载：
 
 | 平台 | 安装方式 |
 | --- | --- |
-| macOS | 打开 `.dmg`，将 Qwen Audio Agent 拖入“应用程序”，再打开应用。 |
+| macOS | 打开 `.dmg`，将 Side Audio Bot 拖入“应用程序”，再打开应用。 |
 | Windows | 运行 `.exe` 安装程序，按向导完成安装。 |
 
 首次使用见[桌面版指南](../desktop/overview.zh.md)。Linux 可[从源码构建](../desktop/overview.zh.md#安装)。
@@ -29,20 +29,20 @@
 安装正式版：
 
 ```bash
-npm install -g qwen-audio-agent
+npm install -g side-audio-bot
 ```
 
 安装 GitHub 最新开发代码：
 
 ```bash
-npm install -g git+https://github.com/QwenAudio/qwen-audio-agent.git
+npm install -g git+https://github.com/TokenBeat/side-audio-bot.git
 ```
 
 ## 从源码安装
 
 ```bash
-git clone https://github.com/QwenAudio/qwen-audio-agent.git
-cd qwen-audio-agent
+git clone https://github.com/TokenBeat/side-audio-bot.git
+cd side-audio-bot
 npm install
 npm run install:global
 ```
@@ -52,7 +52,7 @@ npm run install:global
 桌面版在设置页检查更新，或重新下载安装包。CLI 正式版升级：
 
 ```bash
-npm install -g qwen-audio-agent@latest
+npm install -g side-audio-bot@latest
 ```
 
 使用 GitHub 开发版时，重新执行上面的 GitHub 安装命令。升级后必须重启实际使用的
@@ -61,19 +61,19 @@ Gateway：[终端运行、后台服务、桌面版的方式不同](../operations
 ## 验证安装
 
 ```bash
-qwenaudio --version
-qwenaudio config
+sideaudio --version
+sideaudio config
 ```
 
 前者显示已安装版本，后者显示配置路径并在缺失时创建模板；它们不能验证 API Key 或模型连通性。
 配置完成后，按[快速开始](quickstart.zh.md)实际进行一次对话。
 
-开发版提供 `qwenaudio doctor` 只读诊断；`qwenaudio setup` 检查后台安装与接入组件，
+开发版提供 `sideaudio doctor` 只读诊断；`sideaudio setup` 检查后台安装与接入组件，
 不会验证登录或额度。见[故障排查](../operations/troubleshooting.zh.md)。
 
 ## 配置文件位置
 
-CLI 与桌面版默认共享 `~/.config/qwaudio/config.env`，运行时状态分别保存。
+CLI 与桌面版默认共享 `~/.config/sideaudio/config.env`，运行时状态分别保存。
 目录覆盖与数据说明见[配置总览](../configuration.zh.md#配置与数据目录)。
 
 ## 获取 DashScope API Key

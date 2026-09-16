@@ -1,7 +1,7 @@
 ---
 layout: home
 hero:
-  name: Qwen Audio Agent
+  name: Side Audio Bot
   text: Agent Presence
   tagline: An open framework combining realtime voice conversation with Agent execution, so conversation and work can happen together and results flow naturally into the dialogue.
   actions:
@@ -10,7 +10,7 @@ hero:
       link: /getting-started/quickstart
     - theme: alt
       text: Download Desktop
-      link: https://github.com/QwenAudio/qwen-audio-agent/releases/latest
+      link: https://github.com/TokenBeat/side-audio-bot/releases/latest
 features:
   - title: Use Desktop
     details: Open the app, configure it, and start talking. Keep the orb nearby or open the panel for text and attachments.

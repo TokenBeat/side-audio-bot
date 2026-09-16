@@ -10,7 +10,7 @@ TUI, without importing Realtime Provider or backend-protocol internals.
 
 ## Get Development Builds
 
-Open [GitHub Actions → Mobile](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/mobile.yml?query=branch%3Amain),
+Open [GitHub Actions → Mobile](https://github.com/TokenBeat/side-audio-bot/actions/workflows/mobile.yml?query=branch%3Amain),
 choose a successful `main` build, and download `mobile-android-debug-apk` under Artifacts.
 Unzip it, transfer the APK to an Android phone, and install it; allow this installation source if prompted.
 Actions downloads generally require signing in to GitHub. Expired artifacts require a new build
@@ -26,7 +26,7 @@ The pairing steps target development builds; prefer App and Gateway builds from 
    tailnet, then start the Gateway on the computer:
 
    ```bash
-   qwenaudio gateway --tailnet
+   sideaudio gateway --tailnet
    ```
 
    A server can instead use a trusted HTTPS reverse proxy. Start the Gateway with
@@ -34,10 +34,10 @@ The pairing steps target development builds; prefer App and Gateway builds from 
 2. Generate a connection code in another terminal on the computer:
 
    ```bash
-   qwenaudio gateway pair
+   sideaudio gateway pair
    ```
 
-   With a reverse proxy, run `qwenaudio gateway pair --endpoint https://voice.example.com`.
+   With a reverse proxy, run `sideaudio gateway pair --endpoint https://voice.example.com`.
 
    Scan the QR code or paste the connection code in Mobile. Desktop accepts the
    same connection code.
@@ -46,8 +46,8 @@ The pairing steps target development builds; prefer App and Gateway builds from 
 
 A connection code contains an independent, revocable device credential and is shown once on the
 Gateway host. Mobile imports it and uses the same WSS channel for authentication and business
-traffic without an HTTPS pairing request. Use `qwenaudio gateway devices` to
-inspect devices and `qwenaudio gateway revoke <device-id>` to revoke one.
+traffic without an HTTPS pairing request. Use `sideaudio gateway devices` to
+inspect devices and `sideaudio gateway revoke <device-id>` to revoke one.
 Private Tailnet endpoints are reachable only inside the same tailnet. Operators
 own certificates, reverse proxies, and firewalls for an external HTTPS endpoint.
 All connection methods use the same pairing and Client protocol.

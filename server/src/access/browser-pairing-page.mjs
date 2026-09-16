@@ -5,7 +5,7 @@ export function gatewayBrowserPairingPage() {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>Connect qwen-audio-agent</title>
+  <title>Connect side-audio-bot</title>
   <style>
     :root{font:16px/1.5 system-ui,sans-serif;color-scheme:light dark}body{margin:0;min-height:100vh;display:grid;place-items:center;background:Canvas;color:CanvasText}.card{width:min(32rem,calc(100% - 3rem));padding:2rem;border:1px solid color-mix(in srgb,CanvasText 18%,transparent);border-radius:1.25rem;box-shadow:0 1rem 3rem color-mix(in srgb,CanvasText 10%,transparent)}h1{margin:0 0 .75rem;font-size:1.4rem}p{margin:.5rem 0;color:color-mix(in srgb,CanvasText 72%,transparent)}button{margin-top:1rem;padding:.7rem 1rem;border:0;border-radius:.75rem;background:#1677ff;color:white;font:inherit;font-weight:600}button:disabled{opacity:.5}.error{color:#d33}</style>
 </head>

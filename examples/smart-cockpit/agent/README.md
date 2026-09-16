@@ -3,11 +3,11 @@
 This directory contains the example's real backend Agent. Qwen3.8-Flash interprets
 the task, chooses standard function tools, and can execute multiple tool calls
 in sequence. The implementation stays deliberately replaceable: it is not
-the qwen-audio-agent framework, and tool calls remain private to the backend.
+the side-audio-bot framework, and tool calls remain private to the backend.
 
 The service exposes an A2A 1.0 Agent Card and JSON-RPC endpoint. Its Agent loop
 discovers tools from the backend MCP surface and composes the framework's
-`web_search` and `fetch_url` through `qwen-audio-agent/web-retrieval`. By default
+`web_search` and `fetch_url` through `side-audio-bot/web-retrieval`. By default
 this is 1 Service tool (`flashbuy`) + 2 retrieval tools. The latter are not part
 of the Service's 38 scenario tools. Authoritative state and business rules remain
 in `../service`; no additional search server or research framework is introduced.
@@ -72,7 +72,7 @@ Environment variables:
 - `COCKPIT_AGENT_PORT`
 - `COCKPIT_SERVICE_ORIGIN`
 - `COCKPIT_ID`
-- `QWEN_AUDIO_WEB_SEARCH_PROVIDER` and the existing web-search MCP settings,
+- `SIDE_AUDIO_WEB_SEARCH_PROVIDER` and the existing web-search MCP settings,
   shared with the frontend configuration. The default keyless `so360` provider
   is an experimental fallback; choose and verify a suitable provider for a live
   demo. See [web-search configuration](../../../docs/guides/web-search.md).

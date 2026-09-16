@@ -19,9 +19,9 @@ understanding and answers but carries no behavioral authority. Content comes fro
   routing explicit long-term interaction directives to `USER.md` and stable facts or decisions
   to `MEMORY.md`. Automatic reconciliation uses DashScope's `qwen-flash` model by default (reusing
   `DASHSCOPE_API_KEY`); it is automatically disabled when no API Key is available, and
-  explicitly requested memory is unaffected. Set `QWEN_AUDIO_MEMORY_AUTO=off` to disable
-  it globally; `QWEN_AUDIO_MEMORY_MODEL`, `QWEN_AUDIO_MEMORY_BASE_URL`, and
-  `QWEN_AUDIO_MEMORY_API_KEY` can point to any OpenAI-compatible endpoint (including
+  explicitly requested memory is unaffected. Set `SIDE_AUDIO_MEMORY_AUTO=off` to disable
+  it globally; `SIDE_AUDIO_MEMORY_MODEL`, `SIDE_AUDIO_MEMORY_BASE_URL`, and
+  `SIDE_AUDIO_MEMORY_API_KEY` can point to any OpenAI-compatible endpoint (including
   local Ollama).
 
 Realtime and automatic reconciliation submit constrained Markdown changes through the same
@@ -58,7 +58,7 @@ See [Memory Provider](memory-provider.md#client-control-plane) for custom-client
 
 ## Session Digests and Recall (off by default)
 
-With `QWEN_AUDIO_SESSION_DIGEST=on`, each finished session records its topics and
+With `SIDE_AUDIO_SESSION_DIGEST=on`, each finished session records its topics and
 a gist of at most 50 characters, retained for 90 days, so the `recall` tool can
 answer "that thing we discussed the other day".
 
@@ -88,7 +88,7 @@ dependencies, and the small integration sidecar stay outside the core npm packag
 installing them through the setup example, select the connector in `config.env`:
 
 ```dotenv
-QWEN_AUDIO_MEMORY_PROVIDER=voicemem
+SIDE_AUDIO_MEMORY_PROVIDER=voicemem
 VOICEMEM_PYTHON=/absolute/path/to/python
 VOICEMEM_SIDECAR=/absolute/path/to/voicemem-sidecar.py
 VOICEMEM_INPUT_MODE=text
@@ -103,7 +103,7 @@ See the [VoiceMem setup example](../scenarios/voicemem.md) for external installa
 and recommended Model Studio configuration.
 
 Embedded hosts may also import `VoiceMemProvider` from
-`qwen-audio-agent/voicemem-provider` and inject it into `createGatewayApplication` explicitly.
+`side-audio-bot/voicemem-provider` and inject it into `createGatewayApplication` explicitly.
 
 ## Replacing the Memory Provider
 

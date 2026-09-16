@@ -2,7 +2,7 @@
 
 The voice frontend is the realtime speech model the Gateway connects to. All
 settings on this page live in the user configuration file
-(`~/.config/qwaudio/config.env`, see [Configuration](../configuration.md));
+(`~/.config/sideaudio/config.env`, see [Configuration](../configuration.md));
 [apply changes for your run mode](../operations/gateway.md#applying-configuration-changes): restart foreground runs, use `gateway restart` for an installed service, or click Apply in Desktop.
 
 ## Credentials and endpoint
@@ -30,7 +30,7 @@ audio input and text/audio output, but not conversation items, structured
 Function Calling, or input transcription. It is therefore a realtime voice-chat
 frontend rather than a frontend for backend-Agent orchestration.
 
-Frontend tools are configured separately: Web Search (`QWEN_AUDIO_WEB_SEARCH_PROVIDER`,
+Frontend tools are configured separately: Web Search (`SIDE_AUDIO_WEB_SEARCH_PROVIDER`,
 see [Configuration](../configuration.md)), and general chatbot tools through the
 [Frontend MCP client](../reference/frontend-mcp.md), the
 [Frontend OpenAPI adapter](../reference/frontend-openapi.md), or a
@@ -42,10 +42,10 @@ One Gateway owns one active Realtime model. The Desktop settings page can config
 for a locally owned Gateway, and the CLI provides the equivalent commands:
 
 ```bash
-qwenaudio config show
-qwenaudio config set --realtime-model qwen3.5-omni-flash-realtime
+sideaudio config show
+sideaudio config set --realtime-model qwen3.5-omni-flash-realtime
 # For an installed user background service only:
-qwenaudio gateway restart
+sideaudio gateway restart
 ```
 
 The exact supported IDs are:

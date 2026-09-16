@@ -231,7 +231,7 @@ test('rejecting one skill leaves the other skills alone', () => {
 })
 
 test('discardPending persists only pending evidence removal and preserves other owners and resolved slots', (t) => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-discard-pending-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-discard-pending-'))
   t.after(() => rmSync(directory, { recursive: true, force: true }))
   const filePath = join(directory, 'candidates.json')
   const pool = new PreferenceCandidatePool({ store: new PreferenceCandidateStore({ filePath }) })

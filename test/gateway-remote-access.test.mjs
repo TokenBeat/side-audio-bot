@@ -37,7 +37,7 @@ test('one short browser-compatible code carries a direct connection', () => {
   assert.equal(browserDecoded.connection.websocket_url, connection.websocket_url)
   assert.equal(browserDecoded.connection.access_token, connection.access_token)
   assert.equal(decodeGatewayDirectConnection(browser).access_token, connection.access_token)
-  assert.throws(() => decodeGatewayDirectConnection('qwaudio://connect#legacy'))
+  assert.throws(() => decodeGatewayDirectConnection('sideaudio://connect#legacy'))
   assert.throws(() => parseGatewayDirectConnection({
     ...connection,
     websocket_url: 'wss://voice.example.com/another-path',
@@ -118,7 +118,7 @@ test('pairing codes are versioned, bounded records without permanent credentials
   assert.equal(pairingCode.version, 1)
   assert.equal('access_token' in pairingCode, false)
   const appUrl = new URL(encodeGatewayPairingCode(pairingCode))
-  assert.equal(appUrl.protocol, 'qwaudio:')
+  assert.equal(appUrl.protocol, 'sideaudio:')
   assert.equal(appUrl.hostname, 'connect')
   assert.equal(appUrl.searchParams.get('v'), '1')
   assert.equal(appUrl.searchParams.get('gateway'), pairingCode.gateway_url)
@@ -134,7 +134,7 @@ test('pairing codes are versioned, bounded records without permanent credentials
   assert.deepEqual(decodeGatewayPairingCode(browser), pairingCode)
   assert.throws(
     () => decodeGatewayPairingCode(
-      `qwaudio://connect#${encodeURIComponent(JSON.stringify(pairingCode))}`,
+      `sideaudio://connect#${encodeURIComponent(JSON.stringify(pairingCode))}`,
     ),
     error => error.code === 'gateway_pairing_code_invalid',
   )

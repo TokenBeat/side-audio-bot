@@ -75,8 +75,8 @@ storage dependency. A host application can implement the public, versioned `Memo
 contract and inject it at the composition root:
 
 ```js
-import { MEMORY_PROVIDER_PROTOCOL_VERSION } from 'qwen-audio-agent/memory-provider'
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { MEMORY_PROVIDER_PROTOCOL_VERSION } from 'side-audio-bot/memory-provider'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 
 const memoryProvider = {
   describe: () => ({

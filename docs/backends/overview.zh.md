@@ -21,7 +21,7 @@
 | DeepSeek | 原生 ACP | 支持一键安装，需 DeepSeek API Key | `~/.agents/skills/` | ★★★★☆ |
 | Pi | 外部 ACP 适配 | 支持一键安装本体与适配器，需用户配置 | `~/.pi/agent/skills/` | ★★★★☆ |
 
-通过 `qwenaudio skill install` 安装一次标准 Agent Skill 后，会自动写入上表中声明
+通过 `sideaudio skill install` 安装一次标准 Agent Skill 后，会自动写入上表中声明
 skills.sh 安装器的后台用户级目录；MiniMax Code 的 Skill/Plugin 由自身管理。详见
 [技能管理](../configuration/backend.zh.md#技能管理)。
 
@@ -33,9 +33,9 @@ skills.sh 安装器的后台用户级目录；MiniMax Code 的 Skill/Plugin 由�
 未安装的后台 Agent 可用统一命令安装到本机：
 
 ```bash
-qwenaudio install codex
-qwenaudio install deepseek
-qwenaudio install minimax
+sideaudio install codex
+sideaudio install deepseek
+sideaudio install minimax
 ```
 
 安装前先检测，**只补齐缺失的组件**：本体缺失时装本体；
@@ -53,29 +53,29 @@ DeepSeek Harness 当前处于 Developer Preview。初步接入支持语音发起
 查看当前可用的后台 Agent：
 
 ```bash
-qwenaudio setup
+sideaudio setup
 ```
 
 该命令只检查，不会安装、下载或验证凭据。只检查指定后台或获取机器可读结果：
 
 ```bash
-qwenaudio setup --backend codex
-qwenaudio setup --json
+sideaudio setup --backend codex
+sideaudio setup --json
 ```
 
 ## 选择后台
 
 `AGENT_PROTOCOL` 是可选配置。留空时，Gateway 以仅前台模式运行，实时语音聊天
 保持可用；需要后台执行的请求会返回明确说明，不会创建任务或猜测执行结果。
-也可以在命令行中使用 `qwenaudio --backend none`，明确要求仅启动前台模式。
+也可以在命令行中使用 `sideaudio --backend none`，明确要求仅启动前台模式。
 
 ```dotenv
 AGENT_PROTOCOL=openclaw
 ```
 
 OpenCode 和 OpenClaw 支持自动下载安装；配置 `DASHSCOPE_API_KEY` 和
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` 后即可自动接入百炼模型。其他后台需先安装并完成
-原生配置，qwen-audio-agent 会复用其用户级模型、工具、MCP、Skill 和认证；MiniMax Code
+`SIDE_AUDIO_BOT_BACKEND_MODEL` 后即可自动接入百炼模型。其他后台需先安装并完成
+原生配置，side-audio-bot 会复用其用户级模型、工具、MCP、Skill 和认证；MiniMax Code
 的模型、Provider、认证和 Skill/Plugin 配置仍由其自身管理。
 
 使用其他支持 ACP stdio 的 Agent：
@@ -91,7 +91,7 @@ ACP_ARGS=["--acp"]
 
 ## 权限模式
 
-`QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` 可设为：
+`SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` 可设为：
 
 - `native`（默认）：权限由后台 Agent 自己判断和询问，Gateway 只负责原样转发。
 - `full`：启动时明确授予最高权限，后台可直接执行命令、读写文件，不再逐次确认。

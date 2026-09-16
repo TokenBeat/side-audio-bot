@@ -75,7 +75,7 @@ test('maps LightRAG raw chunks without leaking graph or transport objects', asyn
 })
 
 test('waits for asynchronous LightRAG ingestion and keeps track_id private', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-lightrag-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-lightrag-'))
   const filePath = join(directory, 'manual.md')
   writeFileSync(filePath, '# Manual')
   const transport = queuedFetch([
@@ -177,7 +177,7 @@ test('reports unavailable health and stops ingestion polling when aborted', asyn
     message: '无法连接 LightRAG 服务。',
   })
 
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-lightrag-abort-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-lightrag-abort-'))
   const filePath = join(directory, 'manual.md')
   writeFileSync(filePath, '# Manual')
   const transport = queuedFetch([

@@ -6,7 +6,7 @@ import {
 } from '@a2a-js/sdk'
 import { CockpitAgentExecutor } from '../executor.mjs'
 import { CockpitAgentTools } from '../tools.mjs'
-import { createWebRetrieval } from 'qwen-audio-agent/web-retrieval'
+import { createWebRetrieval } from 'side-audio-bot/web-retrieval'
 
 const TEMPERATURE_TOOL = {
   name: 'vehicle_temperature_control',

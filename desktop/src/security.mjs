@@ -14,7 +14,7 @@ export function validateAppUrl(value) {
   )
   if (url.protocol !== 'https:' && !localHttp) {
     throw new Error(
-      'QWEN_AUDIO_AGENT_URL must use HTTPS, or HTTP on localhost/a literal LAN IPv4 address.',
+      'SIDE_AUDIO_BOT_URL must use HTTPS, or HTTP on localhost/a literal LAN IPv4 address.',
     )
   }
   return url.origin

@@ -133,7 +133,7 @@ for (const encode of [encodeGatewayPairingCode, encodeGatewayBrowserPairingCode]
     assert.deepEqual(connection, { credential: 'private-device-token', connected: true })
     settings.save({ gatewayUrl: target.origin })
     const stored = readFileSync(settings.clientSettingsPath, 'utf8')
-    assert.doesNotMatch(stored, /one-use-secret|private-device-token|qwaudio:/)
+    assert.doesNotMatch(stored, /one-use-secret|private-device-token|sideaudio:/)
     assert.equal(settings.load().gatewayUrl, target.origin)
     await prepareDesktopGatewayConnection(parseDesktopGatewayInput(settings.load().gatewayUrl), options)
     assert.equal(calls.filter(call => call.url.endsWith('/pair')).length, 1)
@@ -146,7 +146,7 @@ test('rejects malformed or unsafe URLs instead of silently dropping a credential
     '', 'not a url', 'ftp://gateway.example', 'http://gateway.example',
     'https://user:password@gateway.example', 'https://gateway.example/?token=secret',
     'https://gateway.example/#secret', 'https://gateway.example/another-path',
-    'qwaudio://connect?gateway=https://gateway.example', 'https://gateway.example/c',
+    'sideaudio://connect?gateway=https://gateway.example', 'https://gateway.example/c',
   ]) {
     assert.throws(() => parseDesktopGatewayInput(value), undefined, value)
   }

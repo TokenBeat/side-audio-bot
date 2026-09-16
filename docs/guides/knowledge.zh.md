@@ -9,11 +9,11 @@
 在 Gateway 使用的 `config.env` 中设置：
 
 ```dotenv
-QWEN_AUDIO_DOMAIN_LIBRARY=on
+SIDE_AUDIO_DOMAIN_LIBRARY=on
 ```
 
 按[运行方式](../operations/gateway.zh.md#修改配置后生效)重启 Gateway。
-如显式关闭过 `QWEN_AUDIO_KNOWLEDGE_TOOL_ENABLED`，也需恢复为 `true`，
+如显式关闭过 `SIDE_AUDIO_KNOWLEDGE_TOOL_ENABLED`，也需恢复为 `true`，
 否则资料管理可用但前台没有检索工具。语音 Provider 需要支持工具调用。
 
 ## 2. 导入文档

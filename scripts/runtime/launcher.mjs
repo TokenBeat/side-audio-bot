@@ -68,7 +68,7 @@ export function findExecutable(command, {
 // ── env file loading (only needed when caller hasn't set ENV_LOADED=1) ───────
 
 export function loadDotEnv(root) {
-  if (process.env.QWEN_AUDIO_AGENT_ENV_LOADED === '1') return
+  if (process.env.SIDE_AUDIO_BOT_ENV_LOADED === '1') return
   const candidates = [
     resolve(root, '.env.local'),
     resolve(root, '.env'),
@@ -77,7 +77,7 @@ export function loadDotEnv(root) {
     try {
       accessSync(file, constants.R_OK)
       process.loadEnvFile(file)
-      process.env.QWEN_AUDIO_AGENT_ENV_LOADED = '1'
+      process.env.SIDE_AUDIO_BOT_ENV_LOADED = '1'
       break
     } catch {
       // file does not exist or cannot be read

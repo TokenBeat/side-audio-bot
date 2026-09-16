@@ -24,7 +24,7 @@ export function desktopBackendEnvironment({
   const result = {
     ...env,
     ...filtered,
-    QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY: '1',
+    SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY: '1',
   }
   if (result.Path && !result.PATH) result.PATH = result.Path
   delete result.Path

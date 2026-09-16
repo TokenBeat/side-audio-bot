@@ -141,7 +141,7 @@ test('allows the fixed mobile app origin only for an authenticated mobile device
   const req = {
     headers: {
       host: 'gateway.example.test',
-      origin: 'https://qwaudio.local',
+      origin: 'https://sideaudio.local',
     },
   }
   assert.equal(isAllowedOrigin(req, {

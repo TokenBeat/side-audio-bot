@@ -6,13 +6,13 @@ import { resolve } from 'node:path'
 // Configuration and durable user data are shared; each Gateway owns its state.
 // Nothing here reads configuration, creates directories or migrates old files.
 export function userConfigDirectory(env = process.env, homeDirectory = homedir()) {
-  if (env.QWAUDIO_CONFIG_DIR) return resolve(env.QWAUDIO_CONFIG_DIR)
-  return resolve(env.XDG_CONFIG_HOME || resolve(homeDirectory, '.config'), 'qwaudio')
+  if (env.SIDEAUDIO_CONFIG_DIR) return resolve(env.SIDEAUDIO_CONFIG_DIR)
+  return resolve(env.XDG_CONFIG_HOME || resolve(homeDirectory, '.config'), 'sideaudio')
 }
 
 export function defaultBackendWorkspace(dataDirectory, env = {}, baseDirectory = process.cwd()) {
-  return env.QWAUDIO_WORKSPACE
-    ? resolve(baseDirectory, env.QWAUDIO_WORKSPACE)
+  return env.SIDEAUDIO_WORKSPACE
+    ? resolve(baseDirectory, env.SIDEAUDIO_WORKSPACE)
     : resolve(dataDirectory, 'workspace')
 }
 
@@ -26,12 +26,12 @@ export function resolveRuntimePaths({
   const directory = (key, fallback) => env[key]
     ? resolve(baseDirectory, env[key])
     : resolve(configDirectory, fallback)
-  const dataDirectory = directory('QWAUDIO_DATA_DIR', 'data')
+  const dataDirectory = directory('SIDEAUDIO_DATA_DIR', 'data')
   return {
     configDirectory,
     dataDirectory,
-    stateDirectory: directory('QWAUDIO_STATE_DIR', defaultStateDirectory || 'state'),
-    cacheDirectory: directory('QWAUDIO_CACHE_DIR', 'cache'),
+    stateDirectory: directory('SIDEAUDIO_STATE_DIR', defaultStateDirectory || 'state'),
+    cacheDirectory: directory('SIDEAUDIO_CACHE_DIR', 'cache'),
     sharedWorkspace: defaultBackendWorkspace(dataDirectory, env, baseDirectory),
   }
 }
@@ -40,10 +40,10 @@ export function resolveRuntimePaths({
 // services which cannot inherit the shell that originally configured them.
 export function runtimePathEnvironment(paths) {
   return {
-    QWAUDIO_CONFIG_DIR: paths.configDirectory,
-    QWAUDIO_DATA_DIR: paths.dataDirectory,
-    QWAUDIO_STATE_DIR: paths.stateDirectory,
-    QWAUDIO_CACHE_DIR: paths.cacheDirectory,
-    QWAUDIO_WORKSPACE: paths.sharedWorkspace,
+    SIDEAUDIO_CONFIG_DIR: paths.configDirectory,
+    SIDEAUDIO_DATA_DIR: paths.dataDirectory,
+    SIDEAUDIO_STATE_DIR: paths.stateDirectory,
+    SIDEAUDIO_CACHE_DIR: paths.cacheDirectory,
+    SIDEAUDIO_WORKSPACE: paths.sharedWorkspace,
   }
 }

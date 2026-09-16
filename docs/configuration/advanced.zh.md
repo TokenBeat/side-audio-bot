@@ -10,12 +10,12 @@
 
 ## 本地日志
 
-qwen-audio-agent 使用统一的本地结构化日志，各自保存：
+side-audio-bot 使用统一的本地结构化日志，各自保存：
 
-- CLI 启动的 Gateway：`~/.config/qwaudio/state/logs/`。
-- 桌面代管的 Gateway：`~/.config/qwaudio/state/desktop/logs/`。
+- CLI 启动的 Gateway：`~/.config/sideaudio/state/logs/`。
+- 桌面代管的 Gateway：`~/.config/sideaudio/state/desktop/logs/`。
 - 桌面客户端：[应用数据目录](../configuration.zh.md#配置与数据目录)下的 `logs/`。
-- TUI：`~/.config/qwaudio/tui/logs/`。
+- TUI：`~/.config/sideaudio/tui/logs/`。
 
 以下是日志文件职责；并非所有文件都在同一个目录：
 
@@ -45,12 +45,12 @@ Authorization、Cookie、密码和 Secret 字段会在写入前脱敏；默认�
 
 | 设置 | 默认值 | 说明 |
 | --- | --- | --- |
-| `QWEN_AUDIO_LOG_LEVEL` | `info` | `trace`、`debug`、`info`、`warn`、`error`、`fatal` 或 `silent` |
-| `QWEN_AUDIO_LOG_DIR` | 实例状态目录下的 `logs` | 自定义日志目录 |
-| `QWEN_AUDIO_LOG_MAX_BYTES` | `10485760` | 单个日志文件的轮转阈值 |
-| `QWEN_AUDIO_LOG_MAX_FILES` | `5` | 当前文件和轮转文件的总保留数量 |
-| `QWEN_AUDIO_LOG_FILE` | `1` | 设为 `0` 禁用文件日志 |
-| `QWEN_AUDIO_LOG_CONSOLE` | `1` | 设为 `0` 禁用终端日志输出 |
+| `SIDE_AUDIO_LOG_LEVEL` | `info` | `trace`、`debug`、`info`、`warn`、`error`、`fatal` 或 `silent` |
+| `SIDE_AUDIO_LOG_DIR` | 实例状态目录下的 `logs` | 自定义日志目录 |
+| `SIDE_AUDIO_LOG_MAX_BYTES` | `10485760` | 单个日志文件的轮转阈值 |
+| `SIDE_AUDIO_LOG_MAX_FILES` | `5` | 当前文件和轮转文件的总保留数量 |
+| `SIDE_AUDIO_LOG_FILE` | `1` | 设为 `0` 禁用文件日志 |
+| `SIDE_AUDIO_LOG_CONSOLE` | `1` | 设为 `0` 禁用终端日志输出 |
 
 日志仅保存在本机，不会自动上传。反馈问题前可按需检查并分享相关片段；即使系统会
 自动脱敏，也应在发送前再次确认其中没有不希望公开的本机路径或业务信息。
@@ -60,15 +60,15 @@ Authorization、Cookie、密码和 Secret 字段会在写入前脱敏；默认�
 常见连接、音频和工具问题先看[故障排查](../operations/troubleshooting.zh.md)。
 
 ```bash
-qwenaudio doctor
-qwenaudio doctor --json
-qwenaudio doctor --turn <turnId>
+sideaudio doctor
+sideaudio doctor --json
+sideaudio doctor --turn <turnId>
 ```
 
 检查配置、Gateway、语音前台与 MCP 连接、后台就绪情况及会话文件，不启动模型、后台 Agent
 或麦克风，也不修改配置或修复文件。配置已填写不代表密钥额度有效；没有活动语音会话时，
 会明确提示连接尚未验证。远程检查可加 `--url https://<gateway>`，凭据使用
-`QWEN_AUDIO_GATEWAY_CLIENT_TOKEN`；不会用本机文件推断远程配置。
+`SIDE_AUDIO_GATEWAY_CLIENT_TOKEN`；不会用本机文件推断远程配置。
 
 `--turn` 按已有日志的 `turnId` 整理事件时间线，只显示标识与耗时，不包含对话正文、
 工具参数或结果。最多读取最近 5 个 Gateway 日志各 2 MiB、返回 500 条事件；日志被轮转、
@@ -109,17 +109,17 @@ OpenCode ACP 接入当前要求 OpenCode `1.18.0` 或更高版本。`auto` 模�
 版本时会使用固定兼容包，不修改用户安装；显式设置 `installed` 时直接报错。
 最低版本可由 `OPENCODE_MIN_VERSION` 覆盖，用于验证其他兼容版本。
 
-qwen-audio-agent 启动的 OpenCode 默认继承用户原有的全局配置（通常是
+side-audio-bot 启动的 OpenCode 默认继承用户原有的全局配置（通常是
 `~/.config/opencode/opencode.json`），因此已经安装的 MCP、Skill、权限、模型和
 插件可以继续使用。协调规则和可用的 Session 工具由 Gateway 通过后台接入层提供，不会额外安装或覆盖 OpenCode Agent。
 
-如果用户配置或第三方插件与 qwen-audio-agent 冲突，可以临时启用隔离模式排查：
+如果用户配置或第三方插件与 side-audio-bot 冲突，可以临时启用隔离模式排查：
 
 ```dotenv
-QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG=true
+SIDE_AUDIO_BOT_OPENCODE_ISOLATE_USER_CONFIG=true
 ```
 
-也可以通过 `QWEN_AUDIO_AGENT_OPENCODE_XDG_CONFIG_HOME` 指定另一套 OpenCode 用户
+也可以通过 `SIDE_AUDIO_BOT_OPENCODE_XDG_CONFIG_HOME` 指定另一套 OpenCode 用户
 配置目录。隔离后，原全局配置中的 MCP 和插件不会自动加载。
 
 
@@ -130,54 +130,54 @@ QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG=true
 | 设置 | 默认值 |
 | --- | --- |
 | `HOST` / `PORT` | `127.0.0.1` / `3101` |
-| `QWEN_AUDIO_AGENT_ALLOWED_ORIGINS` | 空；只允许 loopback |
-| `QWEN_AUDIO_GATEWAY_LAN` | 空；设为 `1` 后监听 LAN (`0.0.0.0`) |
-| `QWEN_AUDIO_GATEWAY_LAN_HOST` | 自动选择物理网卡 IPv4；可显式指定 LAN Endpoint 主机 |
-| `QWEN_AUDIO_GATEWAY_TAILNET` | 空；设为 `1` 后使用系统 Tailscale Serve |
-| `QWEN_AUDIO_TAILSCALE_BINARY` | 自动发现；系统 Tailscale CLI 的可选绝对路径 |
+| `SIDE_AUDIO_BOT_ALLOWED_ORIGINS` | 空；只允许 loopback |
+| `SIDE_AUDIO_GATEWAY_LAN` | 空；设为 `1` 后监听 LAN (`0.0.0.0`) |
+| `SIDE_AUDIO_GATEWAY_LAN_HOST` | 自动选择物理网卡 IPv4；可显式指定 LAN Endpoint 主机 |
+| `SIDE_AUDIO_GATEWAY_TAILNET` | 空；设为 `1` 后使用系统 Tailscale Serve |
+| `SIDE_AUDIO_TAILSCALE_BINARY` | 自动发现；系统 Tailscale CLI 的可选绝对路径 |
 | `OPENCODE_WORKSPACE` | 共享数据目录下的 `workspace` |
 | `QODER_WORKSPACE` | 共享数据目录下的 `workspace` |
-| `QWEN_AUDIO_AGENT_BACKEND_MODEL` | 空；显式值仅通过 ACP 标准覆盖 Session；OpenCode/OpenClaw 托管初始化除外 |
-| `QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` | `native` |
-| `QWEN_AUDIO_AGENT_ACP_FORWARD_ENV` | 空；仅供通用 ACP 显式传递的环境变量名，逗号分隔 |
+| `SIDE_AUDIO_BOT_BACKEND_MODEL` | 空；显式值仅通过 ACP 标准覆盖 Session；OpenCode/OpenClaw 托管初始化除外 |
+| `SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` | `native` |
+| `SIDE_AUDIO_BOT_ACP_FORWARD_ENV` | 空；仅供通用 ACP 显式传递的环境变量名，逗号分隔 |
 | `QWEN_AUDIO_REALTIME_MODEL` | `qwen-audio-3.0-realtime-plus` |
 | `QWEN_AUDIO_REALTIME_PROVIDER` | `dashscope` |
-| `QWEN_AUDIO_WEB_SEARCH_PROVIDER` | `so360`；可选 `bailian`、`bing`、`mcp` 或 `none` |
-| `QWEN_AUDIO_WEB_SEARCH_MCP_URL` | 空；`mcp` Provider 使用的自定义 Streamable HTTP 地址 |
-| `QWEN_AUDIO_WEB_SEARCH_MCP_TOKEN` | 显式选择 `bailian` 时复用 `DASHSCOPE_API_KEY`；自定义地址默认空 |
-| `QWEN_AUDIO_WEB_SEARCH_MCP_TOOL` | `bailian` 为 `bailian_web_search`，其他地址为 `web_search` |
-| `QWEN_AUDIO_SCHEDULE_TOOL_ENABLED` | `true`；设为 `false` 时隐藏 `schedule_reminder` |
-| `QWEN_AUDIO_WEB_TOOLS_ENABLED` | `true`；设为 `false` 时不向前台 Agent 提供 `web_search` 和 `fetch_url` |
-| `QWEN_AUDIO_KNOWLEDGE_TOOL_ENABLED` | `true`；设为 `false` 时隐藏 `knowledge` |
-| `QWEN_AUDIO_NOTES_TOOL_ENABLED` | `true`；设为 `false` 时隐藏 `notes` |
-| `QWEN_AUDIO_RECALL_TOOL_ENABLED` | `true`；设为 `false` 时隐藏 `recall` |
-| `QWEN_AUDIO_FRONTEND_PROFILE` | 空；轻量 Frontend Profile JSON 文件路径 |
-| `QWEN_AUDIO_FRONTEND_MCP_CONFIG` | 空；前台 MCP 版本化 JSON 文件的绝对路径 |
-| `QWEN_AUDIO_FRONTEND_OPENAPI_CONFIG` | 空；前台 OpenAPI 版本化 JSON 配置文件的绝对路径 |
+| `SIDE_AUDIO_WEB_SEARCH_PROVIDER` | `so360`；可选 `bailian`、`bing`、`mcp` 或 `none` |
+| `SIDE_AUDIO_WEB_SEARCH_MCP_URL` | 空；`mcp` Provider 使用的自定义 Streamable HTTP 地址 |
+| `SIDE_AUDIO_WEB_SEARCH_MCP_TOKEN` | 显式选择 `bailian` 时复用 `DASHSCOPE_API_KEY`；自定义地址默认空 |
+| `SIDE_AUDIO_WEB_SEARCH_MCP_TOOL` | `bailian` 为 `bailian_web_search`，其他地址为 `web_search` |
+| `SIDE_AUDIO_SCHEDULE_TOOL_ENABLED` | `true`；设为 `false` 时隐藏 `schedule_reminder` |
+| `SIDE_AUDIO_WEB_TOOLS_ENABLED` | `true`；设为 `false` 时不向前台 Agent 提供 `web_search` 和 `fetch_url` |
+| `SIDE_AUDIO_KNOWLEDGE_TOOL_ENABLED` | `true`；设为 `false` 时隐藏 `knowledge` |
+| `SIDE_AUDIO_NOTES_TOOL_ENABLED` | `true`；设为 `false` 时隐藏 `notes` |
+| `SIDE_AUDIO_RECALL_TOOL_ENABLED` | `true`；设为 `false` 时隐藏 `recall` |
+| `SIDE_AUDIO_FRONTEND_PROFILE` | 空；轻量 Frontend Profile JSON 文件路径 |
+| `SIDE_AUDIO_FRONTEND_MCP_CONFIG` | 空；前台 MCP 版本化 JSON 文件的绝对路径 |
+| `SIDE_AUDIO_FRONTEND_OPENAPI_CONFIG` | 空；前台 OpenAPI 版本化 JSON 配置文件的绝对路径 |
 | `QWEN_AUDIO_REALTIME_VOICE` | 空；Audio 模型族的可选覆盖，未设置时运行时使用 `longanqian` |
 | `QWEN_OMNI_REALTIME_VOICE` | 空；Omni 模型族的可选覆盖，未设置时运行时使用 `Ethan` |
 | `SPEECH_TO_SPEECH_REALTIME_URL` | `ws://127.0.0.1:8765/v1/realtime` |
 | `SPEECH_TO_SPEECH_AUTH_TOKEN` | 空；仅用于带 Bearer 认证的代理 |
 | `MINICPM_O_REALTIME_URL` | `ws://127.0.0.1:8006/v1/realtime?mode=audio` |
 | `MINICPM_O_AUTH_TOKEN` | 空；仅用于带 Bearer 认证的代理 |
-| `QWEN_AUDIO_AGENT_IDENTITY_MODE` | `personal` |
-| `QWEN_AUDIO_AGENT_TUI_AUDIO_MODE` | `half` |
+| `SIDE_AUDIO_BOT_IDENTITY_MODE` | `personal` |
+| `SIDE_AUDIO_BOT_TUI_AUDIO_MODE` | `half` |
 | `AGENT_TIMEOUT_MS` | `300000`；ACP 连接初始化与有界控制请求的超时，不限制正在执行的 Agent 轮次 |
 
 macOS TUI 的 CoreAudio 辅助程序默认编译到
-`~/Library/Caches/qwaudio/tui/macos-voice-io`，无需额外配置。它在播报期间
+`~/Library/Caches/sideaudio/tui/macos-voice-io`，无需额外配置。它在播报期间
 持续收音，只支持语音打断。
 Linux 和 Windows 的 minimal TUI 通过随包提供的 Python 音频桥接使用
 `sounddevice`/PortAudio 半双工；播放回复时麦克风会暂停，通过 `/interrupt`
 手动打断，播放结束或手动打断后恢复。
 
-Linux 和 Windows 可通过 `qwenaudio tui --audio-mode full` 或设置
-`QWEN_AUDIO_AGENT_TUI_AUDIO_MODE=full` 明确开启 PortAudio 全双工。此模式没有
+Linux 和 Windows 可通过 `sideaudio tui --audio-mode full` 或设置
+`SIDE_AUDIO_BOT_TUI_AUDIO_MODE=full` 明确开启 PortAudio 全双工。此模式没有
 回声消除，只支持直接说话打断；推荐佩戴耳机，避免扬声器回声触发误识别或误打断。
 macOS 始终使用 CoreAudio AEC 全双工，不受该选项影响。
 
 如果 PortAudio 全双工持续报告输入溢出、输出欠载或设备错误，请退出 TUI 并改用
-`qwenaudio tui --audio-mode half`。不同 Linux/Windows 声卡和蓝牙耳机对同时使用
+`sideaudio tui --audio-mode half`。不同 Linux/Windows 声卡和蓝牙耳机对同时使用
 不同采样率的输入、输出流支持程度不同，半双工是兼容性兜底。
 
 任务状态、通知重试、记忆容量与保留时间等运行参数同样使用内置默认值。只有明确

@@ -7,7 +7,7 @@ import {
 import { VersionedJsonStore } from '../core/versioned-json-store.mjs'
 import { gatewayWebSocketBearer } from '../../../shared/gateway/websocket-auth.mjs'
 
-const ACCESS_COOKIE = 'qwen_audio_agent_access'
+const ACCESS_COOKIE = 'side_audio_bot_access'
 const DEFAULT_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
 const DEFAULT_PAIRING_TTL_MS = 5 * 60 * 1000
 const DEVICE_LAST_USED_WRITE_INTERVAL_MS = 60 * 60 * 1000
@@ -117,10 +117,10 @@ export function parseGatewayAccessKeys({
     try {
       parsed = JSON.parse(source)
     } catch {
-      throw new Error('QWEN_AUDIO_AGENT_ACCESS_KEYS 必须是有效的 JSON 数组')
+      throw new Error('SIDE_AUDIO_BOT_ACCESS_KEYS 必须是有效的 JSON 数组')
     }
     if (!Array.isArray(parsed)) {
-      throw new Error('QWEN_AUDIO_AGENT_ACCESS_KEYS 必须是 JSON 数组')
+      throw new Error('SIDE_AUDIO_BOT_ACCESS_KEYS 必须是 JSON 数组')
     }
     for (const entry of parsed) {
       add(entry?.token, entry?.owner_id || entry?.ownerId, entry?.label)

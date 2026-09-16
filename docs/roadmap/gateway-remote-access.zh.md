@@ -2,7 +2,7 @@
 
 > 状态：执行中
 >
-> GitHub 跟踪：[#320](https://github.com/QwenAudio/qwen-audio-agent/issues/320)
+> GitHub 跟踪：[#320](https://github.com/TokenBeat/side-audio-bot/issues/320)
 >
 > 协议：[Gateway Client Protocol](../gateway-protocol.zh.md)
 
@@ -83,7 +83,7 @@ Connection Profile 只保存安全存储引用，不保存凭据正文：
 
 ```json
 {
-  "schema": "qwaudio.connection/v2",
+  "schema": "sideaudio.connection/v2",
   "websocket_url": "wss://gateway.example.ts.net/api/realtime",
   "device_id": "device_example",
   "credential_id": "device_key_example",

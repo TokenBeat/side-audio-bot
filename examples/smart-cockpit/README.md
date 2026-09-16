@@ -1,8 +1,8 @@
-# Qwen Audio Agent Smart Cockpit Example
+# Side Audio Bot Smart Cockpit Example
 
 English | [中文](README_ZH.md)
 
-This runnable smart-cockpit Agent example is built with qwen-audio-agent. Users
+This runnable smart-cockpit Agent example is built with side-audio-bot. Users
 can naturally control the vehicle, plan routes, play music, check the weather,
 place flash-buy orders, and use custom skills while the cockpit UI reflects
 vehicle and task state. It shows how to combine foreground realtime conversation,
@@ -202,7 +202,7 @@ delegating only steps that need backend capabilities. Change domain routing in
 [tool directory guide](service/tools/README.md) for extension details.
 
 The backend Agent additionally composes the framework's `web_search` and
-`fetch_url` through `qwen-audio-agent/web-retrieval`: 1 Service tool + 2 retrieval
+`fetch_url` through `side-audio-bot/web-retrieval`: 1 Service tool + 2 retrieval
 tools by default. These two retrieval tools are not part of the 38 scenario
 tools. Search uses the same provider configuration as the frontend; the default
 keyless search is an experimental fallback, so verify provider access before a
@@ -227,7 +227,7 @@ complete migration path.
   cockpit domain capabilities, including the navigation, vehicle-control and
   music tool suites, foreground/backend routing, and evaluation cases.
 - [Li Xu](https://github.com/x-lixu): designed and implemented the scenario on
-  qwen-audio-agent, including the client, Gateway and backend Agent boundaries,
+  side-audio-bot, including the client, Gateway and backend Agent boundaries,
   the realtime voice path, and the A2A/MCP integrations.
 - [Peng Zhendong](https://github.com/pengzhendong): provided the original
   cockpit UI and visual assets, including the overall interface design,

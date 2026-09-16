@@ -6,14 +6,14 @@ import test from 'node:test'
 import { createSettingsStore, SETTINGS_FILE, UI_STATE_FILE } from '../src/settings-store.mjs'
 
 function temporaryRoot(t) {
-  const root = mkdtempSync(join(tmpdir(), 'qwaudio-store-'))
+  const root = mkdtempSync(join(tmpdir(), 'sideaudio-store-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   return root
 }
 
 test('requires an explicit configDir', () => {
   assert.throws(() => createSettingsStore({}), error => {
-    assert.equal(error.code, 'QWAUDIO_GATEWAY_CONFIG_DIR_REQUIRED')
+    assert.equal(error.code, 'SIDEAUDIO_GATEWAY_CONFIG_DIR_REQUIRED')
     return true
   })
 })
@@ -145,10 +145,10 @@ test('the unified form persists Gateway settings and desktop preferences separat
   const gateway = readFileSync(store.path, 'utf8')
   const client = readFileSync(store.clientSettingsPath, 'utf8')
   assert.match(gateway, /DASHSCOPE_API_KEY=sk-local/)
-  assert.doesNotMatch(gateway, /ORB_|DESKTOP_|WAKE_|QWEN_AUDIO_AGENT_URL/)
+  assert.doesNotMatch(gateway, /ORB_|DESKTOP_|WAKE_|SIDE_AUDIO_BOT_URL/)
   assert.doesNotMatch(client, /DASHSCOPE|AGENT_PROTOCOL/)
-  assert.match(client, /QWEN_AUDIO_WAKE_WORD_ENABLED=true/)
-  assert.match(client, /QWEN_AUDIO_AGENT_URL=https:\/\/gateway.example/)
+  assert.match(client, /SIDE_AUDIO_WAKE_WORD_ENABLED=true/)
+  assert.match(client, /SIDE_AUDIO_BOT_URL=https:\/\/gateway.example/)
   assert.deepEqual(createSettingsStore({ ...options, env: {} }).load(), saved)
   if (process.platform !== 'win32') {
     assert.equal(statSync(store.clientSettingsPath).mode & 0o777, 0o600)

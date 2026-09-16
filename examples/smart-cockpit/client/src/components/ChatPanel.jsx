@@ -210,7 +210,7 @@ export default function ChatPanel({
       }}
     >
       <div className="chat-header" onPointerDown={handleDragStart}>
-        <span className="chat-title">Qwen Audio Agent Smart Cockpit · 调试</span>
+        <span className="chat-title">Side Audio Bot Smart Cockpit · 调试</span>
         <div className="chat-header-actions">
           <button
             className="chat-clear"

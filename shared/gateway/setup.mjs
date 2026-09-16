@@ -35,10 +35,10 @@ export function gatewaySetupStatus(env = process.env) {
 }
 
 // Refuses an unconfigured start with an actionable error instead of a
-// half-dead instance. `QWEN_AUDIO_ALLOW_UNCONFIGURED=1` opts out for
+// half-dead instance. `SIDE_AUDIO_ALLOW_UNCONFIGURED=1` opts out for
 // debugging and harness setups that never open a voice connection.
 export function assertGatewaySetup(env = process.env) {
-  if (String(env.QWEN_AUDIO_ALLOW_UNCONFIGURED || '') === '1') return
+  if (String(env.SIDE_AUDIO_ALLOW_UNCONFIGURED || '') === '1') return
   const status = gatewaySetupStatus(env)
   if (status.ready) return
   const error = new Error(
@@ -46,7 +46,7 @@ export function assertGatewaySetup(env = process.env) {
       status.missing.map(item => `${item.key}（${item.message}）`).join('；')
     }`,
   )
-  error.code = 'QWAUDIO_GATEWAY_SETUP_REQUIRED'
+  error.code = 'SIDEAUDIO_GATEWAY_SETUP_REQUIRED'
   error.missing = status.missing
   throw error
 }

@@ -65,8 +65,8 @@ test('routes mobile HTTP and WebSocket traffic through a secure remote profile',
     }
   }
   createGatewayWebSocket(gatewayRealtimeUrl('mobile-session'), {}, FakeWebSocket)
-  assert.equal(sockets[0].protocols[0], 'qwaudio.gcp.v6')
-  assert.match(sockets[0].protocols[1], /^qwaudio\.bearer\.qwa_/)
+  assert.equal(sockets[0].protocols[0], 'sideaudio.gcp.v6')
+  assert.match(sockets[0].protocols[1], /^sideaudio\.bearer\.qwa_/)
 })
 
 test('leaves browser client identity ephemeral unless a native host supplies one', () => {

@@ -1,6 +1,6 @@
 # Backend Adapter SDK
 
-The Backend Adapter SDK connects non-ACP action systems to qwen-audio-agent.
+The Backend Adapter SDK connects non-ACP action systems to side-audio-bot.
 A phone agent, hardware agent, HTTP service, or other task runtime implements
 the protocol-neutral `BackendPort`; voice interaction, the Task queue,
 authorization relay, and result delivery remain unchanged.
@@ -12,7 +12,7 @@ import {
   createBackendAgentHost,
   defineBackendAdapter,
   verifyBackendAdapterConformance,
-} from 'qwen-audio-agent/backend-adapter-sdk'
+} from 'side-audio-bot/backend-adapter-sdk'
 ```
 
 The SDK exports:
@@ -120,8 +120,8 @@ remote IDs remain private. Adapters without interactive input reject
 ## Gateway composition
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
-import { createBackendAgentHost } from 'qwen-audio-agent/backend-adapter-sdk'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
+import { createBackendAgentHost } from 'side-audio-bot/backend-adapter-sdk'
 import { MyBackendAdapter } from './my-backend.mjs'
 
 const agent = createBackendAgentHost(new MyBackendAdapter())

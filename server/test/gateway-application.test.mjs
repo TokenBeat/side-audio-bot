@@ -25,8 +25,8 @@ import { buildMemoryContext } from '../src/memory/context.mjs'
 function createTestGatewayApplication(options = {}) {
   // Application tests must never inherit the process-wide production task
   // state. Besides making tests order-dependent, that used to write fixture
-  // work into ~/.config/qwaudio and later announce it to real voice clients.
-  const runtimeDirectory = mkdtempSync(join(tmpdir(), 'qwaudio-app-runtime-'))
+  // work into ~/.config/sideaudio and later announce it to real voice clients.
+  const runtimeDirectory = mkdtempSync(join(tmpdir(), 'sideaudio-app-runtime-'))
   const taskStore = options.taskStore || new TaskStore({
     filePath: join(runtimeDirectory, 'tasks.json'),
   })
@@ -112,7 +112,7 @@ function disabledBackend() {
 
 for (const shareClientAssets of [false, true]) {
   test(`Gateway serves only explicitly shared client skins (enabled=${shareClientAssets})`, async t => {
-    const directory = mkdtempSync(join(tmpdir(), 'qwaudio-skin-ownership-'))
+    const directory = mkdtempSync(join(tmpdir(), 'sideaudio-skin-ownership-'))
     const dataDirectory = join(directory, 'gateway/data')
     const clientSkins = join(directory, 'client/skins')
     for (const root of [join(dataDirectory, 'skins'), clientSkins]) {
@@ -239,7 +239,7 @@ test('protects remote HTTP access and completes one-time device pairing', async 
     method: 'POST',
     headers: { Host: `127.0.0.1:${port}` },
     // The CLI issues a generic native-client credential; the Capacitor shell
-    // still uses its fixed qwaudio.local origin with that connection code.
+    // still uses its fixed sideaudio.local origin with that connection code.
     body: { device: { id: 'direct-phone', type: 'client', label: 'Direct Phone' } },
   })
   assert.equal(issued.status, 201)
@@ -303,7 +303,7 @@ test('protects remote HTTP access and completes one-time device pairing', async 
       headers: {
         Host: 'gateway.example.test',
         Authorization: `Bearer ${direct.access_token}`,
-        Origin: 'https://qwaudio.local',
+        Origin: 'https://sideaudio.local',
       },
     },
   )
@@ -383,7 +383,7 @@ test('protects remote HTTP access and completes one-time device pairing', async 
       headers: {
         Host: 'gateway.example.test',
         Authorization: `Bearer ${paired.body.access_token}`,
-        Origin: 'https://qwaudio.local',
+        Origin: 'https://sideaudio.local',
       },
     },
   )
@@ -906,7 +906,7 @@ test('lets a v2 provider exclusively own automatic memory learning', async () =>
 })
 
 test('selects the VoiceMem connector from Gateway configuration', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-gateway-voicemem-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-gateway-voicemem-'))
   const sidecarPath = join(directory, 'sidecar.py')
   writeFileSync(sidecarPath, '')
   const application = createGatewayApplication({
@@ -1057,7 +1057,7 @@ test('serves and edits frontend memory through the generic client control plane'
 })
 
 test('API memory edits refresh only the owning live Realtime session without reconnecting', { timeout: 10_000 }, async t => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-live-memory-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-live-memory-'))
   const ownerId = 'live-memory-owner'
   const sessionId = 'live-memory-session'
   const preference = '- 用户找餐厅时优先推荐川菜'
@@ -1300,7 +1300,7 @@ test('leaves the new memory modules unwired unless explicitly enabled', async ()
 
 // 资料库是独立开关，而且资料本体必须落在后端读得到的目录里。
 test('wires the domain library on its own switch and imports a local file', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-domain-wire-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-domain-wire-'))
   const source = join(directory, '手册.md')
   writeFileSync(source, '# 信用卡业务手册\n\n## 年费规则\n普卡首年免年费。\n')
   const documents = join(directory, 'workspace', 'domain')
@@ -1336,7 +1336,7 @@ test('wires the domain library on its own switch and imports a local file', asyn
 // 早已不存在的 coordinator 变量，运行时必抛 ReferenceError，而全套测试照样全绿。
 // 所以这条测试要真的把 runner 跑起来，不能只断言接线。
 test('converts a PDF through the BackendPort and ingests what the backend wrote', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-domain-convert-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-domain-convert-'))
   const source = join(directory, 'manual.pdf')
   writeFileSync(source, '%PDF-1.7 pretend this is a PDF')
   const documents = join(directory, 'workspace', 'domain')
@@ -1416,7 +1416,7 @@ test('keeps knowledge documents and index in shared data, independent of the wor
 
 // 会话摘要是独立开关：它不依赖偏好自更新，也不该被后者带起来。
 test('wires session digests and the summariser on their own switch', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-digest-wire-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-digest-wire-'))
   const app = createTestGatewayApplication({
     config: {
       ...config,
@@ -1460,7 +1460,7 @@ test('wires session digests and the summariser on their own switch', async () =>
 })
 
 test('wires rolling summary and preference learning when enabled', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-wire-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-wire-'))
   const app = createTestGatewayApplication({
     config: {
       ...config,

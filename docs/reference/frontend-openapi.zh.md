@@ -5,15 +5,15 @@ Realtime Provider，也不绑定后台 Agent。它与前台 MCP Client 复用同
 Source 和执行边界。
 
 OpenAPI 文档只描述 API；哪些 `operationId` 可以被模型看到，由独立的
-qwen-audio-agent 策略显式决定，不会自动开放整份 API。
+side-audio-bot 策略显式决定，不会自动开放整份 API。
 
 ## 配置
 
-用 `QWEN_AUDIO_FRONTEND_OPENAPI_CONFIG` 指定带版本的 JSON 配置文件。
+用 `SIDE_AUDIO_FRONTEND_OPENAPI_CONFIG` 指定带版本的 JSON 配置文件。
 OpenAPI 文档可以是 JSON 或 YAML，相对路径以该配置文件所在目录为基准：
 
 ```dotenv
-QWEN_AUDIO_FRONTEND_OPENAPI_CONFIG=/absolute/path/to/frontend-openapi.json
+SIDE_AUDIO_FRONTEND_OPENAPI_CONFIG=/absolute/path/to/frontend-openapi.json
 WEATHER_AUTHORIZATION=Bearer replace-me
 ```
 

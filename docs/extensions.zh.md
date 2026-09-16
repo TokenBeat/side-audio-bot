@@ -1,4 +1,4 @@
-# 扩展 qwen-audio-agent
+# 扩展 side-audio-bot
 
 本节面向开发者：通过已有扩展接口接入不同客户端、语音服务、后台 Agent 或知识系统。
 只想配置现成能力时，先看[配置总览](configuration.zh.md)与[快速开始](getting-started/quickstart.zh.md)。
@@ -50,7 +50,7 @@ Provider 注册表。
 [Memory Provider](reference/memory-provider.zh.md)
 
 VoiceMem 安装与配置示例：
-[`examples/voicemem`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/voicemem)。
+[`examples/voicemem`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/voicemem)。
 
 ## 客户端：自己构建
 

@@ -61,18 +61,18 @@ const DEFAULTS = {
 }
 
 const CLIENT_SETTING_KEYS = {
-  gatewayUrl: 'QWEN_AUDIO_AGENT_URL',
-  orbStyle: 'QWEN_AUDIO_ORB_STYLE',
-  orbSkin: 'QWEN_AUDIO_ORB_SKIN',
-  orbBloubShape: 'QWEN_AUDIO_ORB_BLOUB_SHAPE',
-  orbBloubColor: 'QWEN_AUDIO_ORB_BLOUB_COLOR',
-  orbBloubExpression: 'QWEN_AUDIO_ORB_BLOUB_EXPRESSION',
-  orbBloubAutoState: 'QWEN_AUDIO_ORB_BLOUB_AUTO_STATE',
-  orbBloubFixedShape: 'QWEN_AUDIO_ORB_BLOUB_FIXED_SHAPE',
-  autoHideSeconds: 'QWEN_AUDIO_DESKTOP_AUTO_HIDE_SECONDS',
-  wakeShortcut: 'QWEN_AUDIO_DESKTOP_WAKE_SHORTCUT',
-  wakeWordEnabled: 'QWEN_AUDIO_WAKE_WORD_ENABLED',
-  language: 'QWEN_AUDIO_DESKTOP_LANGUAGE',
+  gatewayUrl: 'SIDE_AUDIO_BOT_URL',
+  orbStyle: 'SIDE_AUDIO_ORB_STYLE',
+  orbSkin: 'SIDE_AUDIO_ORB_SKIN',
+  orbBloubShape: 'SIDE_AUDIO_ORB_BLOUB_SHAPE',
+  orbBloubColor: 'SIDE_AUDIO_ORB_BLOUB_COLOR',
+  orbBloubExpression: 'SIDE_AUDIO_ORB_BLOUB_EXPRESSION',
+  orbBloubAutoState: 'SIDE_AUDIO_ORB_BLOUB_AUTO_STATE',
+  orbBloubFixedShape: 'SIDE_AUDIO_ORB_BLOUB_FIXED_SHAPE',
+  autoHideSeconds: 'SIDE_AUDIO_DESKTOP_AUTO_HIDE_SECONDS',
+  wakeShortcut: 'SIDE_AUDIO_DESKTOP_WAKE_SHORTCUT',
+  wakeWordEnabled: 'SIDE_AUDIO_WAKE_WORD_ENABLED',
+  language: 'SIDE_AUDIO_DESKTOP_LANGUAGE',
 }
 
 const CLIENT_ENVIRONMENT_KEYS = new Set(Object.values(CLIENT_SETTING_KEYS))
@@ -99,11 +99,11 @@ const SETTING_KEYS = {
   speechToSpeechAuthToken: 'SPEECH_TO_SPEECH_AUTH_TOKEN',
   miniCpmORealtimeUrl: 'MINICPM_O_REALTIME_URL',
   miniCpmOAuthToken: 'MINICPM_O_AUTH_TOKEN',
-  backendModel: 'QWEN_AUDIO_AGENT_BACKEND_MODEL',
-  backendOwnership: 'QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP',
-  backendUrl: 'QWEN_AUDIO_AGENT_BACKEND_URL',
-  backendCredential: 'QWEN_AUDIO_AGENT_BACKEND_CREDENTIAL',
-  nodePath: 'QWEN_AUDIO_AGENT_NODE_PATH',
+  backendModel: 'SIDE_AUDIO_BOT_BACKEND_MODEL',
+  backendOwnership: 'SIDE_AUDIO_BOT_BACKEND_OWNERSHIP',
+  backendUrl: 'SIDE_AUDIO_BOT_BACKEND_URL',
+  backendCredential: 'SIDE_AUDIO_BOT_BACKEND_CREDENTIAL',
+  nodePath: 'SIDE_AUDIO_BOT_NODE_PATH',
 }
 
 function configured(values, key, fallback) {
@@ -217,8 +217,8 @@ export function parseSettings(content = '', fallback = {}) {
       baseUrlConfigured: Boolean(backendUrl),
       requestedOwnership: configured(
         values,
-        'QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP',
-        fallback.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP || '',
+        'SIDE_AUDIO_BOT_BACKEND_OWNERSHIP',
+        fallback.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP || '',
       ),
     })
     : DEFAULTS.backendOwnership
@@ -261,38 +261,38 @@ export function parseSettings(content = '', fallback = {}) {
   )
   const configuredOrbStyle = configured(
     values,
-    'QWEN_AUDIO_ORB_STYLE',
-    fallback.QWEN_AUDIO_ORB_STYLE || '',
+    'SIDE_AUDIO_ORB_STYLE',
+    fallback.SIDE_AUDIO_ORB_STYLE || '',
   )
   const configuredOrbSkin = configured(
     values,
-    'QWEN_AUDIO_ORB_SKIN',
-    fallback.QWEN_AUDIO_ORB_SKIN || '',
+    'SIDE_AUDIO_ORB_SKIN',
+    fallback.SIDE_AUDIO_ORB_SKIN || '',
   )
   const configuredBloubShape = configured(
     values,
-    'QWEN_AUDIO_ORB_BLOUB_SHAPE',
-    fallback.QWEN_AUDIO_ORB_BLOUB_SHAPE || '',
+    'SIDE_AUDIO_ORB_BLOUB_SHAPE',
+    fallback.SIDE_AUDIO_ORB_BLOUB_SHAPE || '',
   )
   const configuredBloubColor = configured(
     values,
-    'QWEN_AUDIO_ORB_BLOUB_COLOR',
-    fallback.QWEN_AUDIO_ORB_BLOUB_COLOR || '',
+    'SIDE_AUDIO_ORB_BLOUB_COLOR',
+    fallback.SIDE_AUDIO_ORB_BLOUB_COLOR || '',
   )
   const configuredBloubExpression = configured(
     values,
-    'QWEN_AUDIO_ORB_BLOUB_EXPRESSION',
-    fallback.QWEN_AUDIO_ORB_BLOUB_EXPRESSION || '',
+    'SIDE_AUDIO_ORB_BLOUB_EXPRESSION',
+    fallback.SIDE_AUDIO_ORB_BLOUB_EXPRESSION || '',
   )
   const configuredBloubAutoState = configured(
     values,
-    'QWEN_AUDIO_ORB_BLOUB_AUTO_STATE',
-    fallback.QWEN_AUDIO_ORB_BLOUB_AUTO_STATE ?? true,
+    'SIDE_AUDIO_ORB_BLOUB_AUTO_STATE',
+    fallback.SIDE_AUDIO_ORB_BLOUB_AUTO_STATE ?? true,
   )
   const configuredBloubFixedShape = configured(
     values,
-    'QWEN_AUDIO_ORB_BLOUB_FIXED_SHAPE',
-    fallback.QWEN_AUDIO_ORB_BLOUB_FIXED_SHAPE ?? false,
+    'SIDE_AUDIO_ORB_BLOUB_FIXED_SHAPE',
+    fallback.SIDE_AUDIO_ORB_BLOUB_FIXED_SHAPE ?? false,
   )
   const configuredS2sUrl = configured(
     values,
@@ -364,13 +364,13 @@ export function parseSettings(content = '', fallback = {}) {
   return {
     gatewayUrl: configured(
       values,
-      'QWEN_AUDIO_AGENT_URL',
-      fallback.QWEN_AUDIO_AGENT_URL || DEFAULTS.gatewayUrl,
+      'SIDE_AUDIO_BOT_URL',
+      fallback.SIDE_AUDIO_BOT_URL || DEFAULTS.gatewayUrl,
     ) || DEFAULTS.gatewayUrl,
     orbStyle: ['fluid', 'goo'].includes(
       String(configuredOrbStyle).toLowerCase(),
     ) ? String(configuredOrbStyle).toLowerCase() : DEFAULTS.orbStyle,
-    // 旧配置只有 QWEN_AUDIO_ORB_STYLE 时自动收敛为 orbSkin。
+    // 旧配置只有 SIDE_AUDIO_ORB_STYLE 时自动收敛为 orbSkin。
     orbSkin: resolveOrbSkinId({
       orbSkin: configuredOrbSkin,
       orbStyle: configuredOrbStyle,
@@ -382,25 +382,25 @@ export function parseSettings(content = '', fallback = {}) {
     orbBloubFixedShape: String(configuredBloubFixedShape).toLowerCase() === 'true',
     autoHideSeconds: cleanAutoHideSeconds(configured(
       values,
-      'QWEN_AUDIO_DESKTOP_AUTO_HIDE_SECONDS',
+      'SIDE_AUDIO_DESKTOP_AUTO_HIDE_SECONDS',
       configured(
         values,
-        'QWEN_AUDIO_DESKTOP_AUTO_SLEEP_SECONDS',
-        fallback.QWEN_AUDIO_DESKTOP_AUTO_HIDE_SECONDS
-          ?? fallback.QWEN_AUDIO_DESKTOP_AUTO_SLEEP_SECONDS
+        'SIDE_AUDIO_DESKTOP_AUTO_SLEEP_SECONDS',
+        fallback.SIDE_AUDIO_DESKTOP_AUTO_HIDE_SECONDS
+          ?? fallback.SIDE_AUDIO_DESKTOP_AUTO_SLEEP_SECONDS
           ?? DEFAULTS.autoHideSeconds,
       ),
     )),
     wakeShortcut: cleanWakeShortcut(configured(
       values,
-      'QWEN_AUDIO_DESKTOP_WAKE_SHORTCUT',
-      fallback.QWEN_AUDIO_DESKTOP_WAKE_SHORTCUT ?? DEFAULTS.wakeShortcut,
+      'SIDE_AUDIO_DESKTOP_WAKE_SHORTCUT',
+      fallback.SIDE_AUDIO_DESKTOP_WAKE_SHORTCUT ?? DEFAULTS.wakeShortcut,
     )),
     wakeWordEnabled: String(
       configured(
         values,
-        'QWEN_AUDIO_WAKE_WORD_ENABLED',
-        fallback.QWEN_AUDIO_WAKE_WORD_ENABLED || '',
+        'SIDE_AUDIO_WAKE_WORD_ENABLED',
+        fallback.SIDE_AUDIO_WAKE_WORD_ENABLED || '',
       ),
     ).toLowerCase() === 'true',
     dashscopeApiKey: String(configuredApiKey || '').trim(),
@@ -432,21 +432,21 @@ export function parseSettings(content = '', fallback = {}) {
     miniCpmOAuthToken: String(configuredMiniCpmOToken || '').trim(),
     backendModel: String(configured(
       values,
-      'QWEN_AUDIO_AGENT_BACKEND_MODEL',
-      fallback.QWEN_AUDIO_AGENT_BACKEND_MODEL || DEFAULTS.backendModel,
+      'SIDE_AUDIO_BOT_BACKEND_MODEL',
+      fallback.SIDE_AUDIO_BOT_BACKEND_MODEL || DEFAULTS.backendModel,
     ) || '').trim(),
     backendOwnership,
     backendUrl,
     backendCredential,
     nodePath: String(configured(
       values,
-      'QWEN_AUDIO_AGENT_NODE_PATH',
-      fallback.QWEN_AUDIO_AGENT_NODE_PATH || DEFAULTS.nodePath,
+      'SIDE_AUDIO_BOT_NODE_PATH',
+      fallback.SIDE_AUDIO_BOT_NODE_PATH || DEFAULTS.nodePath,
     ) || '').trim(),
     language: normalizeDesktopLanguage(configured(
       values,
-      'QWEN_AUDIO_DESKTOP_LANGUAGE',
-      fallback.QWEN_AUDIO_DESKTOP_LANGUAGE || DEFAULTS.language,
+      'SIDE_AUDIO_DESKTOP_LANGUAGE',
+      fallback.SIDE_AUDIO_DESKTOP_LANGUAGE || DEFAULTS.language,
     )),
   }
 }
@@ -681,8 +681,8 @@ export function updateSettingsContent(content = '', settings = {}, { scope = 'al
   // Legacy keys that were merged into auto-hide. Drop them so the saved
   // config no longer carries a divergent sleep timeout.
   const legacy = new Set([
-    'QWEN_AUDIO_SLEEP_TIMEOUT_SECONDS',
-    'QWEN_AUDIO_DESKTOP_AUTO_SLEEP_SECONDS',
+    'SIDE_AUDIO_SLEEP_TIMEOUT_SECONDS',
+    'SIDE_AUDIO_DESKTOP_AUTO_SLEEP_SECONDS',
   ])
   const seen = new Set()
   const lines = content.split(/\r?\n/).map(line => {
