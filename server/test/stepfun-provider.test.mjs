@@ -50,7 +50,6 @@ test('builds a StepFun session with the standard frontend contract', t => {
       'cancel_agent_task',
       'get_agent_task_status',
       'get_current_time',
-      'memory',
       'notes',
     ],
   )
@@ -73,10 +72,23 @@ test('resolves StepFun model profiles and their session defaults', () => {
   assert.equal(primary.modelCapabilities.functionCalling, true)
   assert.deepEqual(primary.sessionDefaults.turnDetection, { type: 'server_vad' })
 
+  // stepaudio-2.5-realtime 实测工具调用遵循度差，仅作纯前台语音选项。
+  const frontendOnly = resolveStepFunRealtimeModelProfile('stepaudio-2.5-realtime')
+  assert.equal(frontendOnly.label, 'StepAudio 2.5 Realtime（仅前台语音）')
+  assert.equal(frontendOnly.modelCapabilities.functionCalling, false)
+  // 默认音色取自官方 Step Plan 文档示例。
+  assert.equal(frontendOnly.sessionDefaults.voice, 'linjiajiejie')
+
   const backup = resolveStepFunRealtimeModelProfile('step-1o-audio')
   assert.equal(backup.label, 'Step 1o Audio')
   // step-1o-audio 无公开预置音色列表，留空时不下发 voice 字段。
   assert.equal(backup.sessionDefaults.voice, null)
+})
+
+test('omits tools from the stepaudio-2.5-realtime session', t => {
+  withStepFunConfig(t, { model: 'stepaudio-2.5-realtime' })
+  const session = stepfun.buildSession({ configured: false, agentContext: {} })
+  assert.equal('tools' in session, false)
 })
 
 test('omits the session voice when the resolved profile has none', t => {
@@ -160,7 +172,7 @@ test('publishes the StepFun provider in the realtime catalog', t => {
   assert.equal(active.modelProfile.id, DEFAULT_STEPFUN_REALTIME_MODEL)
   assert.deepEqual(
     active.modelCatalog.map(profile => profile.id),
-    ['step-audio-2', 'step-1o-audio'],
+    ['step-audio-2', 'step-1o-audio', 'stepaudio-2.5-realtime'],
   )
   assert.ok(
     active.providers.some(provider => provider.key === 'stepfun'),

@@ -110,6 +110,11 @@ const STEPFUN_MODEL_CAPABILITIES = Object.freeze({
   textInput: true, audioInput: true, imageInput: false, videoInput: false,
   textOutput: true, audioOutput: true, functionCalling: true,
 })
+// stepaudio-2.5-realtime：能力同上但无可靠工具调用（见顶部注释）。
+const STEPFUN_2_5_MODEL_CAPABILITIES = Object.freeze({
+  textInput: true, audioInput: true, imageInput: false, videoInput: false,
+  textOutput: true, audioOutput: true, functionCalling: false,
+})
 const STEPFUN_TRANSPORT_CAPABILITIES = Object.freeze({
   textInput: true, audioInput: true, imageInput: false,
   imageBufferInput: false,
@@ -121,6 +126,11 @@ const STEPFUN_SESSION_DEFAULTS = Object.freeze({
 // step-1o-audio 无公开预置音色列表，留空使用服务端默认音色。
 const STEP_1O_SESSION_DEFAULTS = Object.freeze({
   voice: null,
+  turnDetection: Object.freeze({ type: 'server_vad' }),
+})
+// stepaudio-2.5-realtime 音色取自官方 Step Plan 文档示例（linjiajiejie）。
+const STEP_2_5_SESSION_DEFAULTS = Object.freeze({
+  voice: 'linjiajiejie',
   turnDetection: Object.freeze({ type: 'server_vad' }),
 })
 
@@ -139,6 +149,14 @@ export const STEPFUN_REALTIME_MODEL_PROFILES = Object.freeze([
     family: 'stepaudio',
     sessionDefaults: STEP_1O_SESSION_DEFAULTS,
     modelCapabilities: STEPFUN_MODEL_CAPABILITIES,
+    transportCapabilities: STEPFUN_TRANSPORT_CAPABILITIES,
+  }),
+  Object.freeze({
+    id: 'stepaudio-2.5-realtime',
+    label: 'StepAudio 2.5 Realtime（仅前台语音）',
+    family: 'stepaudio',
+    sessionDefaults: STEP_2_5_SESSION_DEFAULTS,
+    modelCapabilities: STEPFUN_2_5_MODEL_CAPABILITIES,
     transportCapabilities: STEPFUN_TRANSPORT_CAPABILITIES,
   }),
 ])
