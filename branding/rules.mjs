@@ -84,6 +84,7 @@ export const rules = [
   // 测试临时目录前缀（上游新增）
   { from: 'qwen-backend-runtime-', to: 'sideaudio-backend-runtime-' },
   { from: 'qwen-cockpit-', to: 'sideaudio-cockpit-' },
+  { from: 'qwen-temperature-skills-', to: 'sideaudio-temperature-skills-' },
 ];
 
 // 必须原样保留的片段（与 REBRAND.md §2.2 的"未替换"清单一一对应）。
