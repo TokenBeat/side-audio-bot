@@ -21,7 +21,6 @@ export {
   CANCEL_AGENT_TASK_TOOL_NAME,
   GET_AGENT_TASK_STATUS_TOOL_NAME,
   GET_CURRENT_TIME_TOOL_NAME,
-  MEMORY_TOOL_NAME,
   NOTES_TOOL_NAME,
   RESPOND_PERMISSION_TOOL_NAME,
   ENTER_SLEEP_TOOL_NAME,
@@ -29,7 +28,7 @@ export {
   frontendToolRegistry,
   frontendTools,
   buildFrontendInstructions,
-} from './frontend-tools.mjs'
+} from '../frontend/frontend-tools.mjs'
 
 // Re-export registry symbols for backward compatibility.
 export {
@@ -523,8 +522,12 @@ export class RealtimeFrontend {
       injection.response.instructions = String(instructions)
     }
     let contextInjected = false
+    if (contextTiming === 'immediate' && injectContext) {
+      await this.createConversationItem(injection.item)
+      contextInjected = true
+    }
     if (route === 'context') {
-      if (injectContext) {
+      if (injectContext && !contextInjected) {
         await this.enqueueAction(async () => {
           await this.createConversationItem(injection.item)
           contextInjected = true
@@ -535,10 +538,6 @@ export class RealtimeFrontend {
         contextInjected,
         route,
       }
-    }
-    if (contextTiming === 'immediate' && injectContext) {
-      await this.createConversationItem(injection.item)
-      contextInjected = true
     }
     const outcome = await this.enqueueResponse(origin, context, async () => {
       if (shouldRespond && !shouldRespond()) return false
