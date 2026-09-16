@@ -312,7 +312,9 @@ export default function App() {
   }, [noteInteraction])
 
   const triggerSpriteAnimation = useCallback((eventName, { priority = false } = {}) => {
-    if (!desktopOrbMode || isBuiltinOrbSkin(orbSkinId)) return
+    // bloub-bot 是内置皮肤但自带彩蛋动画（唤醒孵化/悬停爆开），同样要放行。
+    if (!desktopOrbMode) return
+    if (isBuiltinOrbSkin(orbSkinId) && orbSkinId !== 'bloub-bot') return
     const name = spriteAnimationForEvent(eventName)
     if (!name) return
     spriteAnimationCueId.current += 1

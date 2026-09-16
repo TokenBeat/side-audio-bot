@@ -22,9 +22,10 @@ export function bloubStateForOrbState({
   if (dragDirection === 'left' || dragDirection === 'right') {
     return 'comet'
   }
-  if (cue?.name === 'jumping') return 'burst'
-  // 唤醒彩蛋：从休眠里醒来时先做一颗蛋（egg），再孵化回正常形态。
-  if (cue?.name === 'hatching') return 'egg'
+  // 上游彩蛋管线把 wake/ready/task.completed/hover 等事件统一映射成
+  // 'jumping' cue（spriteAnimationForEvent），此处无法区分原始事件：
+  // 唤醒瞬间（waking）播蛋孵化，其余（悬停/任务完成/就绪）播 burst 庆祝。
+  if (cue?.name === 'jumping') return state === 'waking' ? 'egg' : 'burst'
   // 工作态周期彩蛋：球变六边形再复原，增加画面节奏。
   if (cue?.name === 'hexagon') return 'hexagon'
   switch (state) {
@@ -39,6 +40,8 @@ export function bloubStateForOrbState({
     case 'working':
       return 'orbit'
     case 'attention':
+      // 上游已移除 attention 状态（授权等待不再占用动画态），
+      // notify 映射保留备用，当前不会被仲裁器触发。
       return 'notify'
     case 'occupied':
       return 'exclaim'
@@ -54,10 +57,11 @@ export function bloubStateForOrbState({
 }
 
 // 彩蛋的最小完整时长（对应状态在 states.ts 的 duration/minDuration + 余量），
-// 播完这一段再交还状态机。burst 2.4s、egg 1.8s 各自按需。
+// 播完这一段再交还状态机。按 bloub 目标状态取值——cue 名被上游管线归一成
+// 'jumping'/'failed'，无法区分彩蛋种类。burst 1s、egg 2.2s 各自按需。
 const BLOUB_CUE_DURATIONS_MS = Object.freeze({
-  jumping: 1000,
-  hatching: 2200,
+  burst: 1000,
+  egg: 2200,
   hexagon: 1800,
 })
 const BLOUB_DEFAULT_CUE_DURATION_MS = 2600

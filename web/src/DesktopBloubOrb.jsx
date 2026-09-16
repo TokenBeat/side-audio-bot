@@ -119,15 +119,17 @@ export default function DesktopBloubOrb({
 
   // 彩蛋（悬停爆开 / 唤醒孵化 / 六边形脉冲）按各自时长播满再交还状态机。
   // 回调带上 cue.id：上层以 id 比对清除，不传则彩蛋永远留在状态里。
+  // 时长按解析出的 bloub 目标状态取值（cue 名区分不了蛋和爆开）；
+  // target 进入依赖：唤醒时目标从 burst 修正为 egg，计时随之重算。
   useEffect(() => {
     if (!cue?.id) return undefined
     const cueId = cue.id
     const timer = setTimeout(
       () => onCueCompleteRef.current?.(cueId),
-      bloubCueDurationMs(cue?.name),
+      bloubCueDurationMs(target),
     )
     return () => clearTimeout(timer)
-  }, [cue?.id, cue?.name])
+  }, [cue?.id, cue?.name, target])
 
   // 本地六边形彩蛋完成后清掉 hexCue，让周期定时器能再次触发。
   useEffect(() => {

@@ -16,6 +16,8 @@ const HIGH_PRIORITY_STATES = new Set(['error', 'attention', 'occupied', 'working
 // 「说完了」反应迟钝；太短则来不及从 speaking 的情绪里缓过来。
 const BLOUB_SETTLING_MAX_MS = 2500
 const BLOUB_CONVERSATION_HOLD_MS = 600
+// 唤醒孵化保持：蛋彩蛋 2.2s 播完 + 一段眨眼缓冲再回真实状态。
+const BLOUB_WAKE_HOLD_MS = 2600
 
 // bloub 外观来源：从父组件传入的 bloubSettings 读取（与 orbSkin/autoHide/language
 // 同链路，由 desktop-client-settings 的 IPC 热应用驱动，不再直接读 URL）。
@@ -33,6 +35,7 @@ export function useBloubAppearance({ orbSkinId, orbVisualState, bloubSettings = 
   const prevVoiceStateRef = useRef(orbVisualState)
   const settlingTimerRef = useRef(null)
   const conversationHoldTimerRef = useRef(null)
+  const wakeHoldUntilRef = useRef(0)
 
   useEffect(() => {
     const prev = prevVoiceStateRef.current
@@ -59,8 +62,35 @@ export function useBloubAppearance({ orbSkinId, orbVisualState, bloubSettings = 
     }
 
     if (isHighPriority) {
+      wakeHoldUntilRef.current = 0
       commit(orbVisualState)
       return
+    }
+
+    // 唤醒孵化：休眠期间 Realtime 连接保活，真正的 waking 生命周期可能
+    // 一闪而过，蛋还没孵完就到 active。这里把展示态钉在 waking 约 2.6s
+    // （蛋彩蛋 2.2s + 短暂眨眼缓冲），期间到达的真实状态延迟提交。
+    if (orbVisualState === 'hidden') {
+      wakeHoldUntilRef.current = 0
+    } else {
+      const wakeHoldRemaining = wakeHoldUntilRef.current - Date.now()
+      if (wakeHoldRemaining > 0 && prev === 'waking') {
+        settlingTimerRef.current = setTimeout(() => {
+          commit(orbVisualState)
+          settlingTimerRef.current = null
+        }, wakeHoldRemaining)
+        return
+      }
+      if (prev === 'hidden') {
+        wakeHoldUntilRef.current = Date.now() + BLOUB_WAKE_HOLD_MS
+        commit('waking')
+        settlingTimerRef.current = setTimeout(() => {
+          commit(orbVisualState)
+          settlingTimerRef.current = null
+          wakeHoldUntilRef.current = 0
+        }, BLOUB_WAKE_HOLD_MS)
+        return
+      }
     }
 
     if (wasConversation && isConversation) {

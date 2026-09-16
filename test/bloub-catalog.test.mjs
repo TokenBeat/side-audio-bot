@@ -131,10 +131,12 @@ test('all usable colors are used in at least one state auto-mapping', () => {
   assert.ok(!covered.has('creme'), 'creme is intentionally excluded from auto-mapping')
 })
 
-test('hatching cue maps to egg state with a fixed duration', () => {
-  assert.equal(bloubStateForOrbState({ state: 'hidden', cue: { id: 1, name: 'hatching' } }), 'egg')
-  assert.equal(bloubCueDurationMs('hatching'), 2200)
-  assert.equal(bloubCueDurationMs('jumping'), 1000)
+test('jumping cue maps to burst, or egg while waking, with per-state durations', () => {
+  // 上游把 wake/ready/task.completed/hover 统一归一成 'jumping' cue。
+  assert.equal(bloubStateForOrbState({ state: 'idle', cue: { id: 1, name: 'jumping' } }), 'burst')
+  assert.equal(bloubStateForOrbState({ state: 'waking', cue: { id: 2, name: 'jumping' } }), 'egg')
+  assert.equal(bloubCueDurationMs('egg'), 2200)
+  assert.equal(bloubCueDurationMs('burst'), 1000)
   assert.equal(bloubCueDurationMs('hexagon'), 1800)
   assert.equal(bloubCueDurationMs('unknown'), 2600)
 })
