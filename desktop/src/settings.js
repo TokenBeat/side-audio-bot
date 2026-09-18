@@ -16,6 +16,12 @@ import { createRealtimeSettingsForm } from './realtime-settings-form.mjs'
 import { updaterButtonState, updaterStatusText } from './update-status.mjs'
 import { isLoopbackUrl } from './security.mjs'
 import {
+  BLOUB_SHAPES,
+  BLOUB_COLORS,
+  BLOUB_EXPRESSIONS,
+  bloubEntryLabel,
+} from '../../shared/bloub-catalog.mjs'
+import {
   desktopTranslator,
   effectiveDesktopLanguage,
   localizeDesktopDocument,
@@ -33,6 +39,12 @@ const recordWakeShortcut = document.querySelector('#record-wake-shortcut')
 const resetWakeShortcut = document.querySelector('#reset-wake-shortcut')
 const wakeWordEnabled = document.querySelector('#wake-word-enabled')
 const desktopLanguage = document.querySelector('#desktop-language')
+const orbBloubShape = document.querySelector('#orb-bloub-shape')
+const orbBloubColor = document.querySelector('#orb-bloub-color')
+const orbBloubExpression = document.querySelector('#orb-bloub-expression')
+const orbBloubAutoState = document.querySelector('#orb-bloub-auto-state')
+const orbBloubFixedShape = document.querySelector('#orb-bloub-fixed-shape')
+const bloubAppearance = document.querySelectorAll('.bloub-appearance')
 const backendList = document.querySelector('#backend-list')
 const backendPicker = document.querySelector('.backend-picker')
 const backendPickerTrigger = document.querySelector('#backend-picker-trigger')
@@ -698,6 +710,11 @@ function formSettings() {
   return {
     gatewayUrl: gatewayUrl.value,
     orbSkin: orbSkinSelect.value,
+    orbBloubShape: orbBloubShape.value,
+    orbBloubColor: orbBloubColor.value,
+    orbBloubExpression: orbBloubExpression.value,
+    orbBloubAutoState: orbBloubAutoState.checked,
+    orbBloubFixedShape: orbBloubFixedShape.checked,
     autoHideSeconds: Number(autoHideSeconds.value),
     wakeShortcut: wakeShortcut.value,
     wakeWordEnabled: wakeWordEnabled.checked,
@@ -716,6 +733,11 @@ function fingerprint(value) {
   return JSON.stringify({
     gatewayUrl: value.gatewayUrl,
     orbSkin: value.orbSkin,
+    orbBloubShape: value.orbBloubShape,
+    orbBloubColor: value.orbBloubColor,
+    orbBloubExpression: value.orbBloubExpression,
+    orbBloubAutoState: value.orbBloubAutoState,
+    orbBloubFixedShape: value.orbBloubFixedShape,
     autoHideSeconds: value.autoHideSeconds,
     wakeShortcut: value.wakeShortcut,
     wakeWordEnabled: value.wakeWordEnabled,
@@ -923,8 +945,47 @@ function updateRemoveSkinState() {
   ))
 }
 
+// 设置窗口的生效语言：动态渲染的 option 不走 localizeDesktopDocument
+// 的文本遍历（它只在 applyLanguage 时跑一遍），必须在这里按语言取标签。
+function settingsLanguage() {
+  return effectiveDesktopLanguage(desktopLanguage.value, navigator.language)
+}
+
+function renderBloubAppearanceOptions() {
+  const language = settingsLanguage()
+  const renderOptions = (select, catalog, selected) => {
+    select.textContent = ''
+    for (const item of catalog) {
+      const option = document.createElement('option')
+      option.value = item.id
+      option.textContent = bloubEntryLabel(item, language) || item.id
+      select.append(option)
+    }
+    if (selected && catalog.some(item => item.id === selected)) {
+      select.value = selected
+    }
+  }
+
+  renderOptions(orbBloubShape, BLOUB_SHAPES, settings?.orbBloubShape)
+  renderOptions(orbBloubColor, BLOUB_COLORS, settings?.orbBloubColor)
+  renderOptions(orbBloubExpression, BLOUB_EXPRESSIONS, settings?.orbBloubExpression)
+}
+
+function updateBloubAppearanceVisibility() {
+  const visible = orbSkinSelect.value === 'bloub-bot'
+  orbBloubShape.hidden = !visible
+  orbBloubColor.hidden = !visible
+  orbBloubExpression.hidden = !visible
+  orbBloubFixedShape.hidden = !visible
+  for (const element of bloubAppearance) {
+    element.hidden = !visible
+  }
+  if (visible) renderBloubAppearanceOptions()
+}
+
 function renderSkinOptions(selected) {
   orbSkinSelect.textContent = ''
+  const language = settingsLanguage()
   const groups = [
     { label: t('内置'), type: 'theme' },
     { label: t('已导入皮肤'), type: 'sprite' },
@@ -937,7 +998,11 @@ function renderSkinOptions(selected) {
     for (const skin of items) {
       const option = document.createElement('option')
       option.value = skin.id
-      option.textContent = skin.displayName || skin.id
+      option.textContent = (
+        language === 'en' && skin.displayNameEn
+          ? skin.displayNameEn
+          : (skin.displayName || skin.id)
+      )
       optgroup.append(option)
     }
     orbSkinSelect.append(optgroup)
@@ -955,7 +1020,12 @@ function renderSkinOptions(selected) {
 
 function render() {
   gatewayUrl.value = settings.gatewayUrl
+  // 先确定生效语言再渲染动态 option（皮肤/bloub 选项按语言取标签）。
+  desktopLanguage.value = settings.language || 'auto'
   renderSkinOptions(settings.orbSkin)
+  orbBloubAutoState.checked = settings.orbBloubAutoState || false
+  orbBloubFixedShape.checked = settings.orbBloubFixedShape || false
+  updateBloubAppearanceVisibility()
   const hideValue = String(settings.autoHideSeconds ?? 120)
   autoHideSeconds.querySelector('[data-custom]')?.remove()
   if (![...autoHideSeconds.options].some(option => option.value === hideValue)) {
@@ -970,7 +1040,6 @@ function render() {
   autoHideSeconds.value = hideValue
   wakeShortcut.value = settings.wakeShortcut
   wakeWordEnabled.checked = settings.wakeWordEnabled || false
-  desktopLanguage.value = settings.language || 'auto'
   applyLanguage(desktopLanguage.value)
   recordingWakeShortcut = false
   renderWakeShortcut()
@@ -990,6 +1059,11 @@ function render() {
 for (const control of [
   gatewayUrl,
   orbSkinSelect,
+  orbBloubShape,
+  orbBloubColor,
+  orbBloubExpression,
+  orbBloubAutoState,
+  orbBloubFixedShape,
   autoHideSeconds,
   backendModel,
   backendUrl,
@@ -1011,13 +1085,17 @@ for (const control of [
       renderBackendOptions(selectedBackend())
       renderSkinOptions(orbSkinSelect.value)
       realtimeForm.render()
+      updateBloubAppearanceVisibility()
       renderRuntime()
     }
     updateApplyState()
   })
 }
 
-orbSkinSelect.addEventListener('change', updateRemoveSkinState)
+orbSkinSelect.addEventListener('change', () => {
+  updateRemoveSkinState()
+  updateBloubAppearanceVisibility()
+})
 
 importSkinButton.addEventListener('click', async () => {
   importSkinButton.disabled = true

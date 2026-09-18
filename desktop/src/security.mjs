@@ -49,6 +49,11 @@ export function desktopOrbUrl(value, {
   autoHideSeconds,
   wakeWordEnabled = false,
   language = '',
+  orbBloubShape,
+  orbBloubColor,
+  orbBloubExpression,
+  orbBloubAutoState,
+  orbBloubFixedShape,
   surfaceMode = 'orb',
   sessionId = '',
 } = {}) {
@@ -65,6 +70,15 @@ export function desktopOrbUrl(value, {
   }
   if (wakeWordEnabled) url.searchParams.set('wakeWordEnabled', 'true')
   if (language) url.searchParams.set('lang', language)
+  if (orbBloubShape) url.searchParams.set('orbBloubShape', orbBloubShape)
+  if (orbBloubColor) url.searchParams.set('orbBloubColor', orbBloubColor)
+  if (orbBloubExpression) url.searchParams.set('orbBloubExpression', orbBloubExpression)
+  if (typeof orbBloubAutoState === 'boolean') {
+    url.searchParams.set('orbBloubAutoState', orbBloubAutoState ? 'true' : 'false')
+  }
+  if (typeof orbBloubFixedShape === 'boolean') {
+    url.searchParams.set('orbBloubFixedShape', orbBloubFixedShape ? 'true' : 'false')
+  }
   if (surfaceMode === 'panel') url.searchParams.set('surface', 'panel')
   const normalizedSessionId = normalizeConversationSessionId(sessionId)
   if (normalizedSessionId) url.searchParams.set('session', normalizedSessionId)

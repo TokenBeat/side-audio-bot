@@ -19,6 +19,8 @@ import TaskArtifacts from './TaskArtifacts.jsx'
 import PermissionActions from './PermissionActions.jsx'
 import DesktopFluidOrb from './desktop/DesktopFluidOrb.jsx'
 import DesktopSpriteOrb from './desktop/DesktopSpriteOrb.jsx'
+import DesktopBloubOrb from './DesktopBloubOrb.jsx'
+import { useBloubAppearance } from './use-bloub-appearance.js'
 import KnowledgeLibraryPanel from './KnowledgeLibraryPanel.jsx'
 import {
   desktopOrbClassName,
@@ -196,7 +198,21 @@ export default function App() {
     orbSkinId,
     autoHideSeconds,
     wakeWordEnabled,
+    orbBloubShape,
+    orbBloubColor,
+    orbBloubExpression,
+    orbBloubAutoState,
+    orbBloubFixedShape,
   } = desktopClientSettings
+  // bloub 外观来源：desktop-client-settings 的 IPC 热应用链路透传，
+  // 字段名映射见 use-bloub-appearance.js 的入参约定。
+  const bloubSettings = {
+    urlShape: orbBloubShape,
+    urlColor: orbBloubColor,
+    urlExpression: orbBloubExpression,
+    autoState: orbBloubAutoState,
+    fixedShape: orbBloubFixedShape,
+  }
   // `t()` reads the module-level runtime language. Keeping a revision in
   // React state makes a language-only settings update repaint this surface
   // without replacing its Gateway WebSocket or Realtime Session.
@@ -296,7 +312,9 @@ export default function App() {
   }, [noteInteraction])
 
   const triggerSpriteAnimation = useCallback((eventName, { priority = false } = {}) => {
-    if (!desktopOrbMode || isBuiltinOrbSkin(orbSkinId)) return
+    // bloub-bot 是内置皮肤但自带彩蛋动画（唤醒孵化/悬停爆开），同样要放行。
+    if (!desktopOrbMode) return
+    if (isBuiltinOrbSkin(orbSkinId) && orbSkinId !== 'bloub-bot') return
     const name = spriteAnimationForEvent(eventName)
     if (!name) return
     spriteAnimationCueId.current += 1
@@ -866,6 +884,11 @@ export default function App() {
     voiceState: voice.visualState || voice.state,
     tasksWorking: desktopHasWorkingTasks,
   })
+  const bloubAppearance = useBloubAppearance({
+    orbSkinId,
+    orbVisualState,
+    bloubSettings,
+  })
   const authorizationTask = agentTasks.find(
     task => task.authorization?.status === 'pending',
   )
@@ -1162,7 +1185,19 @@ export default function App() {
         onPointerUp={endOrbDrag}
         onPointerCancel={endOrbDrag}
         >
-        {isBuiltinOrbSkin(orbSkinId) || spriteOrbFailed
+        {orbSkinId === 'bloub-bot'
+          ? (
+              <DesktopBloubOrb
+                state={bloubAppearance.state}
+                dragDirection={orbDragDirection}
+                cue={spriteAnimationCue}
+                onCueComplete={completeSpriteAnimationCue}
+                shape={bloubAppearance.shape}
+                color={bloubAppearance.color}
+                expression={bloubAppearance.expression}
+              />
+            )
+          : isBuiltinOrbSkin(orbSkinId) || spriteOrbFailed
           ? (
               <DesktopFluidOrb
                 style={isBuiltinOrbSkin(orbSkinId) ? orbSkinId : 'fluid'}

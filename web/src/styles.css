@@ -726,6 +726,20 @@ header .ghost.active { color: white; border-color: #785cf480; background: #785cf
   overflow: visible;
   isolation: isolate;
 }
+.bloub-orb {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+}
+.bloub-orb-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 .fluid-orb::before,
 .fluid-orb::after {
   content: "";

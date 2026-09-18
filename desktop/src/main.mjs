@@ -487,6 +487,11 @@ async function loadQwenAudioAgent(window) {
       autoHideSeconds: settings.autoHideSeconds,
       wakeWordEnabled: settings.wakeWordEnabled,
       language: effectiveDesktopLanguage(settings.language, app.getLocale()),
+      orbBloubShape: settings.orbBloubShape,
+      orbBloubColor: settings.orbBloubColor,
+      orbBloubExpression: settings.orbBloubExpression,
+      orbBloubAutoState: settings.orbBloubAutoState,
+      orbBloubFixedShape: settings.orbBloubFixedShape,
       surfaceMode: desktopSurfaceMode,
       sessionId: desktopConversationSessionId,
     }))
@@ -504,6 +509,13 @@ function sendDesktopClientSettings(window, settings) {
     autoHideSeconds: settings.autoHideSeconds,
     wakeWordEnabled: settings.wakeWordEnabled,
     language: effectiveDesktopLanguage(settings.language, app.getLocale()),
+    // orbBloub 外观走热应用路径，与 orbSkin/autoHide/language 对齐，
+    // 避免改 bloub 外观时整个 webview 重载打断 Realtime Session。
+    orbBloubShape: settings.orbBloubShape,
+    orbBloubColor: settings.orbBloubColor,
+    orbBloubExpression: settings.orbBloubExpression,
+    orbBloubAutoState: settings.orbBloubAutoState,
+    orbBloubFixedShape: settings.orbBloubFixedShape,
   })
 }
 
