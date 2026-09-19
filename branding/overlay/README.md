@@ -26,6 +26,8 @@ tells you:
 
 ## News
 
+- **2026-09-19 · [v0.11.2](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.2)**
+  Adds the **StepFun Audio 3 Realtime** front-end voice option (stepaudio-3-realtime-preview) with a unified realtime settings form, and polishes **Bloub orb appearance settings**.
 - **2026-09-16 · [v0.11.1](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.1)**
   Adds the **StepFun stepaudio-2.5-realtime** model option (front-end voice only) and fixes **Bloub orb easter-egg animations**.
 - **2026-09-06 · [v0.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.0)**

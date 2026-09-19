@@ -20,6 +20,8 @@
 
 ## News
 
+- **2026-09-19 · [v0.11.2](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.2)**
+  前台语音新增 **StepFun Audio 3 Realtime**（stepaudio-3-realtime-preview），实时设置表单统一重构，并优化 **Bloub 悬浮球外观设置**体验。
 - **2026-09-16 · [v0.11.1](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.1)**
   新增 **StepFun stepaudio-2.5-realtime** 模型选项（仅前台语音），修复 **Bloub 悬浮球彩蛋动画**。
 - **2026-09-06 · [v0.11.0](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.0)**
