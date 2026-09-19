@@ -5,7 +5,7 @@ function clean(value) {
 }
 
 function usesAutomaticBailianConfiguration(id, env) {
-  const model = clean(env.QWEN_AUDIO_AGENT_BACKEND_MODEL).toLowerCase()
+  const model = clean(env.SIDE_AUDIO_BOT_BACKEND_MODEL).toLowerCase()
   return (
     ['opencode', 'openclaw'].includes(id)
     && Boolean(clean(env.DASHSCOPE_API_KEY))

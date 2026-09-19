@@ -1,13 +1,13 @@
 # Google Gemini Live
 
-qwen-audio-agent can connect to Google's Gemini Live WebSocket API as a cloud
+side-audio-bot can connect to Google's Gemini Live WebSocket API as a cloud
 voice frontend. Gateway keeps the same frontend tools, memory, reminders, task
 delegation, and backend-Agent orchestration; the provider adapter translates
 Gemini Live's bidirectional stream into the shared Realtime runtime.
 
 ## Configuration
 
-Edit the user configuration file shown by `qwenaudio config`:
+Edit the user configuration file shown by `sideaudio config`:
 
 ```dotenv
 QWEN_AUDIO_REALTIME_PROVIDER=google-live
@@ -23,7 +23,7 @@ GOOGLE_API_KEY=your-google-api-key
 
 Desktop exposes the same fields under **Voice frontend -> Google Live**.
 Restart a terminal Gateway after editing the file; for an installed service,
-run `qwenaudio gateway restart`.
+run `sideaudio gateway restart`.
 
 ## Integration boundary
 

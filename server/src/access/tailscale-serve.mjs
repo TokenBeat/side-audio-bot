@@ -11,7 +11,7 @@ export function tailscaleCommand({
   env = process.env, platform = process.platform,
   homeDirectory = homedir(), fileExists = existsSync,
 } = {}) {
-  if (env.QWEN_AUDIO_TAILSCALE_BINARY?.trim()) return env.QWEN_AUDIO_TAILSCALE_BINARY.trim()
+  if (env.SIDE_AUDIO_TAILSCALE_BINARY?.trim()) return env.SIDE_AUDIO_TAILSCALE_BINARY.trim()
   if (platform !== 'darwin') return 'tailscale'
   return [
     '/Applications/Tailscale.app/Contents/MacOS/Tailscale',

@@ -3,29 +3,29 @@
 
 Backend agents execute the actual tasks, so standard Agent Skills
 (`SKILL.md` folders in the open format) are installed for backends.
-`qwenaudio skill` is a branded entry point for the community-standard
+`sideaudio skill` is a branded entry point for the community-standard
 [skills.sh](https://skills.sh) installer (`npx skills`): every command is a
 1:1 passthrough, with one addition — installs target the backends that
 actually exist on this machine (CLI detected) plus the currently configured
 backend, instead of relying on skills.sh's own agent detection.
 
 ```bash
-qwenaudio skill install <source> --skill <name>   # install to every backend
-qwenaudio skill install <source> --list           # list skills in a source
-qwenaudio skill list                              # list installed skills
-qwenaudio skill remove <name>                     # remove a skill
-qwenaudio skill update                            # update installed skills
+sideaudio skill install <source> --skill <name>   # install to every backend
+sideaudio skill install <source> --list           # list skills in a source
+sideaudio skill list                              # list installed skills
+sideaudio skill remove <name>                     # remove a skill
+sideaudio skill update                            # update installed skills
 ```
 
 Supported sources are whatever skills.sh supports:
 
 | Source form | Example |
 | --- | --- |
-| GitHub shorthand | `qwenaudio skill install vercel-labs/agent-skills --skill web-design-guidelines` |
-| Repository URL (GitHub/GitLab/any git) | `qwenaudio skill install https://github.com/alirezarezvani/claude-skills --skill skill-security-auditor` |
-| Tree URL (skill subdirectory) | `qwenaudio skill install https://github.com/o/r/tree/main/skills/x --skill x` |
-| Hub skill page URL | `qwenaudio skill install https://clawhub.ai/thcjp/skills/excel-formula-tool-free --skill excel-formula-tool-free` |
-| Local directory | `qwenaudio skill install ./my-skill --skill my-skill` |
+| GitHub shorthand | `sideaudio skill install vercel-labs/agent-skills --skill web-design-guidelines` |
+| Repository URL (GitHub/GitLab/any git) | `sideaudio skill install https://github.com/alirezarezvani/claude-skills --skill skill-security-auditor` |
+| Tree URL (skill subdirectory) | `sideaudio skill install https://github.com/o/r/tree/main/skills/x --skill x` |
+| Hub skill page URL | `sideaudio skill install https://clawhub.ai/thcjp/skills/excel-formula-tool-free --skill excel-formula-tool-free` |
+| Local directory | `sideaudio skill install ./my-skill --skill my-skill` |
 
 For multi-skill repositories `--skill` is required (repeat it to install
 several); run `--list` first to see what a source provides. Installing an
@@ -36,7 +36,7 @@ Skills land in the backend CLI's own user-level directory when that backend
 declares a skills.sh installer (`~/.claude/skills/`, `~/.qwen/skills/`,
 `~/.openclaw/skills/`, `~/.agents/skills/`, …), so they also work when you use
 those CLIs directly, and the desktop app and CLI share the same skills. MiniMax
-Code manages its own Skill/Plugin storage; `qwenaudio skill` does not write to
+Code manages its own Skill/Plugin storage; `sideaudio skill` does not write to
 that private store.
 
 When you switch to — or newly install — a backend that is missing previously
@@ -48,7 +48,7 @@ the backend always sees a complete skill set on its first scan. Failures
 (for example offline) are logged and never block the voice gateway.
 
 The pinned skills.sh version can be overridden with
-`QWEN_AUDIO_AGENT_SKILLS_CLI_PACKAGE` (for example `skills@latest`). If a
+`SIDE_AUDIO_BOT_SKILLS_CLI_PACKAGE` (for example `skills@latest`). If a
 newly added backend is not yet supported by skills.sh, contribute an agent
 definition to its `src/agents.ts` — that is the official extension point.
 

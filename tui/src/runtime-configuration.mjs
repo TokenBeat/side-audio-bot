@@ -34,14 +34,14 @@ function normalizeGatewayUrl(value) {
 
 export function parseArguments(argv, env = process.env) {
   const options = {
-    url: env.QWEN_AUDIO_AGENT_URL || 'http://127.0.0.1:3101',
+    url: env.SIDE_AUDIO_BOT_URL || 'http://127.0.0.1:3101',
     accessToken: String(
-      env.QWEN_AUDIO_GATEWAY_CLIENT_TOKEN
-      || env.QWEN_AUDIO_AGENT_ACCESS_TOKEN
+      env.SIDE_AUDIO_GATEWAY_CLIENT_TOKEN
+      || env.SIDE_AUDIO_BOT_ACCESS_TOKEN
       || '',
     ).trim(),
-    sessionId: env.QWEN_AUDIO_AGENT_SESSION_ID || 'tui-main',
-    audioMode: env.QWEN_AUDIO_AGENT_TUI_AUDIO_MODE || 'half',
+    sessionId: env.SIDE_AUDIO_BOT_SESSION_ID || 'tui-main',
+    audioMode: env.SIDE_AUDIO_BOT_TUI_AUDIO_MODE || 'half',
   }
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index]
@@ -218,5 +218,5 @@ export function helpText(mode = audioModeForPlatform()) {
 export function fullDuplexFallbackHint(mode) {
   if (mode.audioBackend !== 'portaudio' || !mode.fullDuplex) return ''
   return 'PortAudio 全双工出现异常；请重新运行 '
-    + 'qwenaudio tui --audio-mode half 使用半双工。'
+    + 'sideaudio tui --audio-mode half 使用半双工。'
 }

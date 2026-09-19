@@ -50,7 +50,7 @@ const providerCases = [
 ]
 
 function fixture(t) {
-  const root = mkdtempSync(join(tmpdir(), 'qwaudio-provider-env-'))
+  const root = mkdtempSync(join(tmpdir(), 'sideaudio-provider-env-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   const configDir = join(root, 'config')
   mkdirSync(configDir)
@@ -62,7 +62,7 @@ function encode(env) {
 }
 
 function cliConfiguration({ root, configDir }, overrides = {}) {
-  const env = { QWAUDIO_CONFIG_DIR: configDir, ...overrides }
+  const env = { SIDEAUDIO_CONFIG_DIR: configDir, ...overrides }
   const loaded = loadRuntimeEnvironment({ root, env, readOnly: true })
   return { env, loaded, ...resolveRealtimeFrontendConfiguration(env) }
 }
@@ -252,11 +252,11 @@ test('Desktop imports old providers and preserves credentials through save, rest
 test('generated templates do not mask legacy credentials on subsequent launches', t => {
   const paths = fixture(t)
   const env = {
-    QWAUDIO_CONFIG_DIR: paths.configDir,
-    QWAUDIO_DATA_DIR: join(paths.root, 'data'),
-    QWAUDIO_STATE_DIR: join(paths.root, 'state'),
-    QWAUDIO_CACHE_DIR: join(paths.root, 'cache'),
-    QWAUDIO_WORKSPACE: join(paths.root, 'workspace'),
+    SIDEAUDIO_CONFIG_DIR: paths.configDir,
+    SIDEAUDIO_DATA_DIR: join(paths.root, 'data'),
+    SIDEAUDIO_STATE_DIR: join(paths.root, 'state'),
+    SIDEAUDIO_CACHE_DIR: join(paths.root, 'cache'),
+    SIDEAUDIO_WORKSPACE: join(paths.root, 'workspace'),
     DASHSCOPE_API_KEY: 'shell-dash-key',
   }
   loadRuntimeEnvironment({ root: paths.root, env, generateSecret: false, prepareBackendRuntime: false })

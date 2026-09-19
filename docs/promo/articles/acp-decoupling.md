@@ -2,7 +2,7 @@
 
 > OpenCode、OpenClaw、Qoder、Qwen Code、MiniMax Code、Kimi Code、Hermes、
 > CodeBuddy、Codex、Claude Code、DeepSeek、Pi，以及用户自带的通用 ACP Agent，
-> 都通过同一边界接入。本文讲 qwen-audio-agent 是怎么做到的。
+> 都通过同一边界接入。本文讲 side-audio-bot 是怎么做到的。
 
 ## 背景：Agent 生态快得离谱
 
@@ -136,5 +136,5 @@ drivers；OpenClaw 的原生委托则封装在 `drivers/openclaw-delegation.mjs`
 
 ---
 
-qwen-audio-agent 是开源项目（Apache-2.0）。如果你维护的 Agent
-支持 ACP，欢迎来接入：https://github.com/QwenAudio/qwen-audio-agent
+side-audio-bot 是开源项目（Apache-2.0）。如果你维护的 Agent
+支持 ACP，欢迎来接入：https://github.com/TokenBeat/side-audio-bot

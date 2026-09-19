@@ -42,16 +42,16 @@ import { startCockpitServiceServer } from '../../service/server.mjs'
 import { CockpitService } from '../../service/cockpit-service.mjs'
 import { createAmapCockpitServices } from '../../service/integrations/amap/services.mjs'
 import { COCKPIT_SURFACE_ROUTING } from '../../service/tools/registry.mjs'
-import { GatewayClient } from 'qwen-audio-agent/gateway-client-sdk'
+import { GatewayClient } from 'side-audio-bot/gateway-client-sdk'
 import {
   GatewayClientCapability,
   GatewayClientProtocolEvent,
-} from 'qwen-audio-agent/gateway-client-protocol'
+} from 'side-audio-bot/gateway-client-protocol'
 import {
   GatewayClientEvent,
   GatewayServerEvent,
   GatewayTaskEvent,
-} from 'qwen-audio-agent/realtime-events'
+} from 'side-audio-bot/realtime-events'
 import { createBenchmarkService, parseRunnerArgs, numberArg, sleep } from './controlled-harness.mjs'
 
 const CASES_URL = new URL('../cases/surface-compare.jsonl', import.meta.url)
@@ -253,7 +253,7 @@ function runProcess(command, args, options = {}) {
 }
 
 async function synthesizeSpeechPcm(text, { sampleRate = SAMPLE_RATE, sayVoice = 'Tingting' } = {}) {
-  const root = await mkdtemp(join(tmpdir(), 'qwen-cockpit-voice-surface-'))
+  const root = await mkdtemp(join(tmpdir(), 'sideaudio-cockpit-voice-surface-'))
   const aiffPath = join(root, 'speech.aiff')
   try {
     try {
@@ -777,10 +777,10 @@ async function main() {
   assertVoiceCredentials(cases, serviceMode)
   const liveDomains = liveDomainsFor(cases)
 
-  const runtimeRoot = await mkdtemp(join(tmpdir(), 'qwen-cockpit-voice-surface-bench-'))
-  process.env.QWAUDIO_CONFIG_DIR = runtimeRoot
-  process.env.QWAUDIO_DATA_DIR = resolve(runtimeRoot, 'data')
-  delete process.env.QWEN_AUDIO_FRONTEND_PROFILE
+  const runtimeRoot = await mkdtemp(join(tmpdir(), 'sideaudio-cockpit-voice-surface-bench-'))
+  process.env.SIDEAUDIO_CONFIG_DIR = runtimeRoot
+  process.env.SIDEAUDIO_DATA_DIR = resolve(runtimeRoot, 'data')
+  delete process.env.SIDE_AUDIO_FRONTEND_PROFILE
   delete process.env.COCKPIT_FRONTEND_MCP_URL
 
   let serviceServer; let agentServer; let gatewayRuntime

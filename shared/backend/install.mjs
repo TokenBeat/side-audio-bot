@@ -1,6 +1,6 @@
 // 后台 Agent 一键安装的单一事实源：安装规格（INSTALL_SPECS）、
 // 安装能力查询（installSupport）与执行器（installBackend）。
-// CLI（qwenaudio install）与桌面版（设置页"安装"按钮）共用同一份逻辑；
+// CLI（sideaudio install）与桌面版（设置页"安装"按钮）共用同一份逻辑；
 //  spawn / 确认 / 进度回调全部注入，保证纯数据可测。
 //
 // 版本策略：npm 包一律锁定版本（与 scripts/ 下 managed 启动脚本同一口径），

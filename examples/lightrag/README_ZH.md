@@ -1,9 +1,9 @@
-# Qwen Audio Agent LightRAG 接入示例
+# Side Audio Bot LightRAG 接入示例
 
 [English](README.md) | 中文
 
 这个示例展示如何把用户独立部署的
-[LightRAG](https://github.com/HKUDS/LightRAG) 接入 qwen-audio-agent。LightRAG
+[LightRAG](https://github.com/HKUDS/LightRAG) 接入 side-audio-bot。LightRAG
 拥有文档解析、切分、Embedding、索引和检索；Gateway 只通过通用
 `KnowledgeProvider` 接口使用它，不安装、不启动，也不修改 LightRAG。
 
@@ -22,7 +22,7 @@
 
 | 组件 | 职责 |
 |---|---|
-| qwen-audio-agent Gateway | 实时语音对话、知识工具和入库任务生命周期。 |
+| side-audio-bot Gateway | 实时语音对话、知识工具和入库任务生命周期。 |
 | [`LightRagKnowledgeProvider`](lightrag-provider.mjs) | 把 LightRAG API 映射为通用 `KnowledgeProvider`。 |
 | [`LightRagClient`](lightrag-client.mjs) | LightRAG URL、认证、workspace、超时和 HTTP 错误。 |
 | 用户运行的 LightRAG Server | 文档解析、切分、Embedding、图谱、索引和检索。 |
@@ -32,7 +32,7 @@ LightRAG 的图谱对象、远程 `track_id` 和原始 HTTP 响应不会穿过 P
 
 ## 快速开始
 
-需要使用仓库要求的 Node.js 版本，并提前安装 `uv`。在 qwen-audio-agent 仓库根目录执行：
+需要使用仓库要求的 Node.js 版本，并提前安装 `uv`。在 side-audio-bot 仓库根目录执行：
 
 ```bash
 npm ci
@@ -83,7 +83,7 @@ lightrag-server --host 127.0.0.1 --port 9621
 
 ### 启动示例 Gateway
 
-在 qwen-audio-agent 仓库根目录执行：
+在 side-audio-bot 仓库根目录执行：
 
 ```bash
 cp examples/lightrag/.env.example examples/lightrag/.env.local
@@ -101,7 +101,7 @@ LIGHTRAG_WORKSPACE=
 LIGHTRAG_QUERY_MODE=mix
 ```
 
-这里的 `DASHSCOPE_API_KEY` 只供 qwen-audio-agent 语音前台使用；LightRAG 使用它自己
+这里的 `DASHSCOPE_API_KEY` 只供 side-audio-bot 语音前台使用；LightRAG 使用它自己
 进程中的模型配置。两者即使连接同一家模型服务，也不会自动共享配置。
 
 启动示例：

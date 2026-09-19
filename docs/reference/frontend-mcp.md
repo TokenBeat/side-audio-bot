@@ -15,10 +15,10 @@ frontend tool registry and executor.
 
 ## Configuration
 
-Set `QWEN_AUDIO_FRONTEND_MCP_CONFIG` to a versioned JSON file:
+Set `SIDE_AUDIO_FRONTEND_MCP_CONFIG` to a versioned JSON file:
 
 ```dotenv
-QWEN_AUDIO_FRONTEND_MCP_CONFIG=/absolute/path/to/frontend-mcp.json
+SIDE_AUDIO_FRONTEND_MCP_CONFIG=/absolute/path/to/frontend-mcp.json
 DOCUMENT_MCP_AUTHORIZATION=Bearer replace-me
 ```
 
@@ -102,7 +102,7 @@ Each exposed tool receives a stable model-visible name:
   `cwd` may use exact environment references; a configured `cwd` must be absolute.
   The child receives only the SDK's safe base environment plus explicit `env` values.
 - stdio servers and backend Agents use the Gateway's shared user command search
-  path. After installing a command, run `qwenaudio gateway restart`; the CLI
+  path. After installing a command, run `sideaudio gateway restart`; the CLI
   refreshes the login-environment `PATH` cache used by the background service.
 - `tools` is an explicit allowlist. Enabled tools execute inline in the current
   conversation turn; the Gateway does not insert a generic confirmation turn

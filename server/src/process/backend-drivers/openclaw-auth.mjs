@@ -80,7 +80,7 @@ export function writeIsolatedOpenClawConfig({
   const target = clean(targetPath)
   if (!source || !target || !existsSync(source)) return false
   const parsed = JSON5.parse(readFileSync(source, 'utf8'))
-  // A qwenaudio-owned Gateway only provides the local ACP backend. Reusing
+  // A sideaudio-owned Gateway only provides the local ACP backend. Reusing
   // channels would connect the user's messaging accounts a second time.
   delete parsed.channels
   mkdirSync(dirname(target), { recursive: true, mode: 0o700 })

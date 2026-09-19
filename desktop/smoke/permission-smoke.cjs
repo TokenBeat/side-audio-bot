@@ -58,9 +58,9 @@ module.exports = async function permissionSmoke({ BrowserWindow }) {
         assert.ok(layout.every(button => button.inside && button.lines === 1), `${lang}/${width}: ${JSON.stringify(layout)}`)
         assert.ok(layout.every(button => Math.abs(button.width - layout[0].width) < 1))
         assert.ok(layout.every(button => button.top === layout[0].top && button.height >= 32), `${lang}/${width}: ${JSON.stringify(layout)}`)
-        if (process.env.QWAUDIO_PERMISSION_PREVIEW_DIR && width === 420) {
+        if (process.env.SIDEAUDIO_PERMISSION_PREVIEW_DIR && width === 420) {
           const screenshot = await window.webContents.capturePage()
-          await writeFile(join(process.env.QWAUDIO_PERMISSION_PREVIEW_DIR, `permission-${lang}.png`), screenshot.toPNG())
+          await writeFile(join(process.env.SIDEAUDIO_PERMISSION_PREVIEW_DIR, `permission-${lang}.png`), screenshot.toPNG())
         }
       }
     }

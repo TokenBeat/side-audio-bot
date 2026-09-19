@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { ClientEventDefinitionRegistry, GatewayEventRouter } from 'qwen-audio-agent/client-events'
+import { ClientEventDefinitionRegistry, GatewayEventRouter } from 'side-audio-bot/client-events'
 import { RealtimeAgentDeliveryRuntime } from '../../../../server/src/voice/realtime-agent-delivery-runtime.mjs'
 import { cockpitEnvironmentEventDefinitions } from '../environment-events.mjs'
 import { navigationPreferenceSnapshot, skillTriggeredEvent } from '../../client/src/projections/environment-events.js'

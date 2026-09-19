@@ -1,9 +1,9 @@
 # 架构总览
 
-qwen-audio-agent 是一个实时语音运行时，让 AI Agent 持续交流、持续工作、持续在场。
+side-audio-bot 是一个实时语音运行时，让 AI Agent 持续交流、持续工作、持续在场。
 整体分为三层，层与层之间只有两个协议面。
 
-![三层架构](../qwen-audio-agent-three-layer-architecture.png)
+![三层架构](../side-audio-bot-three-layer-architecture.png)
 
 ## 三层模型
 

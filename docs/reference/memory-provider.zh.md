@@ -62,8 +62,8 @@ Runtime 写入持久化且实际产生变更后，还会向同一 owner 的已�
 可以从公开入口实现版本化的 `MemoryProvider`，并在 Composition Root 注入：
 
 ```js
-import { MEMORY_PROVIDER_PROTOCOL_VERSION } from 'qwen-audio-agent/memory-provider'
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { MEMORY_PROVIDER_PROTOCOL_VERSION } from 'side-audio-bot/memory-provider'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 
 const memoryProvider = {
   describe: () => ({

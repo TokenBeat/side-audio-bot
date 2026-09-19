@@ -1,7 +1,7 @@
 const button = document.querySelector('#open-settings')
 
 function openSettings() {
-  window.qwenAudioAgentDesktop.openSettings()
+  window.sideAudioBotDesktop.openSettings()
 }
 
 button.addEventListener('click', openSettings)

@@ -32,7 +32,7 @@ test('selects the optional VoiceMem connector through configuration', async () =
     () => normalizeMemoryProviderSelection('unknown'),
     /不支持的记忆 Provider/,
   )
-  const stateDirectory = mkdtempSync(join(tmpdir(), 'qwaudio-voicemem-built-in-'))
+  const stateDirectory = mkdtempSync(join(tmpdir(), 'sideaudio-voicemem-built-in-'))
   const sidecarPath = join(stateDirectory, 'sidecar.py')
   writeFileSync(sidecarPath, '')
   const provider = createConfiguredMemoryProvider({
@@ -83,7 +83,7 @@ test('maps Model Studio credentials without overriding explicit providers', () =
 })
 
 test('keeps a synchronous control snapshot and applies exact edits', async () => {
-  const stateDirectory = mkdtempSync(join(tmpdir(), 'qwaudio-voicemem-'))
+  const stateDirectory = mkdtempSync(join(tmpdir(), 'sideaudio-voicemem-'))
   const provider = new VoiceMemProvider({
     stateDirectory,
     sidecar: { lastError: null, close() {} },
@@ -113,7 +113,7 @@ test('keeps a synchronous control snapshot and applies exact edits', async () =>
 test('requires an external VoiceMem sidecar instead of bundling Python code', () => {
   assert.throws(
     () => new VoiceMemProvider({
-      stateDirectory: mkdtempSync(join(tmpdir(), 'qwaudio-voicemem-external-')),
+      stateDirectory: mkdtempSync(join(tmpdir(), 'sideaudio-voicemem-external-')),
       env: {},
     }),
     /VOICEMEM_SIDECAR/,
@@ -134,7 +134,7 @@ test('uses a longer timeout for background observation and consolidation', async
     },
   }
   const provider = new VoiceMemProvider({
-    stateDirectory: mkdtempSync(join(tmpdir(), 'qwaudio-voicemem-timeout-')),
+    stateDirectory: mkdtempSync(join(tmpdir(), 'sideaudio-voicemem-timeout-')),
     timeoutMs: 5_000,
     backgroundTimeoutMs: 120_000,
     sidecar,
@@ -174,7 +174,7 @@ test('coalesces duplicate observations and never queues recall behind them', asy
     close() {},
   }
   const provider = new VoiceMemProvider({
-    stateDirectory: mkdtempSync(join(tmpdir(), 'qwaudio-voicemem-busy-')),
+    stateDirectory: mkdtempSync(join(tmpdir(), 'sideaudio-voicemem-busy-')),
     sidecar,
   })
   const exchange = {
@@ -212,7 +212,7 @@ test('captures bounded PCM turns and passes real WAV files only in audio mode', 
     close() {},
   }
   const provider = new VoiceMemProvider({
-    stateDirectory: mkdtempSync(join(tmpdir(), 'qwaudio-voicemem-audio-')),
+    stateDirectory: mkdtempSync(join(tmpdir(), 'sideaudio-voicemem-audio-')),
     env: { VOICEMEM_INPUT_MODE: 'audio' },
     sidecar,
   })
@@ -268,7 +268,7 @@ test('discards invalid audio turns and keeps text mode audio-free', async () => 
     },
     close() {},
   }
-  const stateDirectory = mkdtempSync(join(tmpdir(), 'qwaudio-voicemem-mode-'))
+  const stateDirectory = mkdtempSync(join(tmpdir(), 'sideaudio-voicemem-mode-'))
   const textProvider = new VoiceMemProvider({
     stateDirectory,
     env: { VOICEMEM_INPUT_MODE: 'text' },
@@ -288,7 +288,7 @@ test('discards invalid audio turns and keeps text mode audio-free', async () => 
   assert.equal(calls[0].params.messages[0].audioPath, undefined)
 
   const audioProvider = new VoiceMemProvider({
-    stateDirectory: mkdtempSync(join(tmpdir(), 'qwaudio-voicemem-invalid-')),
+    stateDirectory: mkdtempSync(join(tmpdir(), 'sideaudio-voicemem-invalid-')),
     env: { VOICEMEM_INPUT_MODE: 'audio' },
     sidecar,
   })
@@ -317,7 +317,7 @@ test('discards invalid audio turns and keeps text mode audio-free', async () => 
 })
 
 function audioProviderFixture(t, request) {
-  const stateDirectory = mkdtempSync(join(tmpdir(), 'qwaudio-voicemem-lifecycle-'))
+  const stateDirectory = mkdtempSync(join(tmpdir(), 'sideaudio-voicemem-lifecycle-'))
   const provider = new VoiceMemProvider({
     stateDirectory,
     env: { VOICEMEM_INPUT_MODE: 'audio' },

@@ -97,7 +97,7 @@ export const GatewayWebSocketUrlSchema = z.string().trim().min(1)
   .transform(normalizeGatewayWebSocketUrl)
 
 export const GatewayDirectConnectionSchema = z.object({
-  schema: z.literal('qwaudio.connection/v2'),
+  schema: z.literal('sideaudio.connection/v2'),
   websocket_url: GatewayWebSocketUrlSchema,
   device_id: IdentifierSchema,
   credential_id: IdentifierSchema,
@@ -160,7 +160,7 @@ export function createGatewayDirectConnection({
   issuedAt = Date.now(),
 }) {
   return parseGatewayDirectConnection({
-    schema: 'qwaudio.connection/v2',
+    schema: 'sideaudio.connection/v2',
     websocket_url: websocketUrl || gatewayWebSocketUrl(gatewayUrl),
     device_id: deviceId,
     credential_id: credentialId,
@@ -241,7 +241,7 @@ export function assertGatewayPairingCodeActive(pairingCode, now = Date.now()) {
 
 export function encodeGatewayPairingCode(pairingCode) {
   const parsed = parseGatewayPairingCode(pairingCode)
-  const url = new URL('qwaudio://connect')
+  const url = new URL('sideaudio://connect')
   url.searchParams.set('v', String(parsed.version))
   url.searchParams.set('gateway', parsed.gateway_url)
   url.searchParams.set('code', parsed.pairing_code)
@@ -266,7 +266,7 @@ export function decodeGatewayPairingCode(value) {
       code: 'gateway_pairing_code_invalid',
     })
   }
-  const isAppPairingCode = url.protocol === 'qwaudio:' && url.hostname === 'connect'
+  const isAppPairingCode = url.protocol === 'sideaudio:' && url.hostname === 'connect'
   const isBrowserPairingCode = url.protocol === 'https:' && url.pathname === '/c'
   if (!isAppPairingCode && !isBrowserPairingCode) {
     throw Object.assign(new Error('Invalid Gateway pairing URL'), {

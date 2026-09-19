@@ -10,13 +10,13 @@
 		<true/>
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>用于连接同一局域网中的 Qwen Audio Agent Gateway。</string>
+	<string>用于连接同一局域网中的 Side Audio Bot Gateway。</string>
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>Qwen Audio Agent</string>
+        <string>Side Audio Bot</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -29,10 +29,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.qwenaudio.agent.connect</string>
+			<string>com.sideaudio.agent.connect</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>qwaudio</string>
+				<string>sideaudio</string>
 			</array>
 		</dict>
 	</array>

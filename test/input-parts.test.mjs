@@ -62,7 +62,7 @@ test('does not trust server-owned input references supplied by a client', () => 
     type: 'file',
     mime: 'image/png',
     url: 'data:image/png;base64,YQ==',
-    _meta: { 'qwen-audio-agent/inputRef': 'input_999' },
+    _meta: { 'side-audio-bot/inputRef': 'input_999' },
   }])
 
   assert.equal('_meta' in part, false)

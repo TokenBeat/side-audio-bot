@@ -1,4 +1,4 @@
-# Qwen Audio Agent Customer Service
+# Side Audio Bot Customer Service
 
 [English](README.md) | [中文](README_ZH.md)
 

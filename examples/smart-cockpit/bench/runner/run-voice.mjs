@@ -14,16 +14,16 @@ import { startCockpitServiceServer } from '../../service/server.mjs'
 import { COCKPIT_SURFACE_ROUTING } from '../../service/tools/registry.mjs'
 import {
   GatewayClient,
-} from 'qwen-audio-agent/gateway-client-sdk'
+} from 'side-audio-bot/gateway-client-sdk'
 import {
   GatewayClientCapability,
   GatewayClientProtocolEvent,
-} from 'qwen-audio-agent/gateway-client-protocol'
+} from 'side-audio-bot/gateway-client-protocol'
 import {
   GatewayClientEvent,
   GatewayServerEvent,
   GatewayTaskEvent,
-} from 'qwen-audio-agent/realtime-events'
+} from 'side-audio-bot/realtime-events'
 import { loadBenchmarkCases, routeCasesExpectedPaths } from '../evaluator/cases.mjs'
 import { scoreTrace, summarizeScores } from '../evaluator/score.mjs'
 // One deterministic service for every measured subject: the text, realtime and
@@ -109,7 +109,7 @@ async function synthesizeSpeechPcm(text, {
   sampleRate = DEFAULT_SAMPLE_RATE,
   sayVoice = 'Ting-Ting',
 } = {}) {
-  const root = await mkdtemp(join(tmpdir(), 'qwen-cockpit-voice-turn-'))
+  const root = await mkdtemp(join(tmpdir(), 'sideaudio-cockpit-voice-turn-'))
   const aiffPath = join(root, 'speech.aiff')
   try {
     const sayArgs = sayVoice
@@ -513,13 +513,13 @@ async function main() {
   }
 
   const cockpitId = String(args.get('cockpit-id') || DEFAULT_COCKPIT_ID)
-  const runtimeRoot = await mkdtemp(join(tmpdir(), 'qwen-cockpit-voice-bench-'))
-  process.env.QWAUDIO_CONFIG_DIR = runtimeRoot
-  process.env.QWAUDIO_DATA_DIR = resolve(runtimeRoot, 'data')
+  const runtimeRoot = await mkdtemp(join(tmpdir(), 'sideaudio-cockpit-voice-bench-'))
+  process.env.SIDEAUDIO_CONFIG_DIR = runtimeRoot
+  process.env.SIDEAUDIO_DATA_DIR = resolve(runtimeRoot, 'data')
   if (args.get('frontend-profile')) {
-    process.env.QWEN_AUDIO_FRONTEND_PROFILE = String(args.get('frontend-profile'))
+    process.env.SIDE_AUDIO_FRONTEND_PROFILE = String(args.get('frontend-profile'))
   } else {
-    delete process.env.QWEN_AUDIO_FRONTEND_PROFILE
+    delete process.env.SIDE_AUDIO_FRONTEND_PROFILE
   }
 
   let serviceServer
@@ -587,7 +587,7 @@ async function main() {
         serviceServer,
         gatewayOrigin,
         cockpitId,
-        outputVoice: args.get('voice') || process.env.QWEN_AUDIO_OUTPUT_VOICE,
+        outputVoice: args.get('voice') || process.env.SIDE_AUDIO_OUTPUT_VOICE,
         sayVoice: args.get('say-voice') === true ? undefined : args.get('say-voice') || 'Ting-Ting',
         silenceMs: numberArg(args, 'silence-ms', DEFAULT_SILENCE_MS),
         chunkMs: numberArg(args, 'chunk-ms', DEFAULT_CHUNK_MS),

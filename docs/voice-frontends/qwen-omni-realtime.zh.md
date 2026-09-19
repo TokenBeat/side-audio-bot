@@ -22,7 +22,7 @@ QWEN_AUDIO_REALTIME_MODEL=qwen3.5-omni-flash-realtime
 
 凭据与端点配置与 [Qwen Audio 3.0 Realtime](qwen-audio-realtime.zh.md)
 完全一致——无论哪个系列，一个 Gateway 同一时刻只生效一个模型；在桌面版
-设置页或 `qwenaudio config set --realtime-model <id>` 切换后重启 Gateway。
+设置页或 `sideaudio config set --realtime-model <id>` 切换后重启 Gateway。
 
 ## 音色与话轮检测
 
@@ -42,7 +42,7 @@ WebUI 可以把摄像头画面采样为有界 JPEG 帧，并通过协商后的 G
 
 ## 两个系列怎么选？
 
-- **Audio**（`qwen-audio-3.0-realtime-*`）——默认选择；语音优先的对话，
+- **Audio**（`side-audio-3.0-realtime-*`）——默认选择；语音优先的对话，
   无其他依赖。
 - **Omni**（`qwen3.5-omni-*-realtime`）——需要前台结合实时画面与语音时选择。
 

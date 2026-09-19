@@ -5,7 +5,7 @@ custom Function Calling, and server VAD. Gateway continues to own backend agents
 
 ## Configuration
 
-Edit the user configuration file shown by `qwenaudio config`:
+Edit the user configuration file shown by `sideaudio config`:
 
 ```dotenv
 QWEN_AUDIO_REALTIME_PROVIDER=stepfun
@@ -23,7 +23,7 @@ before connecting; new models require a capability profile. Preview availability
 and replacement follow the [official model documentation](https://platform.stepfun.com/docs/zh/guides/models/stepaudio-3-realtime).
 
 In Desktop, select StepFun under Voice Frontend, enter the key, and apply.
-Restart a terminal Gateway; for an installed service, run `qwenaudio gateway restart`.
+Restart a terminal Gateway; for an installed service, run `sideaudio gateway restart`.
 `config show` and `config set --realtime-model` use the active provider's model catalog.
 Remote clients use their Gateway's configuration.
 

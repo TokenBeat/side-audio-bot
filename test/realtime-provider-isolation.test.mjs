@@ -27,7 +27,7 @@ const providers = {
 }
 
 function fixture(t) {
-  const root = mkdtempSync(join(tmpdir(), 'qwaudio-provider-isolation-'))
+  const root = mkdtempSync(join(tmpdir(), 'sideaudio-provider-isolation-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   const configDir = join(root, 'config')
   mkdirSync(configDir)
@@ -127,7 +127,7 @@ test('CLI source precedence applies after importing the persisted provider', t =
     QWEN_AUDIO_REALTIME_MODEL: providers.STEPFUN_REALTIME_MODEL,
     DASHSCOPE_API_KEY: 'dash-key',
   }))
-  const env = { QWAUDIO_CONFIG_DIR: options.configDir, QWEN_AUDIO_REALTIME_PROVIDER: 'dashscope' }
+  const env = { SIDEAUDIO_CONFIG_DIR: options.configDir, QWEN_AUDIO_REALTIME_PROVIDER: 'dashscope' }
   loadRuntimeEnvironment({ root: options.root, env, readOnly: true })
   assert.equal(resolveRealtimeFrontendConfiguration(env).credential, 'dash-key')
   assert.equal(env.STEPFUN_API_KEY, 'old-step-key')

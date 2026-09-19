@@ -5,7 +5,7 @@
 配置后台 Agent 后，可运行统一的只读检查：
 
 ```bash
-qwenaudio setup
+sideaudio setup
 ```
 
 它会检查后台可执行文件、ACP 接入方式和必要的 Adapter，并明确显示当前选择。
@@ -16,8 +16,8 @@ qwenaudio setup
 只检查指定后台或获取机器可读结果：
 
 ```bash
-qwenaudio setup --backend codex
-qwenaudio setup --json
+sideaudio setup --backend codex
+sideaudio setup --json
 ```
 
 JSON 输出与 CLI 使用同一个共享检测模块，可供桌面版和其他工具直接复用。
@@ -27,9 +27,9 @@ JSON 输出与 CLI 使用同一个共享检测模块，可供桌面版和其他�
 未安装的后台 Agent 可用统一命令安装到本机：
 
 ```bash
-qwenaudio install codex
-qwenaudio install deepseek
-qwenaudio install minimax
+sideaudio install codex
+sideaudio install deepseek
+sideaudio install minimax
 ```
 
 - 安装前先检测，只补齐缺失的组件：原生 ACP 后台仍需按要求完成登录和配置；本体缺失时装本体；
@@ -66,7 +66,7 @@ DEEPSEEK_HARNESS_MODEL=deepseek-v4-pro
 ## 选择后台
 
 `AGENT_PROTOCOL` 没有默认值，也是可选配置。留空时 Gateway 不启动后台 Agent，前台聊天与已启用工具仍可使用；需要后台执行的请求会返回明确错误，不会创建任务或猜测执行结果。
-也可以使用 `qwenaudio --backend none` 显式启动仅前台模式。
+也可以使用 `sideaudio --backend none` 显式启动仅前台模式。
 
 ## 模型选择
 
@@ -74,7 +74,7 @@ DEEPSEEK_HARNESS_MODEL=deepseek-v4-pro
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_MODEL=
+SIDE_AUDIO_BOT_BACKEND_MODEL=
 ```
 
 未指定时 Gateway 不传模型、不猜默认值，也不调用设置接口。新建 Session 由后台选择模型，
@@ -118,7 +118,7 @@ OpenCode / OpenClaw 另支持一键托管：配置 `DASHSCOPE_API_KEY` 与后台
 
 ## 后台权限模式
 
-`QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` 可设为：
+`SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` 可设为：
 
 - `native`（默认）：权限由后台 Agent 自己判断和询问，Gateway 只负责原样转发。
 - `full`：启动时明确授予最高权限，后台可直接执行命令、读写文件，不再逐次确认。

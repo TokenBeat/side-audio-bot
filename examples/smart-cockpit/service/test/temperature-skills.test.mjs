@@ -9,7 +9,7 @@ import { CockpitStateStore } from '../state-store.mjs'
 import { TemperatureSkillRules } from '../custom-skills/temperature-rules.mjs'
 
 async function fixture(t) {
-  const root = await mkdtemp(join(tmpdir(), 'qwen-temperature-skills-'))
+  const root = await mkdtemp(join(tmpdir(), 'sideaudio-temperature-skills-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const customSkills = new CustomSkillStore({ root })
   const service = new CockpitService({ customSkills })

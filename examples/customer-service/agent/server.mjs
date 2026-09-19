@@ -22,7 +22,7 @@ import { loadServiceEnvironment } from '../bootstrap/environment.mjs'
 
 function agentCard(origin) {
   return {
-    name: 'Qwen Audio Agent Customer Service Agent',
+    name: 'Side Audio Bot Customer Service Agent',
     description: 'Replaceable model-powered A2A Agent for retail customer service operations.',
     supportedInterfaces: [{
       url: `${origin}/`,
@@ -31,8 +31,8 @@ function agentCard(origin) {
       protocolVersion: A2A_PROTOCOL_VERSION,
     }],
     provider: {
-      organization: 'Qwen Audio Agent Examples',
-      url: 'https://github.com/QwenAudio/qwen-audio-agent',
+      organization: 'Side Audio Bot Examples',
+      url: 'https://github.com/TokenBeat/side-audio-bot',
     },
     version: '1.0.0',
     capabilities: {

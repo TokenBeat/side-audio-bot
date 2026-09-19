@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 
 // Electron selects the platform-specific application directory. These paths
-// are client-owned and must not follow QWAUDIO_CONFIG/DATA/STATE/CACHE_DIR.
+// are client-owned and must not follow SIDEAUDIO_CONFIG/DATA/STATE/CACHE_DIR.
 export function desktopClientPaths(userDataDirectory) {
   if (!userDataDirectory) throw new TypeError('desktop user data directory is required')
   const directory = resolve(userDataDirectory)

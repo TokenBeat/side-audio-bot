@@ -24,7 +24,7 @@ QWEN_AUDIO_REALTIME_MODEL=qwen3.5-omni-flash-realtime
 Same credential and endpoint settings as
 [Qwen Audio 3.0 Realtime](qwen-audio-realtime.md) — one Gateway owns one
 active model regardless of family; switch via Desktop settings or
-`qwenaudio config set --realtime-model <id>`, then restart the Gateway.
+`sideaudio config set --realtime-model <id>`, then restart the Gateway.
 
 ## Voice and turn detection
 
@@ -48,7 +48,7 @@ visual frames in this release.
 
 ## Which family should I pick?
 
-- **Audio** (`qwen-audio-3.0-realtime-*`) — the default; voice-first
+- **Audio** (`side-audio-3.0-realtime-*`) — the default; voice-first
   conversation, nothing else needed.
 - **Omni** (`qwen3.5-omni-*-realtime`) — pick when you want the
   frontend to combine live visual frames with voice.

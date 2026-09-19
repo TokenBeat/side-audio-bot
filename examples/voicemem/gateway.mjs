@@ -10,15 +10,15 @@ const localPython = resolve(
 )
 
 // The example is ordinary Gateway configuration: the Provider implementation
-// is shipped by qwen-audio-agent rather than copied into this directory.
-process.env.QWEN_AUDIO_MEMORY_PROVIDER ||= 'voicemem'
+// is shipped by side-audio-bot rather than copied into this directory.
+process.env.SIDE_AUDIO_MEMORY_PROVIDER ||= 'voicemem'
 if (!process.env.VOICEMEM_PYTHON && existsSync(localPython)) {
   process.env.VOICEMEM_PYTHON = localPython
 }
 process.env.VOICEMEM_SIDECAR ||= resolve(directory, 'sidecar', 'server.py')
 
 const { createGatewayApplication } = await import(
-  'qwen-audio-agent/gateway-application'
+  'side-audio-bot/gateway-application'
 )
 const gateway = createGatewayApplication()
 

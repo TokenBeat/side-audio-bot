@@ -14,9 +14,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 // The nested npm install below triggers "prepare" again; the guard keeps the
 // recursion to a single level.
-if (process.env.QWEN_AUDIO_AGENT_PREPARE === '1') process.exit(0)
+if (process.env.SIDE_AUDIO_BOT_PREPARE === '1') process.exit(0)
 
-const environment = { ...process.env, QWEN_AUDIO_AGENT_PREPARE: '1' }
+const environment = { ...process.env, SIDE_AUDIO_BOT_PREPARE: '1' }
 for (const key of Object.keys(environment)) {
   if (key.toLowerCase().startsWith('npm_config_')) delete environment[key]
 }

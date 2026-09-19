@@ -138,6 +138,6 @@ export function resolveRealtimeFrontendConfiguration(env = process.env) {
     credential,
     missingConfigurationMessage: `缺少 ${PROVIDERS[provider].requiredConfiguration.key}`
       + (environmentAliases.length ? `（也支持 ${environmentAliases.join('、')}）` : '')
-      + '。请运行 qwenaudio config 查看配置文件位置。',
+      + '。请运行 sideaudio config 查看配置文件位置。',
   }
 }

@@ -5,7 +5,7 @@ import { t } from '../src/i18n.js'
 function withLang(lang, run) {
   const previous = globalThis.localStorage
   globalThis.localStorage = {
-    getItem: key => (key === 'qwen-audio-lang' ? lang : null),
+    getItem: key => (key === 'side-audio-lang' ? lang : null),
   }
   try {
     run()

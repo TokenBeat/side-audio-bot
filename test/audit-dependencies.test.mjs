@@ -44,7 +44,7 @@ test('dependency audit passes only a valid clean report', () => {
 
 test('dependency audit never treats a real high vulnerability as an outage', () => {
   const result = audit('vulnerable', {
-    QWEN_AUDIO_AGENT_AUDIT_ALLOW_UNAVAILABLE: '1',
+    SIDE_AUDIO_BOT_AUDIT_ALLOW_UNAVAILABLE: '1',
   })
   assert.equal(result.status, 1)
   assert.match(result.stderr, /生产依赖存在 high 或 critical 漏洞/)
@@ -52,7 +52,7 @@ test('dependency audit never treats a real high vulnerability as an outage', () 
 
 test('non-release CI can continue when the audit service is unavailable', () => {
   const result = audit('unavailable', {
-    QWEN_AUDIO_AGENT_AUDIT_ALLOW_UNAVAILABLE: '1',
+    SIDE_AUDIO_BOT_AUDIT_ALLOW_UNAVAILABLE: '1',
   })
   assert.equal(result.status, 0, result.stderr)
   assert.match(result.stdout, /审计服务不可用；非发版检查继续/)

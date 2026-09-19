@@ -2,7 +2,7 @@
 
 > Status: in progress
 >
-> Tracking: [GitHub issue #320](https://github.com/QwenAudio/qwen-audio-agent/issues/320)
+> Tracking: [GitHub issue #320](https://github.com/TokenBeat/side-audio-bot/issues/320)
 >
 > Protocol: [Gateway Client Protocol](../gateway-protocol.md)
 
@@ -94,7 +94,7 @@ A direct connection code is a one-time-display transport envelope. After decodin
 
 ```json
 {
-  "schema": "qwaudio.connection/v2",
+  "schema": "sideaudio.connection/v2",
   "websocket_url": "wss://gateway.example.ts.net/api/realtime",
   "device_id": "device_example",
   "credential_id": "device_key_example",

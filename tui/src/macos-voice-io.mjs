@@ -12,7 +12,7 @@ export function macVoiceIOBinaryPath({
 } = {}) {
   return resolve(
     homeDirectory,
-    'Library/Caches/qwaudio/tui/macos-voice-io',
+    'Library/Caches/sideaudio/tui/macos-voice-io',
   )
 }
 
@@ -33,7 +33,7 @@ function run(command, args) {
 
 export async function ensureMacVoiceIO({
   sourcePath = SOURCE_PATH,
-  binaryPath = process.env.QWEN_AUDIO_AGENT_TUI_AEC_BINARY
+  binaryPath = process.env.SIDE_AUDIO_BOT_TUI_AEC_BINARY
     || macVoiceIOBinaryPath(),
 } = {}) {
   if (process.platform !== 'darwin') {

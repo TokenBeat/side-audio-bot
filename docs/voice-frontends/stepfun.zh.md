@@ -5,7 +5,7 @@
 
 ## 配置
 
-在 `qwenaudio config` 显示的用户配置文件中填写：
+在 `sideaudio config` 显示的用户配置文件中填写：
 
 ```dotenv
 QWEN_AUDIO_REALTIME_PROVIDER=stepfun
@@ -23,7 +23,7 @@ STEPFUN_API_KEY=your-stepfun-key
 [官方模型文档](https://platform.stepfun.com/docs/zh/guides/models/stepaudio-3-realtime)为准。
 
 桌面端在“语音前台”选择 StepFun，填写 Key 后点击应用。终端 Gateway 需重启；
-已安装后台服务使用 `qwenaudio gateway restart`。`config show` 和
+已安装后台服务使用 `sideaudio gateway restart`。`config show` 和
 `config set --realtime-model` 按当前 Provider 显示和修改模型。远程客户端沿用其 Gateway 配置。
 
 ## 交互边界

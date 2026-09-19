@@ -1,6 +1,6 @@
 # Using the MiniCPM-o Realtime Frontend
 
-qwen-audio-agent connects to
+side-audio-bot connects to
 [MiniCPM-o 4.5](https://github.com/OpenBMB/MiniCPM-o-Demo) through ModelBest's public Realtime
 protocol. The endpoint may be a user-managed local deployment or a compatible hosted service;
 the Gateway does not install the model or manage the inference process.

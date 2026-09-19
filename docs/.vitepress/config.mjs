@@ -1,13 +1,13 @@
 import { defineConfig } from 'vitepress'
 
-const repoUrl = 'https://github.com/QwenAudio/qwen-audio-agent'
+const repoUrl = 'https://github.com/TokenBeat/side-audio-bot'
 
 // Source pairs remain page.md + page.zh.md; sync-docs-site generates the locale trees.
 function editPattern({ relativePath }) {
   const source = relativePath.startsWith('zh/')
     ? relativePath.slice(3).replace(/\.md$/, '.zh.md')
     : relativePath
-  return `https://github.com/QwenAudio/qwen-audio-agent/edit/main/docs/${source}`
+  return `https://github.com/TokenBeat/side-audio-bot/edit/main/docs/${source}`
 }
 
 function sidebar(prefix = '') {
@@ -132,9 +132,9 @@ function nav(prefix = '') {
 }
 
 export default defineConfig({
-  title: 'Qwen Audio Agent',
+  title: 'Side Audio Bot',
   description: 'A realtime voice assistant connected to your own action-taking Agent.',
-  base: process.env.DOCS_BASE || '/qwen-audio-agent/',
+  base: process.env.DOCS_BASE || '/side-audio-bot/',
   cleanUrls: true,
   srcDir: '.vitepress/.site',
   themeConfig: {

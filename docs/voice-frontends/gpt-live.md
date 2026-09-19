@@ -1,13 +1,13 @@
 # GPT-Live / OpenAI Realtime
 
-qwen-audio-agent can connect to OpenAI's GPT-Live / Realtime WebSocket API as
+side-audio-bot can connect to OpenAI's GPT-Live / Realtime WebSocket API as
 a cloud voice frontend. Gateway still owns frontend tools, memory, reminders,
 task delegation, and backend-Agent orchestration; the provider adapter only
 translates the OpenAI GA Realtime wire shape into the shared runtime.
 
 ## Configuration
 
-Edit the user configuration file shown by `qwenaudio config`:
+Edit the user configuration file shown by `sideaudio config`:
 
 ```dotenv
 QWEN_AUDIO_REALTIME_PROVIDER=gpt-live
@@ -23,7 +23,7 @@ OPENAI_API_KEY=your-openai-key
 
 Desktop exposes the same fields under **Voice frontend → GPT-Live**. Restart a
 terminal Gateway after editing the file; for an installed service, run
-`qwenaudio gateway restart`.
+`sideaudio gateway restart`.
 
 ## Integration boundary
 

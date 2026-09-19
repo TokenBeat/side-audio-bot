@@ -15,7 +15,7 @@ test('builds backend environment from non-empty config values', () => {
   assert.equal(result.KEEP, 'configured')
   assert.equal(result.EMPTY, undefined)
   assert.equal(result.AGENT_PROTOCOL, 'opencode')
-  assert.equal(result.QWEN_AUDIO_AGENT_DESKTOP_INSTALLED_ONLY, '1')
+  assert.equal(result.SIDE_AUDIO_BOT_DESKTOP_INSTALLED_ONLY, '1')
 })
 
 test('normalizes the Windows Path environment key', () => {

@@ -30,7 +30,7 @@ export function createCustomerServiceMcpServer({
   }
   const tools = toolDefinitions(surface, domain)
   const server = new Server({
-    name: `qwen-audio-agent-customer-service-${surface}`,
+    name: `side-audio-bot-customer-service-${surface}`,
     version: '1.0.0',
   }, { capabilities: { tools: {} } })
 

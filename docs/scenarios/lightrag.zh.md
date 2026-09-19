@@ -1,6 +1,6 @@
 # LightRAG 知识库
 
-qwen-audio-agent 可以把用户独立运行的
+side-audio-bot 可以把用户独立运行的
 [LightRAG](https://github.com/HKUDS/LightRAG) 作为前台知识库。LightRAG 负责文档解析、
 Embedding、索引和检索，Gateway 只通过 `KnowledgeProvider` 调用它。
 
@@ -46,7 +46,7 @@ lightrag-server --host 127.0.0.1 --port 9621
 
 ## 运行接入示例
 
-在 qwen-audio-agent 源码目录执行：
+在 side-audio-bot 源码目录执行：
 
 ```bash
 cp examples/lightrag/.env.example examples/lightrag/.env.local
@@ -72,7 +72,7 @@ node --env-file=examples/lightrag/.env.local examples/lightrag/gateway.mjs
 文字查询。这个示例使用仅前台模式，不会启动后台 Agent。
 
 `DASHSCOPE_API_KEY` 只用于语音前台；LightRAG 的 LLM 和 Embedding 配置保留在它自己的
-进程中。qwen-audio-agent 不会安装、启动或修改 LightRAG。
+进程中。side-audio-bot 不会安装、启动或修改 LightRAG。
 
 ## 数据与任务边界
 
@@ -83,7 +83,7 @@ node --env-file=examples/lightrag/.env.local examples/lightrag/gateway.mjs
 - LightRAG 的文档、索引、模型凭据和 workspace 均由用户自行保存和管理。
 
 完整代码与全部配置项见
-[`examples/lightrag`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/lightrag)。
+[`examples/lightrag`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/lightrag)。
 
 ## 作者与致谢
 

@@ -6,7 +6,7 @@ import test from 'node:test'
 import { checkDocsSite } from '../scripts/check-docs-site.mjs'
 
 function fixture(t, files) {
-  const root = mkdtempSync(join(tmpdir(), 'qwaudio-docs-links-'))
+  const root = mkdtempSync(join(tmpdir(), 'sideaudio-docs-links-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   for (const [name, body] of Object.entries(files)) {
     const path = join(root, name)

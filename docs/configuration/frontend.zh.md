@@ -1,7 +1,7 @@
 # 前台配置
 
 语音前台是 Gateway 连接的实时语音模型。本页设置都写在用户配置文件中
-（`~/.config/qwaudio/config.env`，见[配置总览](../configuration.zh.md)），
+（`~/.config/sideaudio/config.env`，见[配置总览](../configuration.zh.md)），
 修改后按[实际运行方式应用设置](../operations/gateway.zh.md#修改配置后生效)：终端退出重启、后台服务执行 `gateway restart`，桌面版点击应用。
 
 ## 凭据与端点
@@ -47,7 +47,7 @@ MiniCPM-o 当前公开的 Audio Realtime 传输支持连续音频输入及文本
 但不提供对话项、结构化 Function Calling 或输入转写。因此它目前定位为实时语音
 聊天前台，不用于编排后台 Agent。
 
-前台工具单独配置：Web 搜索（`QWEN_AUDIO_WEB_SEARCH_PROVIDER`，见
+前台工具单独配置：Web 搜索（`SIDE_AUDIO_WEB_SEARCH_PROVIDER`，见
 [配置总览](../configuration.zh.md)）；通用对话工具见
 [前台 MCP 客户端](../reference/frontend-mcp.zh.md)、
 [前台 OpenAPI 适配器](../reference/frontend-openapi.zh.md)或
@@ -59,10 +59,10 @@ MiniCPM-o 当前公开的 Audio Realtime 传输支持连续音频输入及文本
 Gateway 的模型，CLI 提供等价命令：
 
 ```bash
-qwenaudio config show
-qwenaudio config set --realtime-model qwen3.5-omni-flash-realtime
+sideaudio config show
+sideaudio config set --realtime-model qwen3.5-omni-flash-realtime
 # 以下仅用于已安装的用户后台服务：
-qwenaudio gateway restart
+sideaudio gateway restart
 ```
 
 精确支持的 DashScope 模型 ID 如下：

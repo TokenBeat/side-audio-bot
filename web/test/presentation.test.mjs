@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 globalThis.localStorage = {
-  getItem: key => (key === 'qwen-audio-lang' ? 'zh-CN' : null),
+  getItem: key => (key === 'side-audio-lang' ? 'zh-CN' : null),
 }
 import { resultLabel } from '../src/presentation.js'
 

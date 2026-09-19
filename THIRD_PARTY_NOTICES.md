@@ -1,7 +1,9 @@
 # Third-Party Notices
 
-qwen-audio-agent 使用并分发若干开源组件。项目自身使用 Apache License 2.0；
+side-audio-bot 使用并分发若干开源组件。项目自身使用 Apache License 2.0；
 第三方组件仍分别受其原许可证约束。
+
+side-audio-bot is based on qwen-audio-agent, Copyright 2026 qwen-audio-agent contributors.
 
 主要组件包括：
 
@@ -14,9 +16,7 @@ qwen-audio-agent 使用并分发若干开源组件。项目自身使用 Apache L
 | Vite | MIT | https://github.com/vitejs/vite |
 | react-markdown | MIT | https://github.com/remarkjs/react-markdown |
 | remark-gfm | MIT | https://github.com/remarkjs/remark-gfm |
-| node-qrcode | MIT | https://github.com/soldair/node-qrcode |
 | electron-builder | MIT | https://github.com/electron-userland/electron-builder |
-| Agent2Agent Protocol JavaScript SDK | Apache-2.0 | https://github.com/a2aproject/a2a-js |
 | Agent Client Protocol TypeScript SDK | Apache-2.0 | https://github.com/agentclientprotocol/typescript-sdk |
 | Codex ACP adapter | Apache-2.0 | https://github.com/agentclientprotocol/codex-acp |
 | Claude Code ACP adapter | Apache-2.0 | https://github.com/zed-industries/claude-code-acp |

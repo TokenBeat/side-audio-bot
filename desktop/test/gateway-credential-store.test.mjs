@@ -6,7 +6,7 @@ import test from 'node:test'
 import { createElectronGatewayCredentialStore } from '../src/gateway-credential-store.mjs'
 
 test('desktop Gateway credentials are encrypted at rest', async t => {
-  const directory = mkdtempSync(resolve(tmpdir(), 'qwaudio-desktop-credential-'))
+  const directory = mkdtempSync(resolve(tmpdir(), 'sideaudio-desktop-credential-'))
   const filePath = resolve(directory, 'credentials.json')
   t.after(() => rmSync(directory, { recursive: true, force: true }))
   const safeStorage = {

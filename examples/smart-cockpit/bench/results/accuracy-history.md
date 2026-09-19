@@ -7,7 +7,7 @@ before comparing them.
 
 ## Example README snapshot — 2026-09-10
 
-Source: [commit 94d6cd3, example README](https://github.com/QwenAudio/qwen-audio-agent/blob/94d6cd372379f9c889ea8d6f6190e4cd45122adb/examples/smart-cockpit/README.md).
+Source: [commit 94d6cd3, example README](https://github.com/TokenBeat/side-audio-bot/blob/94d6cd372379f9c889ea8d6f6190e4cd45122adb/examples/smart-cockpit/README.md).
 The short table did not identify the Text model in its column heading; do not
 infer a model alias or thinking setting that the record does not establish.
 The matching raw accuracy traces are not committed with this snapshot.
@@ -27,7 +27,7 @@ The matching raw accuracy traces are not committed with this snapshot.
 
 ## Detailed Benchmark snapshot — 2026-09-13
 
-Source: [commit 766baeb, Benchmark README](https://github.com/QwenAudio/qwen-audio-agent/blob/766baeb1f438ff0ba73102d98f5016e239c06e21/examples/smart-cockpit/bench/README.md).
+Source: [commit 766baeb, Benchmark README](https://github.com/TokenBeat/side-audio-bot/blob/766baeb1f438ff0ba73102d98f5016e239c06e21/examples/smart-cockpit/bench/README.md).
 The original report names local runs such as `cockpit-text-flash-short.json`,
 `cockpit-text-flash-long.json`, `cockpit-text-max-long-rerun2.json`, and
 `harness-short-fixed.json`; these raw traces are not part of this committed

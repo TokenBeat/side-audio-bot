@@ -1,5 +1,5 @@
 {
-  "name": "qwen-audio-agent-customer-service-agent",
+  "name": "side-audio-bot-customer-service-agent",
   "version": "1.0.0",
   "private": true,
   "type": "module",

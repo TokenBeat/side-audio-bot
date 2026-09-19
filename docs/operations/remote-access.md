@@ -28,26 +28,26 @@ local, LAN, and Tailnet.
 For direct access on the same LAN:
 
 ```bash
-qwenaudio gateway --lan
+sideaudio gateway --lan
 ```
 
 This binds the Gateway to `0.0.0.0`, while the connection code contains the selected physical-interface IPv4
-rather than the unusable wildcard address. Use `qwenaudio gateway install --lan` for a persistent
-service, or set `QWEN_AUDIO_GATEWAY_LAN=1`. On a host with multiple physical interfaces, set
-`QWEN_AUDIO_GATEWAY_LAN_HOST=192.168.x.x` to select one explicitly.
+rather than the unusable wildcard address. Use `sideaudio gateway install --lan` for a persistent
+service, or set `SIDE_AUDIO_GATEWAY_LAN=1`. On a host with multiple physical interfaces, set
+`SIDE_AUDIO_GATEWAY_LAN_HOST=192.168.x.x` to select one explicitly.
 
 After installing and signing in to official Tailscale, run the Gateway in the foreground:
 
 ```bash
-qwenaudio gateway --tailnet
+sideaudio gateway --tailnet
 ```
 
 The command waits for `tailscale serve` to print its private HTTPS endpoint and stops that
 publication when the Gateway exits. For a persistent user service, run
-`qwenaudio gateway install --tailnet`, or put this in `config.env`:
+`sideaudio gateway install --tailnet`, or put this in `config.env`:
 
 ```dotenv
-QWEN_AUDIO_GATEWAY_TAILNET=1
+SIDE_AUDIO_GATEWAY_TAILNET=1
 ```
 
 A reverse proxy is not a Gateway run mode. Keep the default local mode when the proxy runs on the
@@ -55,7 +55,7 @@ same host; use `--lan` when the proxy runs on another machine. After configuring
 the public endpoint only when generating the connection code:
 
 ```bash
-qwenaudio gateway pair --endpoint https://voice.example.com --name "AI Passport"
+sideaudio gateway pair --endpoint https://voice.example.com --name "AI Passport"
 ```
 
 A fixed IP with a publicly trusted IP-address certificate can be used as `https://<fixed-ip>`.
@@ -76,22 +76,22 @@ Complete first-time authorization through official Tailscale.
 After the endpoint is ready, open another terminal on the Gateway host and run:
 
 ```bash
-qwenaudio gateway pair --name "AI Passport"
+sideaudio gateway pair --name "AI Passport"
 ```
 
 The Gateway host directly issues an independent, revocable device token. The small QR contains a
 URL such as `https://gateway/c#credential` (or `http://IP/c#credential` on LAN) and uses it as the
 only connection code. Scanning it opens the Gateway WebUI even without an installed Client;
 installed Clients can scan or paste the same code. The Gateway no longer generates or returns a long
-`qwaudio://connect#...` deep link. The credential is shown once.
+`sideaudio://connect#...` deep link. The credential is shown once.
 
 Desktop, Mobile, and other native Clients save the credential, then use one WebSocket connection for
 authentication, session negotiation, voice, Tasks, history, and approvals—there is no HTTPS pairing
 exchange. The browser shell exchanges the device token in the fragment for an HttpOnly cookie; the
 fragment is never included in an HTTP request or access log. The flow is identical for LAN, Tailnet,
-and a `pair --endpoint` override. Use `qwenaudio gateway devices` to list Clients and
-`qwenaudio gateway revoke <device-id>` to revoke one.
-During a rolling upgrade, only older Clients need `qwenaudio gateway pair --legacy` to generate
+and a `pair --endpoint` override. Use `sideaudio gateway devices` to list Clients and
+`sideaudio gateway revoke <device-id>` to revoke one.
+During a rolling upgrade, only older Clients need `sideaudio gateway pair --legacy` to generate
 a short-lived, single-use pairing code.
 
 In Desktop, paste the complete connection code into Settings → Application → Gateway and click
@@ -105,7 +105,7 @@ LAN and remote access do not bypass Gateway authentication: the WebSocket handsh
 - Check Gateway connectivity and then voice-frontend status. Importing a code does not validate model credentials.
 - Allow microphone access on the phone. Tailscale provides network reachability, not Gateway authorization.
 - When a second client takes over, the previous client disconnects; the Gateway itself has not exited.
-- If a code leaks or a device changes, revoke the old device and rerun `qwenaudio gateway pair` on the Gateway host.
+- If a code leaks or a device changes, revoke the old device and rerun `sideaudio gateway pair` on the Gateway host.
 - If a Tailnet endpoint is unreachable, check that both devices are online in the same tailnet, then check policies and HTTPS publication.
 
 See [Mobile](../getting-started/mobile.md) and [Desktop](../desktop/overview.md#remote-connections)
@@ -116,7 +116,7 @@ for client steps, or [Troubleshooting](troubleshooting.md) for other errors.
 For one personal access key:
 
 ```dotenv
-QWEN_AUDIO_GATEWAY_ACCESS_TOKEN=replace-with-at-least-24-random-characters
+SIDE_AUDIO_GATEWAY_ACCESS_TOKEN=replace-with-at-least-24-random-characters
 ```
 
 Generate one with `openssl rand -base64 32`. This token authenticates Gateway
@@ -128,18 +128,18 @@ external HTTPS reverse proxy, keep the Gateway on loopback and allowlist the exa
 
 ```dotenv
 HOST=127.0.0.1
-QWEN_AUDIO_AGENT_ALLOWED_ORIGINS=https://voice.example.com
+SIDE_AUDIO_BOT_ALLOWED_ORIGINS=https://voice.example.com
 ```
 
 For example, a native TUI can connect without putting the credential in its URL:
 
 ```bash
-QWEN_AUDIO_AGENT_URL=https://voice.example.com \
-QWEN_AUDIO_GATEWAY_CLIENT_TOKEN="$ACCESS_TOKEN" \
-qwenaudio tui
+SIDE_AUDIO_BOT_URL=https://voice.example.com \
+SIDE_AUDIO_GATEWAY_CLIENT_TOKEN="$ACCESS_TOKEN" \
+sideaudio tui
 ```
 
-`qwenaudio gateway pair` uses the loopback-only `POST /api/access/devices` management endpoint to
+`sideaudio gateway pair` uses the loopback-only `POST /api/access/devices` management endpoint to
 issue a direct device connection code. Devices can be listed with `GET /api/access/devices` and
 revoked with `DELETE /api/access/devices/:id`; revocation immediately closes active WSS connections.
 The short-lived pairing endpoints remain for compatibility, but new Clients do not depend on them.
@@ -148,16 +148,16 @@ Multiple trusted Origins can be separated by commas. Advanced hosts can map sepa
 tokens to separate owner identities:
 
 ```dotenv
-QWEN_AUDIO_AGENT_ACCESS_KEYS='[{"token":"replace-with-a-long-random-token","owner_id":"user_alice","label":"Alice"}]'
+SIDE_AUDIO_BOT_ACCESS_KEYS='[{"token":"replace-with-a-long-random-token","owner_id":"user_alice","label":"Alice"}]'
 ```
 
 Each owner has one active Client lease. A second Client is rejected unless it reconnects with
 the same `client.instance_id` or explicitly negotiates `session.takeover`; takeover closes the
 previous Client and generation-fences late messages from its socket.
 
-`QWEN_AUDIO_AGENT_AUTH_SECRET` only signs local and remote session identities. It is not a
+`SIDE_AUDIO_BOT_AUTH_SECRET` only signs local and remote session identities. It is not a
 remote access password and must never be sent to a Client.
 
-`QWEN_AUDIO_AGENT_ACCESS_TOKEN` remains a deprecated alias for both settings. New setups use
+`SIDE_AUDIO_BOT_ACCESS_TOKEN` remains a deprecated alias for both settings. New setups use
 the separate host and Client names above so a Client credential is never mistaken for Gateway
 server configuration.

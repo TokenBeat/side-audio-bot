@@ -105,7 +105,7 @@ npm run build                         通过（构建 web workspace；客服无�
 
 ```
 .env.local          DASHSCOPE_API_KEY
-.runtime/state.env  QWEN_AUDIO_AGENT_AUTH_SECRET
+.runtime/state.env  SIDE_AUDIO_BOT_AUTH_SECRET
 ```
 
 两个都**未被 git 跟踪**，`git log --all -S <key>` 确认该字符串在历史中从未出现。仓库根 `.gitignore` 的 `.env` / `.env.*` 全挡并放行 `.env.example`，已用 `git check-ignore` 实测裸 `.env` 也被忽略。

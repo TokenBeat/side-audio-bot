@@ -1,6 +1,6 @@
-export const GATEWAY_WEBSOCKET_PROTOCOL = 'qwaudio.gcp.v6'
+export const GATEWAY_WEBSOCKET_PROTOCOL = 'sideaudio.gcp.v6'
 
-const GATEWAY_WEBSOCKET_BEARER_PREFIX = 'qwaudio.bearer.'
+const GATEWAY_WEBSOCKET_BEARER_PREFIX = 'sideaudio.bearer.'
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{24,256}$/
 
 function protocolValues(header = '') {

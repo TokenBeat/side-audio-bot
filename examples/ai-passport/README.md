@@ -2,7 +2,7 @@
 
 English | [中文](README_ZH.md)
 
-Run Qwen Voice Bean on an AI Passport (ESP32-C3) card to use qwen-audio-agent over
+Run Qwen Voice Bean on an AI Passport (ESP32-C3) card to use side-audio-bot over
 the LAN. The card captures speech, plays replies, and displays character animation;
 the Gateway on the computer handles realtime conversation, tools, and optional
 backend Agent tasks.
@@ -40,7 +40,7 @@ to the device relay on the computer, which connects to the local Gateway.
 |---|---|---|
 | Qwen Voice Bean firmware | AI Passport card | Capture/playback, half-duplex control, Wi-Fi setup, buttons, and character animation. |
 | [Device relay (device-relay.mjs)](device-relay.mjs) | Computer, `LAN_IP:3101` | Validate the device token, split reply audio into small chunks, buffer and forward GCP messages. |
-| qwen-audio-agent Gateway | Same computer, `127.0.0.1:18888` | Realtime conversation, tools, and optional backend tasks. |
+| side-audio-bot Gateway | Same computer, `127.0.0.1:18888` | Realtime conversation, tools, and optional backend tasks. |
 
 The computer runs **two separate processes**. Port `3101` belongs to the LAN
 relay; port `18888` belongs to the loopback-only Gateway.
@@ -56,7 +56,7 @@ Install dependencies and configure the voice frontend:
 
 ```bash
 npm ci
-node cli/bin/qwenaudio.mjs config
+node cli/bin/sideaudio.mjs config
 ```
 
 Configure a working voice frontend using the
@@ -66,7 +66,7 @@ is optional; install and authorize it separately if you need task execution.
 Start the Gateway in the first terminal and leave it running:
 
 ```bash
-node cli/bin/qwenaudio.mjs gateway run --url http://127.0.0.1:18888
+node cli/bin/sideaudio.mjs gateway run --url http://127.0.0.1:18888
 ```
 
 You can verify speech in the WebUI at `http://127.0.0.1:18888` first. Disconnect

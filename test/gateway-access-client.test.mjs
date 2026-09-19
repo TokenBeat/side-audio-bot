@@ -118,7 +118,7 @@ test('Gateway device management helpers remain on the local host plane', async (
       ? options.method === 'POST'
         ? jsonResponse({
             device: { id: 'direct-one' },
-            connection_code: 'qwaudio://connect#DIRECT',
+            connection_code: 'sideaudio://connect#DIRECT',
           }, { status: 201 })
         : jsonResponse({ devices: [{ id: 'phone-one' }] })
       : new Response(null, { status: 204 })

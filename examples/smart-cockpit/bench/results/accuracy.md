@@ -22,7 +22,7 @@ assignment, no-tool behavior and specified state assertions all pass.
 | Weather | 8 | 100.00% (8/8) | 100.00% (8/8) | 100.00% (8/8) | 100.00% (8/8) | 87.50% (7/8) |
 | Overall | 86 | 97.67% (84/86) | 95.35% (82/86) | 97.67% (84/86) | 98.84% (85/86) | 95.35% (82/86) |
 
-Source: the [2026-09-13 Benchmark snapshot](https://github.com/QwenAudio/qwen-audio-agent/blob/766baeb1f438ff0ba73102d98f5016e239c06e21/examples/smart-cockpit/bench/README.md),
+Source: the [2026-09-13 Benchmark snapshot](https://github.com/TokenBeat/side-audio-bot/blob/766baeb1f438ff0ba73102d98f5016e239c06e21/examples/smart-cockpit/bench/README.md),
 plus the separate qwen3.7-plus run described below. The historical snapshot's
 raw accuracy traces are not committed here. These are recorded full-case
 results, not recalculations from the newer team-supplied per-turn summary.

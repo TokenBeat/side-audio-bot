@@ -59,7 +59,7 @@ function session(memoryService, sessionId, sessionOwnerId = ownerId) {
 }
 
 async function fixture(t) {
-  const root = await mkdtemp(join(tmpdir(), 'qwen-cockpit-preference-memory-'))
+  const root = await mkdtemp(join(tmpdir(), 'sideaudio-cockpit-preference-memory-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   return root
 }

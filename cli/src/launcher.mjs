@@ -88,30 +88,30 @@ function applyGatewayOptions(env, options) {
         && String(env[definition.baseUrlEnvironment] || '').trim()
       )
     )
-    env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP = resolveBackendOwnership(
+    env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP = resolveBackendOwnership(
       options.backend,
       { baseUrlConfigured },
     )
-    env.QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE =
+    env.SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE =
       options.backendPermissionMode
   } else {
-    delete env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP
-    delete env.QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE
+    delete env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP
+    delete env.SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE
   }
   if (options.backend && options.backendAgent) {
-    env.QWEN_AUDIO_AGENT_BACKEND_AGENT = options.backendAgent
+    env.SIDE_AUDIO_BOT_BACKEND_AGENT = options.backendAgent
   } else {
-    delete env.QWEN_AUDIO_AGENT_BACKEND_AGENT
+    delete env.SIDE_AUDIO_BOT_BACKEND_AGENT
   }
   if (definition?.baseUrlEnvironment) {
     env[definition.baseUrlEnvironment] = options.backendUrl
   }
   if (options.lan) {
-    env.QWEN_AUDIO_GATEWAY_LAN = '1'
-    delete env.QWEN_AUDIO_GATEWAY_TAILNET
+    env.SIDE_AUDIO_GATEWAY_LAN = '1'
+    delete env.SIDE_AUDIO_GATEWAY_TAILNET
   } else if (options.tailnet) {
-    env.QWEN_AUDIO_GATEWAY_TAILNET = '1'
-    delete env.QWEN_AUDIO_GATEWAY_LAN
+    env.SIDE_AUDIO_GATEWAY_TAILNET = '1'
+    delete env.SIDE_AUDIO_GATEWAY_LAN
   }
   if (options.lan) options.listenHost = '0.0.0.0'
 }
@@ -164,8 +164,8 @@ function gatewayServiceEnvironment(url, options = {}) {
     HOST: options.lan ? '0.0.0.0' : target.hostname.replace(/^\[(.*)\]$/, '$1'),
     PORT: target.port || '80',
   }
-  if (options.lan) serviceEnvironment.QWEN_AUDIO_GATEWAY_LAN = '1'
-  if (options.tailnet) serviceEnvironment.QWEN_AUDIO_GATEWAY_TAILNET = '1'
+  if (options.lan) serviceEnvironment.SIDE_AUDIO_GATEWAY_LAN = '1'
+  if (options.tailnet) serviceEnvironment.SIDE_AUDIO_GATEWAY_TAILNET = '1'
   return serviceEnvironment
 }
 
@@ -356,7 +356,7 @@ export async function main(argv, {
       ) {
         stdout.write(
           `配置文件已更新；当前 ${modelEnvironment} 环境变量仍覆盖该值。`
-          + '请先取消环境变量，再执行 qwenaudio gateway restart\n',
+          + '请先取消环境变量，再执行 sideaudio gateway restart\n',
         )
       } else {
         stdout.write(`${GATEWAY_RESTART_FOLLOW_UP}\n`)
@@ -374,7 +374,7 @@ export async function main(argv, {
     return selected && !selected.ready ? 1 : 0
   }
   if (options.command === 'skill') {
-    // qwenaudio skill 是 skills.sh 的品牌化入口：参数组装后透传，输出原样展示。
+    // sideaudio skill 是 skills.sh 的品牌化入口：参数组装后透传，输出原样展示。
     if (options.skillAction === 'list') {
       stdout.write(skillTools.listSkills().stdout)
       return 0
@@ -394,7 +394,7 @@ export async function main(argv, {
         // 各后台发现新技能的时机不同：部分热加载，部分仅在进程/会话启动时扫描。
         stdout.write(
           '技能已安装；若运行中的后台未发现新技能，'
-          + '执行 qwenaudio gateway restart 后即可生效\n',
+          + '执行 sideaudio gateway restart 后即可生效\n',
         )
       }
       return 0
@@ -668,7 +668,7 @@ export async function main(argv, {
   const health = await inspectGateway(options.url, options.accessToken)
   if (!health) {
     throw new Error(
-      `Gateway 未运行：${options.url}。请先执行 qwenaudio gateway`,
+      `Gateway 未运行：${options.url}。请先执行 sideaudio gateway`,
     )
   }
   if (options.command === 'webui') return runWebUi(options)

@@ -74,8 +74,8 @@ covers memory and knowledge, not arbitrary deletion of every source directory.
 目前已落实并验证的是记忆和知识库，不表示任意源码目录都可以直接删除。
 
 Dependency rules are enforced by / 依赖边界由以下测试校验：
-[`server/test/dependency-boundaries.test.mjs`](https://github.com/QwenAudio/qwen-audio-agent/blob/main/server/test/dependency-boundaries.test.mjs).
+[`server/test/dependency-boundaries.test.mjs`](https://github.com/TokenBeat/side-audio-bot/blob/main/server/test/dependency-boundaries.test.mjs).
 
 Physical removal is tested in temporary copies with a real Gateway and a mock
 Realtime service / 在临时副本中真实删除目录，并通过网关与模拟 Realtime 完成对话验证：
-[`server/test/optional-modules-pruning.test.mjs`](https://github.com/QwenAudio/qwen-audio-agent/blob/main/server/test/optional-modules-pruning.test.mjs).
+[`server/test/optional-modules-pruning.test.mjs`](https://github.com/TokenBeat/side-audio-bot/blob/main/server/test/optional-modules-pruning.test.mjs).

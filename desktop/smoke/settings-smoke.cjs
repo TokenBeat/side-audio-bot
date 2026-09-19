@@ -30,7 +30,7 @@ module.exports = async function settingsSmoke({ BrowserWindow, ipcMain }) {
     },
   }
   for (const [name, handler] of Object.entries(handlers)) {
-    ipcMain.handle(`qwen-audio-agent:${name}`, handler)
+    ipcMain.handle(`side-audio-bot:${name}`, handler)
   }
   const window = new BrowserWindow({
     width: 650, height: 760, show: false,
@@ -122,18 +122,18 @@ module.exports = async function settingsSmoke({ BrowserWindow, ipcMain }) {
       language.value = 'zh-CN'
       language.dispatchEvent(new Event('change', { bubbles: true }))
     })()`)
-    if (process.env.QWAUDIO_SMOKE_SCREENSHOT_DIR) {
+    if (process.env.SIDEAUDIO_SMOKE_SCREENSHOT_DIR) {
       const { writeFile } = require('node:fs/promises')
       await evaluate(`document.querySelector('#voice-tab').click()`)
       await new Promise(resolve => setTimeout(resolve, 150))
-      await writeFile(resolve(process.env.QWAUDIO_SMOKE_SCREENSHOT_DIR, 'voice-settings.png'), (await window.webContents.capturePage()).toPNG())
+      await writeFile(resolve(process.env.SIDEAUDIO_SMOKE_SCREENSHOT_DIR, 'voice-settings.png'), (await window.webContents.capturePage()).toPNG())
       await evaluate(`document.querySelector('#realtime-provider > button').click()`)
       await new Promise(resolve => setTimeout(resolve, 150))
-      await writeFile(resolve(process.env.QWAUDIO_SMOKE_SCREENSHOT_DIR, 'voice-picker.png'), (await window.webContents.capturePage()).toPNG())
+      await writeFile(resolve(process.env.SIDEAUDIO_SMOKE_SCREENSHOT_DIR, 'voice-picker.png'), (await window.webContents.capturePage()).toPNG())
       await evaluate(`document.querySelector('#realtime-provider > button').click()`)
       await evaluate(`selectFrontend('minicpm-o')`)
       await new Promise(resolve => setTimeout(resolve, 150))
-      await writeFile(resolve(process.env.QWAUDIO_SMOKE_SCREENSHOT_DIR, 'voice-disabled-fields.png'), (await window.webContents.capturePage()).toPNG())
+      await writeFile(resolve(process.env.SIDEAUDIO_SMOKE_SCREENSHOT_DIR, 'voice-disabled-fields.png'), (await window.webContents.capturePage()).toPNG())
       await evaluate(`selectFrontend('stepfun')`)
     }
     assert.equal(await evaluate(`getComputedStyle(document.querySelector('#realtime-provider > button')).display`), 'flex')
@@ -188,6 +188,6 @@ module.exports = async function settingsSmoke({ BrowserWindow, ipcMain }) {
     throw new Error(`${error.message}\n${rendererMessages.join('\n')}`, { cause: error })
   } finally {
     window.destroy()
-    for (const name of Object.keys(handlers)) ipcMain.removeHandler(`qwen-audio-agent:${name}`)
+    for (const name of Object.keys(handlers)) ipcMain.removeHandler(`side-audio-bot:${name}`)
   }
 }

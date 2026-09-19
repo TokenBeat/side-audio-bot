@@ -12,14 +12,14 @@ import { isExitCommand } from '../src/terminal-commands.mjs'
 
 test('parseArguments 默认值与覆盖', () => {
   const defaults = parseArguments([])
-  assert.equal(defaults.url, process.env.QWEN_AUDIO_AGENT_URL || 'http://127.0.0.1:3101')
-  assert.equal(defaults.sessionId, process.env.QWEN_AUDIO_AGENT_SESSION_ID || 'cli-main')
+  assert.equal(defaults.url, process.env.SIDE_AUDIO_BOT_URL || 'http://127.0.0.1:3101')
+  assert.equal(defaults.sessionId, process.env.SIDE_AUDIO_BOT_SESSION_ID || 'cli-main')
 
   const custom = parseArguments(['--url', 'http://host:9/', '--session', 's1'])
   assert.equal(custom.url, 'http://host:9')
   assert.equal(custom.sessionId, 's1')
   assert.equal(parseArguments([], {
-    QWEN_AUDIO_GATEWAY_CLIENT_TOKEN: 'remote-token',
+    SIDE_AUDIO_GATEWAY_CLIENT_TOKEN: 'remote-token',
   }).accessToken, 'remote-token')
 
   assert.equal(parseArguments(['--help']).help, true)

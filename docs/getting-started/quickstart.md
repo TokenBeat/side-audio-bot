@@ -16,7 +16,7 @@ If the CLI is not installed yet, start with [Installation](install.md#one-line-i
 ### 1. Create Configuration
 
 ```bash
-qwenaudio config
+sideaudio config
 ```
 
 The command will display the configuration file path and create a `config.env` template with comments.
@@ -38,7 +38,7 @@ QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-plus
 # Backend agent: leave empty or set to none to start in frontend-only mode
 AGENT_PROTOCOL=qwen
 # Backend model: explicit values use standard ACP; empty reuses Agent config
-QWEN_AUDIO_AGENT_BACKEND_MODEL=
+SIDE_AUDIO_BOT_BACKEND_MODEL=
 ```
 
 Without an existing backend, see [OpenCode / OpenClaw managed setup](../configuration/backend.md#model-selection).
@@ -50,19 +50,19 @@ Without an existing backend, see [OpenCode / OpenClaw managed setup](../configur
 Start the Gateway in one terminal:
 
 ```bash
-qwenaudio
+sideaudio
 ```
 
 Open another terminal and start the TUI:
 
 ```bash
-qwenaudio tui
+sideaudio tui
 ```
 
 You can also use the browser interface (default `http://127.0.0.1:3101`):
 
 ```bash
-qwenaudio webui
+sideaudio webui
 ```
 
 ## Verify the Setup
@@ -78,7 +78,7 @@ confirmation, disconnecting the previous one. Press `Ctrl-C` to end a foreground
 
 When `AGENT_PROTOCOL` is not set (or set to `none`), the Gateway does not start a Backend Agent; chat and enabled frontend tools remain available.
 Requests that require backend execution will return a clear explanation and will not create tasks or guess execution results. You can also
-explicitly start in frontend-only mode with `qwenaudio --backend none`.
+explicitly start in frontend-only mode with `sideaudio --backend none`.
 
 For selecting, one-click installing, permission modes, and persistent service of backend agents, see
 [Backend Agents](../backends/overview.md). For more configuration options, see

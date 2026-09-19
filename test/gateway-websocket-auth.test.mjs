@@ -13,7 +13,7 @@ test('encodes a browser-safe WebSocket bearer without selecting the credential',
   const protocols = gatewayWebSocketProtocols(TOKEN)
   assert.deepEqual(protocols, [
     GATEWAY_WEBSOCKET_PROTOCOL,
-    `qwaudio.bearer.${TOKEN}`,
+    `sideaudio.bearer.${TOKEN}`,
   ])
   assert.equal(gatewayWebSocketBearer(protocols.join(', ')), TOKEN)
   assert.equal(selectGatewayWebSocketProtocol(new Set(protocols)), GATEWAY_WEBSOCKET_PROTOCOL)
@@ -22,6 +22,6 @@ test('encodes a browser-safe WebSocket bearer without selecting the credential',
 test('rejects malformed WebSocket bearer values', () => {
   assert.deepEqual(gatewayWebSocketProtocols(), [])
   assert.throws(() => gatewayWebSocketProtocols('not a token'))
-  assert.equal(gatewayWebSocketBearer('qwaudio.bearer.short'), '')
+  assert.equal(gatewayWebSocketBearer('sideaudio.bearer.short'), '')
   assert.equal(selectGatewayWebSocketProtocol(new Set(['other'])), false)
 })

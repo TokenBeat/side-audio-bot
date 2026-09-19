@@ -12,12 +12,12 @@ see [Run the Gateway](../operations/gateway.md).
 
 ## Local Logs
 
-qwen-audio-agent uses unified structured logs, stored by their respective owners:
+side-audio-bot uses unified structured logs, stored by their respective owners:
 
-- CLI-hosted Gateway: `~/.config/qwaudio/state/logs/`.
-- Desktop-hosted Gateway: `~/.config/qwaudio/state/desktop/logs/`.
+- CLI-hosted Gateway: `~/.config/sideaudio/state/logs/`.
+- Desktop-hosted Gateway: `~/.config/sideaudio/state/desktop/logs/`.
 - Desktop Client: `logs/` under its [application data directory](../configuration.md#configuration-and-data-directories).
-- TUI: `~/.config/qwaudio/tui/logs/`.
+- TUI: `~/.config/sideaudio/tui/logs/`.
 
 The file responsibilities below do not mean all files share the same directory:
 
@@ -49,12 +49,12 @@ retained. These can be adjusted via the following environment variables:
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `QWEN_AUDIO_LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent` |
-| `QWEN_AUDIO_LOG_DIR` | `logs` under the instance state directory | Custom log directory |
-| `QWEN_AUDIO_LOG_MAX_BYTES` | `10485760` | Rotation threshold for a single log file |
-| `QWEN_AUDIO_LOG_MAX_FILES` | `5` | Total number of current and rotated files to retain |
-| `QWEN_AUDIO_LOG_FILE` | `1` | Set to `0` to disable file logging |
-| `QWEN_AUDIO_LOG_CONSOLE` | `1` | Set to `0` to disable terminal log output |
+| `SIDE_AUDIO_LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent` |
+| `SIDE_AUDIO_LOG_DIR` | `logs` under the instance state directory | Custom log directory |
+| `SIDE_AUDIO_LOG_MAX_BYTES` | `10485760` | Rotation threshold for a single log file |
+| `SIDE_AUDIO_LOG_MAX_FILES` | `5` | Total number of current and rotated files to retain |
+| `SIDE_AUDIO_LOG_FILE` | `1` | Set to `0` to disable file logging |
+| `SIDE_AUDIO_LOG_CONSOLE` | `1` | Set to `0` to disable terminal log output |
 
 Logs are only stored locally and are not automatically uploaded. Before reporting issues, check
 and share relevant snippets as needed; even though the system automatically desensitizes, you
@@ -66,16 +66,16 @@ you do not want to be public.
 For common connection, audio, and tool issues, start with [Troubleshooting](../operations/troubleshooting.md).
 
 ```bash
-qwenaudio doctor
-qwenaudio doctor --json
-qwenaudio doctor --turn <turnId>
+sideaudio doctor
+sideaudio doctor --json
+sideaudio doctor --turn <turnId>
 ```
 
 Check configuration, Gateway, voice frontend and MCP connections, backend readiness, and session files
 without starting a model, backend Agent, or microphone, changing configuration, or repairing files.
 Populated configuration does not prove that a key has remaining quota; without an active voice session,
 the report explicitly indicates that the connection is unverified. Use `--url https://<gateway>` for
-remote checks and `QWEN_AUDIO_GATEWAY_CLIENT_TOKEN` for credentials. Local files are not used to infer
+remote checks and `SIDE_AUDIO_GATEWAY_CLIENT_TOKEN` for credentials. Local files are not used to infer
 remote configuration.
 
 `--turn` assembles a timeline from existing log records matching `turnId`, showing identifiers and
@@ -125,21 +125,21 @@ user's installation; when `installed` is explicitly set, it directly errors.
 The minimum version can be overridden by `OPENCODE_MIN_VERSION` for validating other
 compatible versions.
 
-The OpenCode started by qwen-audio-agent inherits the user's original global configuration by
+The OpenCode started by side-audio-bot inherits the user's original global configuration by
 default (usually `~/.config/opencode/opencode.json`), so already installed MCPs, Skills,
 permissions, models, and plugins can continue to be used. The coordination rules and
 available Session tools are provided through the Gateway's backend integration,
 without additionally installing or overwriting the OpenCode Agent.
 
-If the user's configuration or third-party plugins conflict with qwen-audio-agent, you can
+If the user's configuration or third-party plugins conflict with side-audio-bot, you can
 temporarily enable isolation mode for troubleshooting:
 
 ```dotenv
-QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG=true
+SIDE_AUDIO_BOT_OPENCODE_ISOLATE_USER_CONFIG=true
 ```
 
 You can also specify a different OpenCode user configuration directory via
-`QWEN_AUDIO_AGENT_OPENCODE_XDG_CONFIG_HOME`. After isolation, MCPs and plugins from the
+`SIDE_AUDIO_BOT_OPENCODE_XDG_CONFIG_HOME`. After isolation, MCPs and plugins from the
 original global configuration are not automatically loaded.
 
 
@@ -151,42 +151,42 @@ them to the configuration file:
 | Setting | Default |
 | --- | --- |
 | `HOST` / `PORT` | `127.0.0.1` / `3101` |
-| `QWEN_AUDIO_AGENT_ALLOWED_ORIGINS` | Empty; only loopback allowed |
-| `QWEN_AUDIO_GATEWAY_LAN` | Empty; set to `1` to listen on LAN (`0.0.0.0`) |
-| `QWEN_AUDIO_GATEWAY_LAN_HOST` | Auto-selected physical IPv4; optional explicit LAN endpoint host |
-| `QWEN_AUDIO_GATEWAY_TAILNET` | Empty; set to `1` to use system Tailscale Serve |
-| `QWEN_AUDIO_TAILSCALE_BINARY` | Auto-detected; optional absolute path to the system Tailscale CLI |
+| `SIDE_AUDIO_BOT_ALLOWED_ORIGINS` | Empty; only loopback allowed |
+| `SIDE_AUDIO_GATEWAY_LAN` | Empty; set to `1` to listen on LAN (`0.0.0.0`) |
+| `SIDE_AUDIO_GATEWAY_LAN_HOST` | Auto-selected physical IPv4; optional explicit LAN endpoint host |
+| `SIDE_AUDIO_GATEWAY_TAILNET` | Empty; set to `1` to use system Tailscale Serve |
+| `SIDE_AUDIO_TAILSCALE_BINARY` | Auto-detected; optional absolute path to the system Tailscale CLI |
 | `OPENCODE_WORKSPACE` | `workspace` under the shared data directory |
 | `QODER_WORKSPACE` | `workspace` under the shared data directory |
-| `QWEN_AUDIO_AGENT_BACKEND_MODEL` | Empty; explicit values override Sessions only through standard ACP, except managed OpenCode/OpenClaw provisioning |
-| `QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` | `native` |
-| `QWEN_AUDIO_AGENT_ACP_FORWARD_ENV` | Empty; comma-separated opt-in environment names for generic ACP only |
+| `SIDE_AUDIO_BOT_BACKEND_MODEL` | Empty; explicit values override Sessions only through standard ACP, except managed OpenCode/OpenClaw provisioning |
+| `SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` | `native` |
+| `SIDE_AUDIO_BOT_ACP_FORWARD_ENV` | Empty; comma-separated opt-in environment names for generic ACP only |
 | `QWEN_AUDIO_REALTIME_MODEL` | `qwen-audio-3.0-realtime-plus` |
 | `QWEN_AUDIO_REALTIME_PROVIDER` | `dashscope` |
-| `QWEN_AUDIO_WEB_SEARCH_PROVIDER` | `so360`; optional `bailian`, `bing`, `mcp`, or `none` |
-| `QWEN_AUDIO_WEB_SEARCH_MCP_URL` | Empty; custom Streamable HTTP endpoint used by the `mcp` provider |
-| `QWEN_AUDIO_WEB_SEARCH_MCP_TOKEN` | `DASHSCOPE_API_KEY` for explicit `bailian`; empty for custom endpoints unless set |
-| `QWEN_AUDIO_WEB_SEARCH_MCP_TOOL` | `bailian_web_search` for `bailian`; otherwise `web_search` |
-| `QWEN_AUDIO_SCHEDULE_TOOL_ENABLED` | `true`; set to `false` to hide `schedule_reminder` |
-| `QWEN_AUDIO_WEB_TOOLS_ENABLED` | `true`; set to `false` to hide `web_search` and `fetch_url` from the frontend Agent |
-| `QWEN_AUDIO_KNOWLEDGE_TOOL_ENABLED` | `true`; set to `false` to hide `knowledge` |
-| `QWEN_AUDIO_NOTES_TOOL_ENABLED` | `true`; set to `false` to hide `notes` |
-| `QWEN_AUDIO_RECALL_TOOL_ENABLED` | `true`; set to `false` to hide `recall` |
-| `QWEN_AUDIO_FRONTEND_PROFILE` | Empty; path to a lightweight Frontend Profile JSON file |
-| `QWEN_AUDIO_FRONTEND_MCP_CONFIG` | Empty; absolute path to the versioned frontend MCP JSON file |
-| `QWEN_AUDIO_FRONTEND_OPENAPI_CONFIG` | Empty; absolute path to the versioned frontend OpenAPI JSON config file |
+| `SIDE_AUDIO_WEB_SEARCH_PROVIDER` | `so360`; optional `bailian`, `bing`, `mcp`, or `none` |
+| `SIDE_AUDIO_WEB_SEARCH_MCP_URL` | Empty; custom Streamable HTTP endpoint used by the `mcp` provider |
+| `SIDE_AUDIO_WEB_SEARCH_MCP_TOKEN` | `DASHSCOPE_API_KEY` for explicit `bailian`; empty for custom endpoints unless set |
+| `SIDE_AUDIO_WEB_SEARCH_MCP_TOOL` | `bailian_web_search` for `bailian`; otherwise `web_search` |
+| `SIDE_AUDIO_SCHEDULE_TOOL_ENABLED` | `true`; set to `false` to hide `schedule_reminder` |
+| `SIDE_AUDIO_WEB_TOOLS_ENABLED` | `true`; set to `false` to hide `web_search` and `fetch_url` from the frontend Agent |
+| `SIDE_AUDIO_KNOWLEDGE_TOOL_ENABLED` | `true`; set to `false` to hide `knowledge` |
+| `SIDE_AUDIO_NOTES_TOOL_ENABLED` | `true`; set to `false` to hide `notes` |
+| `SIDE_AUDIO_RECALL_TOOL_ENABLED` | `true`; set to `false` to hide `recall` |
+| `SIDE_AUDIO_FRONTEND_PROFILE` | Empty; path to a lightweight Frontend Profile JSON file |
+| `SIDE_AUDIO_FRONTEND_MCP_CONFIG` | Empty; absolute path to the versioned frontend MCP JSON file |
+| `SIDE_AUDIO_FRONTEND_OPENAPI_CONFIG` | Empty; absolute path to the versioned frontend OpenAPI JSON config file |
 | `QWEN_AUDIO_REALTIME_VOICE` | Empty; optional Audio-family override, otherwise runtime uses `longanqian` |
 | `QWEN_OMNI_REALTIME_VOICE` | Empty; optional Omni-family override, otherwise runtime uses `Ethan` |
 | `SPEECH_TO_SPEECH_REALTIME_URL` | `ws://127.0.0.1:8765/v1/realtime` |
 | `SPEECH_TO_SPEECH_AUTH_TOKEN` | Empty; only for proxies with Bearer authentication |
 | `MINICPM_O_REALTIME_URL` | `ws://127.0.0.1:8006/v1/realtime?mode=audio` |
 | `MINICPM_O_AUTH_TOKEN` | Empty; only for proxies with Bearer authentication |
-| `QWEN_AUDIO_AGENT_IDENTITY_MODE` | `personal` |
-| `QWEN_AUDIO_AGENT_TUI_AUDIO_MODE` | `half` |
+| `SIDE_AUDIO_BOT_IDENTITY_MODE` | `personal` |
+| `SIDE_AUDIO_BOT_TUI_AUDIO_MODE` | `half` |
 | `AGENT_TIMEOUT_MS` | `300000`; timeout for ACP connection initialization and bounded control requests, not active Agent turns |
 
 The macOS TUI CoreAudio helper is compiled by default to
-`~/Library/Caches/qwaudio/tui/macos-voice-io`, requiring no additional configuration. It
+`~/Library/Caches/sideaudio/tui/macos-voice-io`, requiring no additional configuration. It
 continuously records audio during playback, and only supports voice interruption.
 The Linux and Windows minimal TUI uses the bundled Python audio bridge with
 `sounddevice`/PortAudio half-duplex; during reply playback the microphone is paused, only
@@ -194,13 +194,13 @@ supporting manual interruption with `/interrupt`, and resumes after playback end
 interrupted.
 
 On Linux and Windows, you can explicitly enable PortAudio full-duplex via
-`qwenaudio tui --audio-mode full` or by setting `QWEN_AUDIO_AGENT_TUI_AUDIO_MODE=full`. This
+`sideaudio tui --audio-mode full` or by setting `SIDE_AUDIO_BOT_TUI_AUDIO_MODE=full`. This
 mode has no echo cancellation and only supports direct speech interruption; wearing headphones
 is recommended to avoid speaker echo triggering false recognition or false interruption.
 macOS always uses CoreAudio AEC full-duplex and is not affected by this option.
 
 If PortAudio full-duplex persistently reports input overflow, output underflow, or device
-errors, please exit the TUI and switch to `qwenaudio tui --audio-mode half`. Different
+errors, please exit the TUI and switch to `sideaudio tui --audio-mode half`. Different
 Linux/Windows sound cards and Bluetooth headsets have varying levels of support for
 simultaneous input and output streams with different sampling rates; half-duplex is the
 compatibility fallback.

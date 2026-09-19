@@ -15,9 +15,9 @@ Gateway 通过两个逻辑文档提供记忆能力：`user` 保存用户明确�
 - **自动整理**：会话结束后，一个轻量文本模型会查漏补缺，把用户明确提出的长期交互
   指令写入 `USER.md`，把稳定事实与决定写入 `MEMORY.md`。自动整理默认使用
   DashScope 的 `qwen-flash` 模型（复用 `DASHSCOPE_API_KEY`）；没有可用 API Key
-  时自动关闭，明确要求的记忆不受影响。设置 `QWEN_AUDIO_MEMORY_AUTO=off`
-  可全局关闭；`QWEN_AUDIO_MEMORY_MODEL`、`QWEN_AUDIO_MEMORY_BASE_URL`、
-  `QWEN_AUDIO_MEMORY_API_KEY` 可指向任意 OpenAI 兼容端点（含本地 Ollama）。
+  时自动关闭，明确要求的记忆不受影响。设置 `SIDE_AUDIO_MEMORY_AUTO=off`
+  可全局关闭；`SIDE_AUDIO_MEMORY_MODEL`、`SIDE_AUDIO_MEMORY_BASE_URL`、
+  `SIDE_AUDIO_MEMORY_API_KEY` 可指向任意 OpenAI 兼容端点（含本地 Ollama）。
 
 Realtime 与自动整理都通过同一个记忆服务提交受限 Markdown 变更，不能直接写文件。
 自动整理可以补记用户明确说出的称呼或回复偏好，但不会推测这些设定，也永远不能修改
@@ -49,7 +49,7 @@ Markdown 精确编辑保留未选中的条目（包括其他章节的同文条�
 
 ## 会话摘要与回溯（默认关闭）
 
-设 `QWEN_AUDIO_SESSION_DIGEST=on` 后，会话结束时记下这一场的话题与一句不超过 50 字的
+设 `SIDE_AUDIO_SESSION_DIGEST=on` 后，会话结束时记下这一场的话题与一句不超过 50 字的
 要点，保留 90 天，供 `recall` 工具回答「前几天我们聊的那个」。
 
 摘要**不注入** `instructions`：它每场都在变，注入会让 prompt 前缀每场都变、前缀缓存
@@ -72,7 +72,7 @@ Markdown 精确编辑保留未选中的条目（包括其他章节的同文条�
 Python Sidecar。按照配置示例在框架外安装后，在 `config.env` 选择即可：
 
 ```dotenv
-QWEN_AUDIO_MEMORY_PROVIDER=voicemem
+SIDE_AUDIO_MEMORY_PROVIDER=voicemem
 VOICEMEM_PYTHON=/absolute/path/to/python
 VOICEMEM_SIDECAR=/absolute/path/to/voicemem-sidecar.py
 VOICEMEM_INPUT_MODE=text
@@ -85,7 +85,7 @@ VOICEMEM_INPUT_MODE=text
 迁移。外部安装、Sidecar 和百炼推荐配置见
 [VoiceMem 配置示例](../scenarios/voicemem.zh.md)。
 
-嵌入式宿主也可以直接从 `qwen-audio-agent/voicemem-provider` 导入
+嵌入式宿主也可以直接从 `side-audio-bot/voicemem-provider` 导入
 `VoiceMemProvider`，显式传给 `createGatewayApplication`。
 
 ## 替换记忆 Provider

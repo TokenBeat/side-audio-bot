@@ -77,7 +77,7 @@ function runAudit(args) {
     }
   }
   const detail = lastResult?.report?.message || lastResult?.stderr?.trim() || 'unknown error'
-  if (process.env.QWEN_AUDIO_AGENT_AUDIT_ALLOW_UNAVAILABLE === '1') {
+  if (process.env.SIDE_AUDIO_BOT_AUDIT_ALLOW_UNAVAILABLE === '1') {
     process.stderr.write(`npm audit 服务不可用，本次非发版检查跳过依赖审计：${detail}\n`)
     return null
   }

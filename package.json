@@ -1,18 +1,18 @@
 {
-  "name": "qwen-audio-agent",
-  "desktopName": "qwen-audio-agent.desktop",
-  "version": "1.11.0",
+  "name": "side-audio-bot",
+  "desktopName": "side-audio-bot.desktop",
+  "version": "0.11.2",
   "description": "A realtime voice runtime that keeps AI agents talking, working, and present.",
-  "author": "qwen-audio-agent contributors",
+  "author": "side-audio-bot contributors",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/QwenAudio/qwen-audio-agent.git"
+    "url": "git+https://github.com/TokenBeat/side-audio-bot.git"
   },
   "bugs": {
-    "url": "https://github.com/QwenAudio/qwen-audio-agent/issues"
+    "url": "https://github.com/TokenBeat/side-audio-bot/issues"
   },
-  "homepage": "https://github.com/QwenAudio/qwen-audio-agent#readme",
+  "homepage": "https://github.com/TokenBeat/side-audio-bot#readme",
   "keywords": [
     "qwen",
     "audio",
@@ -73,7 +73,7 @@
     "./web-dist/*": "./web/dist/*"
   },
   "bin": {
-    "qwenaudio": "cli/bin/qwenaudio.mjs"
+    "sideaudio": "cli/bin/sideaudio.mjs"
   },
   "files": [
     "cli/bin/",
@@ -91,10 +91,10 @@
     "docs/architecture-overview-en.png",
     "docs/desktop-fluid-orb-thinking.gif",
     "docs/desktop-goo-orb-thinking.gif",
-    "docs/qwen-audio-agent-three-layer-architecture.png",
-    "docs/qwen-audio-agent-three-layer-architecture-en.png",
-    "docs/qwen-audio-agent-three-layer-architecture.svg",
-    "docs/qwen-audio-agent-two-layer-architecture.png",
+    "docs/architecture-overview.html",
+    "docs/architecture-overview-en.html",
+    "docs/side-audio-bot-architecture-en.svg",
+    "docs/side-audio-bot-architecture-en.png",
     "docs/voice-agent-architecture-presentation.zh.md",
     "docs/configuration.md",
     "docs/configuration.zh.md",
@@ -257,11 +257,11 @@
     "desktop:build:local": "npm run build && electron-builder --config desktop/electron-builder.yml --config.mac.identity=- --config.mac.hardenedRuntime=false --config.mac.notarize=false --mac dmg",
     "desktop:build:linux": "npm run build && electron-builder --config desktop/electron-builder.yml --linux AppImage deb",
     "desktop:build:win": "npm run build && electron-builder --config desktop/electron-builder.yml --win --x64 --publish never",
-    "mobile:build": "npm run build --workspace @qwen-audio-agent/mobile",
-    "mobile:sync": "npm run sync --workspace @qwen-audio-agent/mobile",
-    "mobile:ios": "npm run ios --workspace @qwen-audio-agent/mobile",
-    "mobile:android": "npm run android --workspace @qwen-audio-agent/mobile",
-    "cli": "npm run start --workspace @qwen-audio-agent/cli --",
+    "mobile:build": "npm run build --workspace @side-audio-bot/mobile",
+    "mobile:sync": "npm run sync --workspace @side-audio-bot/mobile",
+    "mobile:ios": "npm run ios --workspace @side-audio-bot/mobile",
+    "mobile:android": "npm run android --workspace @side-audio-bot/mobile",
+    "cli": "npm run start --workspace @side-audio-bot/cli --",
     "tui": "npm run start --workspace tui --",
     "backend": "node scripts/start.mjs",
     "openclaw": "node scripts/runtime/openclaw-gateway.mjs",
@@ -292,7 +292,7 @@
     "docs:preview": "vitepress preview docs",
     "eval:frontend": "node server/eval/run-frontend-evaluations.mjs",
     "test:ai-passport": "node --test examples/ai-passport/*.test.mjs",
-    "test": "node --test test/*.test.mjs && npm run test --workspace server && npm run test --workspace web && npm run test --workspace tui && npm run test --workspace desktop && npm run test --workspace @qwen-audio-agent/cli && npm run test --workspace @qwen-audio-agent/mobile && npm run test:smart-cockpit && npm run test:ai-passport && npm run test:customer-service",
+    "test": "node --test test/*.test.mjs && npm run test --workspace server && npm run test --workspace web && npm run test --workspace tui && npm run test --workspace desktop && npm run test --workspace @side-audio-bot/cli && npm run test --workspace @side-audio-bot/mobile && npm run test:smart-cockpit && npm run test:ai-passport && npm run test:customer-service",
     "pretest:smart-cockpit": "npm ci --prefix examples/smart-cockpit/service --ignore-scripts && npm ci --prefix examples/smart-cockpit/agent --ignore-scripts",
     "test:smart-cockpit": "npm test --prefix examples/smart-cockpit/service && npm test --prefix examples/smart-cockpit/agent && node --test examples/smart-cockpit/bench/test/*.test.mjs examples/smart-cockpit/bootstrap/test/*.test.mjs examples/smart-cockpit/client/test/*.test.mjs examples/smart-cockpit/gateway/test/*.test.mjs examples/smart-cockpit/test/*.test.mjs",
     "pretest:customer-service": "npm ci --prefix examples/customer-service/service --ignore-scripts && npm ci --prefix examples/customer-service/agent --ignore-scripts && npm ci --prefix examples/customer-service/console --ignore-scripts && npm ci --prefix examples/customer-service/client --ignore-scripts && npm ci --prefix examples/customer-service/desk --ignore-scripts",
