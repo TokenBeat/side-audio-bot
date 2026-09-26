@@ -17,13 +17,16 @@
 
 import { createHash, randomUUID } from 'node:crypto'
 import {
+  constants,
   copyFileSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   rmSync,
   statSync,
 } from 'node:fs'
-import { basename, extname, join, parse, resolve } from 'node:path'
+import { basename, dirname, extname, join, parse, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { withFileTransaction } from '../../../../../shared/file-transaction-lock.mjs'
 import { JsonSnapshotStore } from '../../../core/json-snapshot-store.mjs'
 
@@ -48,11 +51,28 @@ const CONVERTIBLE_EXTENSIONS = new Set([
   '.pdf', '.doc', '.docx', '.ppt', '.pptx', '.odt', '.rtf', '.epub',
 ])
 
+// WebUI 资料库入口是粘贴本机路径。资源管理器「复制文件地址」会带上引号，
+// 浏览器会给出 file:// URL。必须在 resolve / extname 之前还原，否则引号会
+// 变成相对路径的一部分，扩展名也会对不上。
+export function normalizeSourcePath(value) {
+  let raw = String(value || '').trim()
+  const quoted = raw.match(/^(?:"([\s\S]*)"|'([\s\S]*)')$/)
+  if (quoted) raw = String(quoted[1] ?? quoted[2]).trim()
+  if (/^file:/i.test(raw)) {
+    try {
+      raw = fileURLToPath(raw)
+    } catch {
+      throw new KnowledgeImportError('invalid_path', '文件 URL 无法转换为本机路径。')
+    }
+  }
+  return raw
+}
+
 // text        → 直接收
 // convertible → 上层先转成文本，再收转换产物
 // unsupported → 明确拒收
 export function classifySource(sourcePath) {
-  const extension = extname(String(sourcePath || '')).toLowerCase()
+  const extension = extname(normalizeSourcePath(sourcePath)).toLowerCase()
   if (TEXT_EXTENSIONS.has(extension)) return 'text'
   if (CONVERTIBLE_EXTENSIONS.has(extension)) return 'convertible'
   return 'unsupported'
@@ -81,6 +101,12 @@ function safeFilename(name) {
     .trim()
   const fallback = `document-${Date.now()}`
   return [...(cleaned || fallback)].slice(0, 120).join('')
+}
+
+// Keep managed filenames portable across case-insensitive filesystems and
+// Unicode normalization on macOS, regardless of the host doing the import.
+function filenameKey(name) {
+  return String(name).normalize('NFC').toLowerCase()
 }
 
 export class KnowledgeLibrary {
@@ -182,7 +208,7 @@ export class KnowledgeLibrary {
     // 空输入必须在 resolve 之前拦掉：resolve('') 返回的是进程 cwd，那是个存在的
     // 目录，会一路走到 statSync 才因为「不是文件」被拒，错误信息变成 not_a_file
     // —— 用户看到的提示就对不上他实际做错的事。
-    const raw = String(sourcePath || '').trim()
+    const raw = normalizeSourcePath(sourcePath)
     if (!raw) {
       throw new KnowledgeImportError('invalid_path', '需要一个具体的文件路径。')
     }
@@ -229,6 +255,7 @@ export class KnowledgeLibrary {
     // 同一份文件重复导入就覆盖，不追加 —— 用户更新了手册再导一次是常见操作。
     const existing = entries.find(entry => entry.fingerprint === fingerprint)
       || entries.find(entry => entry.source === absolute)
+    this.assertCapacity(safeOwnerId, existing)
 
     const filename = this.uniqueFilename(safeOwnerId, absolute, existing)
     const destination = join(this.documentDirectory, filename)
@@ -237,7 +264,11 @@ export class KnowledgeLibrary {
       // Agent conversion may already have written directly to the allocated
       // library target. In that case the source is the destination and there
       // is nothing left to copy.
-      if (absolute !== destination) copyFileSync(absolute, destination)
+      if (absolute !== resolve(destination)) {
+        // The shared index lock serializes Gateway imports. Also protect a new
+        // destination from files created outside that lock after name allocation.
+        copyFileSync(absolute, destination, existing ? 0 : constants.COPYFILE_EXCL)
+      }
     } catch (error) {
       throw new KnowledgeImportError('copy_failed', `无法复制到资料库：${error.message}`)
     }
@@ -258,24 +289,47 @@ export class KnowledgeLibrary {
     }
     const next = entries.filter(item => item.id !== entry.id)
     next.unshift(entry)
-    // 超出上限时丢掉最久没导入的，但只丢索引，不删文件 —— 用户的文件不该被
-    // 一次静默的容量回收删掉。
-    this.owners.set(safeOwnerId, next.slice(0, this.maxPerOwner))
+    this.owners.set(safeOwnerId, next)
     this.save()
     return entry
   }
 
-  uniqueFilename(ownerId, sourcePath, existing) {
+  assertCapacity(ownerId, existing = null) {
+    if (!ownerId) {
+      throw new KnowledgeImportError('missing_owner', '缺少归属用户。')
+    }
+    if (!existing && (this.owners.get(ownerId)?.length || 0) >= this.maxPerOwner) {
+      throw new KnowledgeImportError(
+        'library_full',
+        `资料库已达到 ${this.maxPerOwner} 份上限，请先移除不需要的资料再导入。`,
+      )
+    }
+  }
+
+  uniqueFilename(ownerId, sourcePath, existing, extension = extname(sourcePath).toLowerCase()) {
     if (existing) return existing.filename
-    const extension = extname(sourcePath).toLowerCase()
     const stem = safeFilename(basename(sourcePath, extname(sourcePath)))
     const taken = new Set()
     for (const entries of this.owners.values()) {
-      for (const entry of entries) taken.add(entry.filename)
+      for (const entry of entries) taken.add(filenameKey(entry.filename))
+    }
+    let diskNames
+    try {
+      diskNames = readdirSync(this.documentDirectory)
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+      diskNames = []
+    }
+    const sourceInLibrary = dirname(resolve(sourcePath)) === resolve(this.documentDirectory)
+    for (const name of diskNames) {
+      // A completed conversion may already be at its final path. Adopt that
+      // exact source without making a second copy; never exclude indexed names.
+      if (sourceInLibrary && filenameKey(name) === filenameKey(basename(sourcePath))) continue
+      taken.add(filenameKey(name))
     }
     let candidate = `${stem}${extension}`
     let index = 2
-    while (taken.has(candidate)) {
+    while (taken.has(filenameKey(candidate))) {
       candidate = `${stem}-${index}${extension}`
       index += 1
     }
@@ -291,22 +345,13 @@ export class KnowledgeLibrary {
     if (!this.configured()) {
       throw new KnowledgeImportError('library_unavailable', '资料库未配置存放目录。')
     }
-    const absolute = resolve(String(sourcePath || '').trim())
+    const absolute = resolve(normalizeSourcePath(sourcePath))
     if (classifySource(absolute) !== 'convertible') {
       throw new KnowledgeImportError('not_convertible', '这类文件不需要复杂文档转换。')
     }
     this.load()
-    const stem = safeFilename(basename(absolute, extname(absolute)))
-    const taken = new Set()
-    for (const entries of this.owners.values()) {
-      for (const entry of entries) taken.add(entry.filename)
-    }
-    let filename = `${stem}.md`
-    let index = 2
-    while (taken.has(filename)) {
-      filename = `${stem}-${index}.md`
-      index += 1
-    }
+    this.assertCapacity(String(ownerId || ''))
+    const filename = this.uniqueFilename(ownerId, absolute, null, '.md')
     return { filename, path: join(this.documentDirectory, filename), ownerId }
   }
 

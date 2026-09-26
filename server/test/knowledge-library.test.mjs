@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict'
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, posix, win32 } from 'node:path'
 import test from 'node:test'
 import { spawn } from 'node:child_process'
+import { pathToFileURL } from 'node:url'
 import {
   KNOWLEDGE_LIMITS,
   KnowledgeImportError,
@@ -170,6 +171,36 @@ test('keeps two different files that share a name apart', () => {
   })
 })
 
+test('keeps case-insensitive document names and conversion targets separate after restart', () => {
+  withDirs(({ root, docs }) => {
+    const a = join(root, 'a')
+    const b = join(root, 'b')
+    mkdirSync(a)
+    mkdirSync(b)
+    const first = sourceFile(a, 'Guide.md', '# First document')
+    const second = sourceFile(b, 'guide.md', '# Second document')
+    const one = library({ docs, root }).import({ ownerId: OWNER, sourcePath: first })
+    const shelf = library({ docs, root })
+    const two = shelf.import({ ownerId: OWNER, sourcePath: second })
+    assert.equal(two.filename, 'guide-2.md')
+    assert.equal(readFileSync(one.path, 'utf8'), '# First document')
+    assert.equal(readFileSync(two.path, 'utf8'), '# Second document')
+    assert.equal(shelf.conversionTarget({ ownerId: OWNER, sourcePath: join(a, 'GUIDE.pdf') }).filename, 'GUIDE-3.md')
+    shelf.remove({ ownerId: OWNER, id: one.id })
+    assert.equal(readFileSync(two.path, 'utf8'), '# Second document')
+    assert.equal(shelf.list(OWNER).length, 1)
+  })
+})
+
+test('managed filenames also avoid Unicode-normalization collisions', () => {
+  withDirs(({ root, docs }) => {
+    const shelf = library({ docs, root })
+    shelf.import({ ownerId: OWNER, sourcePath: sourceFile(root, 'café.md') })
+    assert.equal(shelf.uniqueFilename(OWNER, 'cafe\u0301.md'), 'cafe\u0301-2.md')
+    assert.equal(shelf.conversionTarget({ ownerId: OWNER, sourcePath: 'CAFÉ.pdf' }).filename, 'CAFÉ-2.md')
+  })
+})
+
 test('rejects what it cannot handle', () => {
   withDirs(({ root, docs }) => {
     const shelf = library({ docs, root })
@@ -217,13 +248,92 @@ test('rejects a file over the size limit', () => {
 test('rejects an empty path with invalid_path rather than not_a_file', () => {
   withDirs(({ root, docs }) => {
     const shelf = library({ docs, root })
-    for (const input of ['', '   ', null, undefined]) {
+    for (const input of ['', '   ', null, undefined, '""', "''"]) {
       assert.throws(
         () => shelf.import({ ownerId: OWNER, sourcePath: input }),
         error => error instanceof KnowledgeImportError && error.code === 'invalid_path',
         `输入 ${JSON.stringify(input)} 应当报 invalid_path`,
       )
     }
+  })
+})
+
+// WebUI 资料库入口是「粘贴本机路径」。Windows 资源管理器「复制文件地址」
+// 会带上引号；浏览器或部分文件管理器会给出 file:// URL。引号必须在 resolve
+// 之前剥掉，否则会被当成相对路径的一部分。
+test('imports Explorer-quoted paths and file URLs as the same local file', () => {
+  withDirs(({ root, docs }) => {
+    const source = sourceFile(root, '手册.md', '# pasted guide\n')
+    const shelf = library({ docs, root })
+    const quoted = shelf.import({ ownerId: OWNER, sourcePath: `"${source}"` })
+    assert.equal(quoted.filename, '手册.md')
+    assert.equal(quoted.source, source)
+    assert.equal(readFileSync(quoted.path, 'utf8'), '# pasted guide\n')
+
+    const other = sourceFile(root, 'another.md', '# file url\n')
+    const viaUrl = library({ docs, root }).import({
+      ownerId: OWNER,
+      sourcePath: pathToFileURL(other).href,
+    })
+    assert.equal(viaUrl.filename, 'another.md')
+    assert.equal(viaUrl.source, other)
+    assert.equal(readFileSync(viaUrl.path, 'utf8'), '# file url\n')
+
+    const spaced = sourceFile(root, 'My File.md', '# spaced\n')
+    const viaQuotedUrl = library({ docs, root }).import({
+      ownerId: OWNER,
+      sourcePath: `"${pathToFileURL(spaced).href}"`,
+    })
+    assert.equal(viaQuotedUrl.filename, 'My File.md')
+    assert.equal(readFileSync(viaQuotedUrl.path, 'utf8'), '# spaced\n')
+
+    const pdf = join(root, '手册.pdf')
+    writeFileSync(pdf, '%PDF-1.7 fake')
+    assert.equal(classifySource(`"${pdf}"`), 'convertible')
+    assert.equal(classifySource(`'${pdf}'`), 'convertible')
+    assert.equal(
+      shelf.conversionTarget({ ownerId: OWNER, sourcePath: `"${pdf}"` }).filename,
+      '手册-2.md',
+    )
+  })
+})
+
+test('rejects root and malformed file URLs as invalid paths on every platform', () => {
+  withDirs(({ root, docs }) => {
+    const shelf = library({ docs, root })
+    // POSIX resolves file:// to /; Windows rejects its missing drive/share.
+    // Neither identifies a file to import.
+    for (const sourcePath of [
+      'file://', 'file:///', '"file://"',
+      'file:///invalid%ZZ.md', 'file:///encoded%2Fseparator.md', 'file://[invalid',
+    ]) {
+      assert.throws(
+        () => shelf.import({ ownerId: OWNER, sourcePath }),
+        error => error instanceof KnowledgeImportError && error.code === 'invalid_path',
+        sourcePath,
+      )
+    }
+    assert.throws(
+      () => shelf.import({
+        ownerId: OWNER,
+        sourcePath: pathToFileURL(join(root, 'missing.md')).href,
+      }),
+      error => error instanceof KnowledgeImportError && error.code === 'not_found',
+    )
+    assert.equal(shelf.list(OWNER).length, 0)
+  })
+})
+
+test('preserves spaces, Unicode and literal URL characters in pasted filenames', () => {
+  withDirs(({ root, docs }) => {
+    const source = sourceFile(root, '中文 #100%.md', '# literal filename\n')
+    const shelf = library({ docs, root })
+    for (const sourcePath of [source, `  '${source}'  `, `"${pathToFileURL(source).href}"`]) {
+      const entry = shelf.import({ ownerId: OWNER, sourcePath })
+      assert.equal(entry.source, source)
+      assert.equal(readFileSync(entry.path, 'utf8'), '# literal filename\n')
+    }
+    assert.equal(shelf.list(OWNER).length, 1)
   })
 })
 
@@ -302,20 +412,92 @@ test('removing a document deletes the copied file too', () => {
   })
 })
 
-test('caps the entry count per owner but never deletes the files', () => {
+test('rejects imports at capacity without evicting records or copying files', () => {
   withDirs(({ root, docs }) => {
     const shelf = library({ docs, root, maxPerOwner: 2 })
-    const paths = []
-    for (const name of ['a.md', 'b.md', 'c.md']) {
-      const entry = shelf.import({
-        ownerId: OWNER,
-        sourcePath: sourceFile(root, name, `# ${name}\n`),
-      })
-      paths.push(entry.path)
+    const entries = ['a.md', 'b.md'].map(name => shelf.import({
+      ownerId: OWNER,
+      sourcePath: sourceFile(root, name, `# ${name}\n`),
+    }))
+    const snapshot = readFileSync(join(root, 'domain-index.json'), 'utf8')
+    const extra = sourceFile(root, 'c.md', '# c\n')
+    const restored = library({ docs, root, maxPerOwner: 2 })
+    assert.throws(
+      () => restored.import({ ownerId: OWNER, sourcePath: extra }),
+      error => error.code === 'library_full' && /2 份上限/.test(error.message),
+    )
+    assert.equal(readFileSync(join(root, 'domain-index.json'), 'utf8'), snapshot)
+    assert.deepEqual(readdirSync(docs).sort(), ['a.md', 'b.md'])
+    for (const entry of entries) {
+      assert.ok(restored.get(OWNER, entry.id))
+      assert.equal(readFileSync(entry.path, 'utf8'), `# ${entry.filename}\n`)
     }
-    assert.equal(shelf.list(OWNER).length, 2)
-    // 容量回收只丢索引：用户的文件不该被一次静默的清理删掉
-    for (const path of paths) assert.ok(readFileSync(path, 'utf8'))
+    assert.equal(readFileSync(extra, 'utf8'), '# c\n')
+  })
+})
+
+test('allows updates at capacity and new imports after explicit removal', () => {
+  withDirs(({ root, docs }) => {
+    const shelf = library({ docs, root, maxPerOwner: 1 })
+    const source = sourceFile(root, 'a.md', '# first\n')
+    const first = shelf.import({ ownerId: OWNER, sourcePath: source })
+    writeFileSync(source, '# updated\n')
+    const restored = library({ docs, root, maxPerOwner: 1 })
+    assert.equal(restored.import({ ownerId: OWNER, sourcePath: source }).id, first.id)
+    assert.equal(readFileSync(first.path, 'utf8'), '# updated\n')
+    const duplicate = sourceFile(root, 'duplicate.md', '# updated\n')
+    assert.equal(restored.import({ ownerId: OWNER, sourcePath: duplicate }).id, first.id)
+    restored.remove({ ownerId: OWNER, id: first.id })
+    const next = restored.import({ ownerId: OWNER, sourcePath: sourceFile(root, 'b.md', '# next\n') })
+    assert.deepEqual(restored.list(OWNER).map(entry => entry.id), [next.id])
+  })
+})
+
+test('preserves unindexed files when importing, converting and removing after restart', () => {
+  withDirs(({ root, docs }) => {
+    mkdirSync(docs, { recursive: true })
+    // Retained copies from an older capacity eviction, or user-placed files.
+    const retained = join(docs, 'Guide.md')
+    writeFileSync(retained, '# retained original\n')
+    const source = sourceFile(root, 'guide.md', '# new source\n')
+    const first = library({ root, docs }).import({ ownerId: OWNER, sourcePath: source })
+    assert.equal(first.filename, 'guide-2.md')
+    const restored = library({ root, docs })
+    assert.equal(restored.conversionTarget({ ownerId: OWNER, sourcePath: join(root, 'GUIDE.pdf') }).filename, 'GUIDE-3.md')
+    restored.remove({ ownerId: OWNER, id: first.id })
+    assert.equal(readFileSync(retained, 'utf8'), '# retained original\n')
+    assert.equal(restored.conversionTarget({ ownerId: OWNER, sourcePath: join(root, 'Guide.pdf') }).filename, 'Guide-2.md')
+    assert.equal(readFileSync(source, 'utf8'), '# new source\n')
+  })
+})
+
+test('normalizes names of unindexed files and directories before allocating targets', () => {
+  withDirs(({ root, docs }) => {
+    mkdirSync(docs, { recursive: true })
+    writeFileSync(join(docs, 'café.md'), '# preserved\n')
+    mkdirSync(join(docs, 'CAFÉ-2.md'))
+    const shelf = library({ root, docs })
+    assert.equal(shelf.uniqueFilename(OWNER, join(root, 'cafe\u0301.md')), 'cafe\u0301-3.md')
+    assert.equal(shelf.conversionTarget({ ownerId: OWNER, sourcePath: join(root, 'CAFÉ.pdf') }).filename, 'CAFÉ-3.md')
+  })
+})
+
+test('does not overwrite a new file appearing after filename allocation', () => {
+  withDirs(({ root, docs }) => {
+    const shelf = library({ root, docs })
+    const allocate = shelf.uniqueFilename.bind(shelf)
+    shelf.uniqueFilename = (...args) => {
+      const name = allocate(...args)
+      mkdirSync(docs, { recursive: true })
+      writeFileSync(join(docs, name), '# external file\n')
+      return name
+    }
+    assert.throws(
+      () => shelf.import({ ownerId: OWNER, sourcePath: sourceFile(root, 'guide.md', '# imported\n') }),
+      error => error.code === 'copy_failed',
+    )
+    assert.equal(readFileSync(join(docs, 'guide.md'), 'utf8'), '# external file\n')
+    assert.deepEqual(shelf.list(OWNER), [])
   })
 })
 
@@ -447,6 +629,31 @@ test('a conversion target never collides with an existing document', () => {
       sourcePath: join(root, 'elsewhere', '手册.pdf'),
     })
     assert.equal(target.filename, '手册-2.md', '不能覆盖已收录的同名文档')
+  })
+})
+
+test('adopts a completed conversion without creating a duplicate library file', () => {
+  withDirs(({ root, docs }) => {
+    const shelf = library({ root, docs })
+    const target = shelf.conversionTarget({ ownerId: OWNER, sourcePath: join(root, '手册.pdf') })
+    mkdirSync(docs, { recursive: true })
+    writeFileSync(target.path, '# converted\n')
+    const entry = shelf.import({ ownerId: OWNER, sourcePath: target.path })
+    assert.equal(entry.path, target.path)
+    assert.deepEqual(readdirSync(docs), ['手册.md'])
+    assert.equal(shelf.import({ ownerId: OWNER, sourcePath: target.path }).id, entry.id)
+  })
+})
+
+test('refuses conversion at capacity before any output is written', () => {
+  withDirs(({ root, docs }) => {
+    const shelf = library({ root, docs, maxPerOwner: 1 })
+    shelf.import({ ownerId: OWNER, sourcePath: sourceFile(root, 'old.md') })
+    assert.throws(
+      () => shelf.conversionTarget({ ownerId: OWNER, sourcePath: join(root, 'new.pdf') }),
+      error => error.code === 'library_full',
+    )
+    assert.deepEqual(readdirSync(docs), ['old.md'])
   })
 })
 

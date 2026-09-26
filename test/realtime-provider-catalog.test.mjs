@@ -3,6 +3,8 @@ import test from 'node:test'
 import {
   DASHSCOPE_REALTIME_MODEL_PROFILES,
   DEFAULT_DASHSCOPE_REALTIME_MODEL,
+  DEFAULT_DOUBAO_SEEDUPLEX_REALTIME_MODEL,
+  DEFAULT_DOUBAO_SEEDUPLEX_REALTIME_VOICE,
   resolveDashScopeRealtimeVoiceOverride,
   listDashScopeRealtimeModelProfiles,
   resolveDashScopeRealtimeModelProfile,
@@ -11,6 +13,7 @@ import {
 } from '../shared/realtime-provider-catalog.mjs'
 
 const OMNI_FLASH_ID = 'qwen3.5-omni-flash-realtime'
+const OMNI_38_FLASH_ID = 'qwen3.8-omni-flash-realtime'
 const OMNI_PLUS_ID = 'qwen3.5-omni-plus-realtime'
 const AUDIO_PLUS_ID = 'qwen-audio-3.0-realtime-plus'
 const AUDIO_FLASH_ID = 'qwen-audio-3.0-realtime-flash'
@@ -63,6 +66,27 @@ test('GPT-Live and Google Live resolve independent credentials and models', () =
   assert.equal(resolveRealtimeModelProfile(google.active.model, 'google-live').family, 'google-live')
 })
 
+test('Doubao Seeduplex resolves aliases, endpoint, model and voice independently', () => {
+  const configuration = resolveRealtimeFrontendConfiguration({
+    QWEN_AUDIO_REALTIME_PROVIDER: 'doubao',
+    DOUBAO_API_KEY: 'doubao-test',
+  })
+
+  assert.equal(configuration.active.provider, 'doubao-seeduplex')
+  assert.equal(configuration.active.configured, true)
+  assert.equal(configuration.credential, 'doubao-test')
+  assert.equal(configuration.active.model, DEFAULT_DOUBAO_SEEDUPLEX_REALTIME_MODEL)
+  assert.equal(configuration.active.voice, DEFAULT_DOUBAO_SEEDUPLEX_REALTIME_VOICE)
+  assert.equal(resolveRealtimeModelProfile(
+    configuration.active.model,
+    'doubao-seeduplex',
+  ).family, 'doubao-seeduplex')
+  assert.equal(
+    resolveRealtimeModelProfile('1.2.6.2', 'doubao-seeduplex').family,
+    'unknown',
+  )
+})
+
 const omniModelCapabilities = {
   textInput: true,
   audioInput: true,
@@ -92,6 +116,14 @@ const legacySessionDefaults = {
 
 test('lists the exact DashScope realtime model catalog in product order', () => {
   assert.deepEqual(listDashScopeRealtimeModelProfiles(), [
+    {
+      id: OMNI_38_FLASH_ID,
+      label: 'Qwen3.8 Omni Flash Realtime',
+      family: 'omni',
+      sessionDefaults: { voice: 'Tina', turnDetection: { type: 'semantic_vad' } },
+      modelCapabilities: omniModelCapabilities,
+      transportCapabilities: omniTransportCapabilities,
+    },
     {
       id: OMNI_FLASH_ID,
       label: 'Qwen3.5 Omni Flash Realtime',
@@ -155,6 +187,7 @@ test('lists the exact DashScope realtime model catalog in product order', () => 
 
 test('resolves Omni and Audio Flash and Plus profiles by exact model id', () => {
   for (const modelId of [
+    OMNI_38_FLASH_ID,
     OMNI_FLASH_ID,
     OMNI_PLUS_ID,
     AUDIO_PLUS_ID,
@@ -181,6 +214,23 @@ test('keeps the legacy model as the default', () => {
   )
 })
 
+test('Omni 3.8 resolves a workspace endpoint without inheriting an Audio voice override', () => {
+  const endpoint = 'wss://workspace.cn-beijing.maas.aliyuncs.com/api-ws/v1/realtime'
+  const configuration = resolveRealtimeFrontendConfiguration({
+    QWEN_AUDIO_REALTIME_PROVIDER: 'dashscope',
+    QWEN_AUDIO_REALTIME_MODEL: OMNI_38_FLASH_ID,
+    QWEN_AUDIO_REALTIME_BASE_URL: endpoint,
+    DASHSCOPE_API_KEY: 'workspace-key',
+    QWEN_AUDIO_REALTIME_VOICE: 'audio-family-only',
+  })
+  assert.equal(configuration.active.model, OMNI_38_FLASH_ID)
+  assert.equal(configuration.active.endpoint, endpoint)
+  assert.equal(configuration.active.voice, '')
+  assert.equal(resolveRealtimeModelProfile(configuration.active.model, 'dashscope').sessionDefaults.voice, 'Tina')
+  assert.equal(configuration.active.credentialConfigured, true)
+  assert.equal(configuration.credential, 'workspace-key')
+})
+
 test('selects only the explicit voice override for the active model family', () => {
   const env = {
     QWEN_AUDIO_REALTIME_VOICE: 'custom-voice',
@@ -191,6 +241,7 @@ test('selects only the explicit voice override for the active model family', () 
   assert.equal(resolveDashScopeRealtimeVoiceOverride(AUDIO_FLASH_ID, env), 'custom-voice')
   assert.equal(resolveDashScopeRealtimeVoiceOverride(OMNI_PLUS_ID, env), 'custom-voice')
   assert.equal(resolveDashScopeRealtimeVoiceOverride(OMNI_FLASH_ID, env), 'custom-voice')
+  assert.equal(resolveDashScopeRealtimeVoiceOverride(OMNI_38_FLASH_ID, env), 'custom-voice')
   assert.equal(resolveDashScopeRealtimeVoiceOverride(AUDIO_PLUS_ID, {}), '')
   assert.equal(resolveDashScopeRealtimeVoiceOverride(OMNI_PLUS_ID, {}), '')
   assert.equal(resolveDashScopeRealtimeVoiceOverride('future-model', env), '')

@@ -15,6 +15,8 @@ import {
 } from './message-order.js'
 import MessageContent from './MessageContent.jsx'
 import MultimodalComposer from './composer/MultimodalComposer.jsx'
+import VideoCallPanel from './composer/VideoCallPanel.jsx'
+import { desktopClientTools } from './desktop/client-tools.js'
 import TaskArtifacts from './TaskArtifacts.jsx'
 import PermissionActions from './PermissionActions.jsx'
 import DesktopFluidOrb from './desktop/DesktopFluidOrb.jsx'
@@ -31,7 +33,7 @@ import {
 } from '../../shared/orb-skin-catalog.mjs'
 import { supportsComposerInput } from '../../shared/client-input-capabilities.mjs'
 import { resultLabel } from './presentation.js'
-import { setRuntimeLanguage, t } from './i18n.js'
+import { setRuntimeLanguage, syncDocumentLanguage, t } from './i18n.js'
 import {
   removeDeliveredTask,
   removeTaskInPhase,
@@ -53,6 +55,8 @@ import {
   desktopCanFinishWaking,
   desktopCanHide,
   desktopHideDeadline,
+  enterDesktopIdleSleep,
+  desktopPresenceContext,
   desktopTasksActive,
   desktopWorkSettled,
   desktopTasksWorking,
@@ -60,6 +64,7 @@ import {
 } from './desktop/desktop-hide.js'
 import {
   desktopTaskCards,
+  desktopTaskElapsedSeconds,
 } from './desktop/desktop-task-cards.js'
 import {
   advanceDesktopRuntimePresentation,
@@ -217,16 +222,31 @@ export default function App() {
   // React state makes a language-only settings update repaint this surface
   // without replacing its Gateway WebSocket or Realtime Session.
   const [, setLanguageRevision] = useState(0)
+  useEffect(() => {
+    const refreshLanguage = () => {
+      syncDocumentLanguage()
+      setLanguageRevision(value => value + 1)
+    }
+    window.addEventListener('languagechange', refreshLanguage)
+    return () => window.removeEventListener('languagechange', refreshLanguage)
+  }, [])
   const [sessionId, setSessionId] = useState(getSessionId)
   const [voiceEnabled, setVoiceEnabled] = useState(() => initialVoiceEnabled({
     desktopOrbMode,
     clientType: activeClientType,
   }))
   const [waitingForVoice, setWaitingForVoice] = useState(false)
+  const [videoCallOpen, setVideoCallOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [activity, setActivity] = useState(t('正在检查后台 Agent'))
   const [frontend, setFrontend] = useState({ label: 'Realtime Agent' })
   const [modelStatus, setModelStatus] = useState(() => realtimeModelStatus())
+  const videoCallSupported = !compactVoiceControl
+    && modelStatus.modelInputModes.includes('video')
+    && modelStatus.transportInputModes.includes('video')
+  useEffect(() => {
+    if (!videoCallSupported) setVideoCallOpen(false)
+  }, [videoCallSupported])
   const [gatewayRuntime, setGatewayRuntime] = useState('connecting')
   const [backend, setBackend] = useState({
     label: 'Agent',
@@ -236,6 +256,7 @@ export default function App() {
     code: null,
   })
   const [agentTasks, setAgentTasks] = useState([])
+  const [taskClock, setTaskClock] = useState(Date.now)
   const [desktopTasksCollapsed, setDesktopTasksCollapsed] = useState(false)
   const [showKnowledgeLibrary, setShowKnowledgeLibrary] = useState(false)
   const [desktopTaskLayout, setDesktopTaskLayout] = useState({
@@ -246,7 +267,14 @@ export default function App() {
   const [orbDragDirection, setOrbDragDirection] = useState('')
   const [spriteAnimationCues, setSpriteAnimationCues] = useState([])
   const [spriteOrbFailed, setSpriteOrbFailed] = useState(false)
-  const [desktopLifecycle, setDesktopLifecycle] = useState('active')
+  const [desktopPresence, setDesktopPresence] = useState({ state: 'active', reason: '' })
+  const desktopLifecycle = desktopPresence.state
+  const setDesktopLifecycle = useCallback((state, reason) => {
+    setDesktopPresence(current => ({
+      state,
+      reason: reason ?? (current.state === state ? current.reason : ''),
+    }))
+  }, [])
   const [desktopSurfaceMode, setDesktopSurfaceMode] = useState(
     initialDesktopSurfaceMode,
   )
@@ -402,11 +430,17 @@ export default function App() {
   }, [])
 
   useLayoutEffect(() => {
+    // The orb does not mount the message list. Opening a panel (or a new
+    // session) should follow the latest message, even if history is unchanged.
+    stickToBottom.current = true
+  }, [desktopSurfaceMode, sessionId])
+
+  useLayoutEffect(() => {
     const container = messagesRef.current
     if (container && stickToBottom.current) {
       container.scrollTop = container.scrollHeight
     }
-  }, [messages, agentTasks])
+  }, [messages, agentTasks, desktopSurfaceMode, sessionId])
 
   useEffect(() => () => {
     taskDismissTimers.current.forEach(timer => clearTimeout(timer))
@@ -818,6 +852,7 @@ export default function App() {
     voiceEnabled,
     waitingForVoice,
     triggerSpriteAnimation,
+    setDesktopLifecycle,
   ])
 
   // Keep the microphone alive while the desktop orb is hidden and the wake
@@ -842,6 +877,8 @@ export default function App() {
     clientLabel: gatewayClientLabel(desktopOrbMode ? t('桌面端') : 'WebUI'),
     clientInstanceId: activeClientInstanceId,
     clientStates: desktopOrbMode ? ['sleeping'] : [],
+    clientTools: desktopOrbMode ? desktopClientTools : [],
+    clientPresence: desktopOrbMode ? (desktopLifecycle === 'hidden' ? 'sleeping' : 'active') : undefined,
     onEvent: onRealtimeEvent,
     onInputError: message => {
       setVoiceEnabled(false)
@@ -858,6 +895,20 @@ export default function App() {
     },
   })
   gatewayCommandsRef.current = voice
+  const publishClientState = voice.publishClientState
+  useEffect(() => {
+    if (!desktopOrbMode) return
+    const text = desktopPresenceContext(desktopLifecycle, desktopPresence.reason)
+    if (text) publishClientState('desktop.presence.changed', text)
+  }, [desktopLifecycle, desktopPresence.reason, publishClientState])
+  const reportVisualInputState = useCallback(active => {
+    publishClientState('media.visual_input.changed', active
+      ? '客户端已开启实时视觉输入；仅根据实际收到的最新画面描述当前环境。'
+      : '客户端已停止实时视觉输入，当前无法看到新的画面。之前收到的画面仅代表历史，不代表当前环境。')
+  }, [publishClientState])
+  useEffect(() => {
+    if (videoCallSupported) reportVisualInputState(false)
+  }, [videoCallSupported, reportVisualInputState])
   const lifecycleTransition = (
     desktopOrbMode && desktopLifecycle !== 'active'
   )
@@ -954,6 +1005,12 @@ export default function App() {
   const tasksActive = desktopTasksActive(agentTasks)
 
   useEffect(() => {
+    if (!tasksActive) return undefined
+    const timer = setInterval(() => setTaskClock(Date.now()), 1_000)
+    return () => clearInterval(timer)
+  }, [tasksActive])
+
+  useEffect(() => {
     if (!desktopOrbMode) return
     if (!tasksActive && previousTasksActive.current) {
       const settledAt = Date.now()
@@ -975,7 +1032,7 @@ export default function App() {
         triggerSpriteAnimation('wake', { priority: true })
       }
       previousDesktopLifecycle.current = lifecycle.state
-      setDesktopLifecycle(lifecycle.state)
+      setDesktopLifecycle(lifecycle.state, lifecycle.reason)
       if (lifecycle.state === 'waking') lastWakeAtRef.current = Date.now()
       if (lifecycle.reason === 'activity') noteInteraction()
       if (lifecycle.state === 'hidden') {
@@ -1001,7 +1058,7 @@ export default function App() {
       window.removeEventListener('pointerdown', onInteraction)
       window.removeEventListener('keydown', onInteraction)
     }
-  }, [noteInteraction, triggerSpriteAnimation])
+  }, [noteInteraction, triggerSpriteAnimation, setDesktopLifecycle])
 
   useEffect(() => {
     if (!desktopOrbMode || desktopLifecycle !== 'waking') return
@@ -1019,7 +1076,6 @@ export default function App() {
 
   // 快捷键/托盘唤起恢复 Gateway presence；Realtime 连接在休眠期间保持。
   const wakeGateway = voice.wake
-  const publishClientEvent = voice.publishClientEvent
   useEffect(() => {
     if (!desktopOrbMode || desktopLifecycle !== 'waking') return
     wakeGateway()
@@ -1054,22 +1110,25 @@ export default function App() {
         Date.now() < deadline
         || autoHideRequestedDeadlineRef.current === deadline
       ) return
-      if (publishClientEvent('desktop.presence.sleep_requested', {
-        idle_ms: autoHideSeconds * 1000,
-      })) {
-        autoHideRequestedDeadlineRef.current = deadline
-      }
+      autoHideRequestedDeadlineRef.current = deadline
+      enterDesktopIdleSleep({
+        bridge: window.qwenAudioAgentDesktop,
+        onLifecycle: setDesktopLifecycle,
+      }).then(hidden => {
+        if (!hidden) autoHideRequestedDeadlineRef.current = null
+      }).catch(() => { autoHideRequestedDeadlineRef.current = null })
     }
     const timer = setInterval(check, 1_000)
     check()
     return () => clearInterval(timer)
-  }, [autoHideSeconds, publishClientEvent])
+  }, [autoHideSeconds, setDesktopLifecycle])
 
   const modelLabel = (modelStatus.label || t('模型信息不可用'))
     .replace(/\s+Realtime\b/gi, '')
     .trim()
 
   const resetSession = () => {
+    setVideoCallOpen(false)
     taskDismissTimers.current.forEach(timer => clearTimeout(timer))
     taskDismissTimers.current.clear()
     const next = crypto.randomUUID()
@@ -1094,6 +1153,9 @@ export default function App() {
     setWaitingForVoice(false)
     setVoiceEnabled(true)
   }
+
+  const voiceControlLabel = voiceEnabled ? t('麦克风静音')
+    : waitingForVoice ? t('取消等待') : t('开启麦克风')
 
   const disableVoice = () => {
     setWaitingForVoice(false)
@@ -1354,7 +1416,7 @@ export default function App() {
           agentTask.id, agentTask.authorization, decision,
         )}
       />}
-      <time>{Math.max(0, Math.round(agentTask.elapsedMs / 1000))}s</time>
+      <time>{desktopTaskElapsedSeconds(agentTask, taskClock)}s</time>
     </div>}
   </aside>
 
@@ -1424,14 +1486,8 @@ export default function App() {
           voiceEnabled ? 'active' : '',
           waitingForVoice ? 'waiting' : '',
         ].filter(Boolean).join(' ')}
-        aria-label={voiceEnabled
-          ? t('麦克风静音')
-          : waitingForVoice ? t('取消等待') : t('开启麦克风')}
-        title={compactVoiceControl
-          ? voiceEnabled
-            ? t('麦克风静音')
-            : waitingForVoice ? t('取消等待') : t('开启麦克风')
-          : undefined}
+        aria-label={voiceControlLabel}
+        title={compactVoiceControl ? voiceControlLabel : undefined}
         onClick={() => {
           if (voiceEnabled || waitingForVoice) {
             disableVoice()
@@ -1442,10 +1498,16 @@ export default function App() {
       >
         {compactVoiceControl
           ? <OrbControlIcon type="microphone" muted={!voiceEnabled} />
-          : voiceEnabled
-            ? t('麦克风静音')
-            : waitingForVoice ? t('取消等待') : t('开启麦克风')}
+          : voiceControlLabel}
       </button>
+      {videoCallSupported && <button
+        className={`video-toggle${videoCallOpen ? ' active' : ''}`}
+        aria-pressed={videoCallOpen}
+        onClick={() => {
+          if (!videoCallOpen) voice.activateAudio()
+          setVideoCallOpen(value => !value)
+        }}
+      >{videoCallOpen ? t('关闭视频') : t('开启视频')}</button>}
       {desktopOrbMode && <button
         className="ghost desktop-panel-collapse"
         onClick={() => void changeDesktopSurface('orb')}
@@ -1499,15 +1561,18 @@ export default function App() {
         </section>)}
       </div>
 
+      {videoCallSupported && videoCallOpen && <div className="visual-stream-dock">
+        <VideoCallPanel
+          available={voice.imageBufferAvailable}
+          connectionState={voice.connectionState}
+          onFrame={voice.sendImageFrame}
+          onStop={voice.clearImageBuffer}
+          onStateChange={reportVisualInputState}
+          onClose={() => setVideoCallOpen(false)}
+        />
+      </div>}
       {composerEnabled && <MultimodalComposer
         onSend={sendComposerInput}
-        onVisualFrame={voice.sendImageFrame}
-        onVisualStop={voice.clearImageBuffer}
-        visualStreamSupported={!desktopOrbMode
-          && modelStatus.transportInputModes.includes('video')}
-        visualStreamAvailable={!desktopOrbMode && voice.imageBufferAvailable}
-        voiceInputEnabled={voice.inputReady}
-        connectionState={voice.connectionState}
         compact={desktopOrbMode}
       />}
 

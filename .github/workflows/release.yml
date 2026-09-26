@@ -35,6 +35,7 @@ jobs:
       version: ${{ steps.plan.outputs.version }}
       tag: ${{ steps.plan.outputs.tag }}
       manual: ${{ steps.plan.outputs.manual }}
+      revision: ${{ steps.plan.outputs.revision }}
     permissions:
       contents: read
       pull-requests: read
@@ -79,6 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ needs.plan.outputs.revision }}
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -103,7 +105,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.plan.outputs.tag }}
-          RELEASE_MANUAL: ${{ needs.plan.outputs.manual }}
+          RELEASE_REVISION: ${{ needs.plan.outputs.revision }}
         run: |
           set -eu
           if EXISTING=$(
@@ -113,24 +115,21 @@ jobs:
             git fetch --force origin \
               "refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
             RESOLVED=$(git rev-list -n 1 "$RELEASE_TAG")
-            if [ "$RESOLVED" != "$GITHUB_SHA" ]; then
-              if [ "$RELEASE_MANUAL" = "true" ]; then
-                echo "Recovering the existing ${RELEASE_TAG} at ${RESOLVED}."
-              else
-                echo "${RELEASE_TAG} already points to ${RESOLVED}, not ${GITHUB_SHA}." >&2
-                exit 1
-              fi
+            if [ "$RESOLVED" != "$RELEASE_REVISION" ]; then
+              echo "${RELEASE_TAG} moved after planning: ${RESOLVED}, expected ${RELEASE_REVISION}." >&2
+              exit 1
             fi
           else
             gh api \
               --method POST \
               "repos/${GH_REPO}/git/refs" \
               -f "ref=refs/tags/${RELEASE_TAG}" \
-              -f "sha=${GITHUB_SHA}"
+              -f "sha=${RELEASE_REVISION}"
           fi
 
   npm:
-    needs: [plan, tag]
+    # Do not publish npm while a desktop package is still unverified.
+    needs: [plan, tag, macos, windows]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -138,7 +137,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.plan.outputs.tag }}
+          ref: ${{ needs.plan.outputs.revision }}
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -170,7 +169,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.plan.outputs.tag }}
+          ref: ${{ needs.plan.outputs.revision }}
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -204,14 +203,73 @@ jobs:
             echo "Missing GitHub Actions secrets:${MISSING}" >&2
             exit 1
           fi
-      - name: Build, sign and notarize universal macOS DMG
-        run: npm run desktop:build -- --universal --publish never
+      # Own the temporary keychain explicitly: electron-builder 26.16.0 uses
+      # the P12 password instead of the keychain password for partition access.
+      # Keep this in the workflow so recovery can package an existing tag.
+      - name: Import signing certificate into an isolated keychain
+        id: signing
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          SIGNING_DIR=$(mktemp -d "$RUNNER_TEMP/qwa-signing.XXXXXX")
+          echo "directory=$SIGNING_DIR" >> "$GITHUB_OUTPUT"
+          KEYCHAIN_PATH="$SIGNING_DIR/release.keychain-db"
+          CERTIFICATE_PATH="$SIGNING_DIR/certificate.p12"
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 32)
+          echo "::add-mask::$KEYCHAIN_PASSWORD"
+          trap 'rm -f "$CERTIFICATE_PATH"' EXIT
+          umask 077
+          printf '%s' "$CSC_LINK" | /usr/bin/base64 --decode > "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -k "$KEYCHAIN_PATH" \
+            -T /usr/bin/codesign -T /usr/bin/productbuild -P "$CSC_KEY_PASSWORD"
+          security set-key-partition-list -S apple-tool:,apple: -s \
+            -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          # codesign also resolves identities through the user search list.
+          security list-keychains -d user > "$SIGNING_DIR/search-list.txt"
+          SEARCH_KEYCHAINS=()
+          while read -r ENTRY; do
+            SEARCH_KEYCHAINS+=("${ENTRY//\"/}")
+          done < "$SIGNING_DIR/search-list.txt"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" "${SEARCH_KEYCHAINS[@]}"
+          SIGNING_IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" \
+            | awk '/"Developer ID Application:/ { print $2; exit }')
+          if [[ ! "$SIGNING_IDENTITY" =~ ^[A-Fa-f0-9]{40}$ ]]; then
+            echo "No valid Developer ID Application identity in the signing certificate" >&2
+            exit 1
+          fi
+          # Fail before packaging if codesign cannot actually use the private key.
+          cp /usr/bin/true "$SIGNING_DIR/signing-probe"
+          codesign --force --sign "$SIGNING_IDENTITY" --keychain "$KEYCHAIN_PATH" \
+            --timestamp "$SIGNING_DIR/signing-probe"
+          codesign --verify --strict "$SIGNING_DIR/signing-probe"
+          echo "CSC_KEYCHAIN=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "CSC_NAME=$SIGNING_IDENTITY" >> "$GITHUB_ENV"
+      - name: Build, sign and notarize universal macOS DMG
+        run: npm run desktop:build -- --universal --publish never --config.forceCodeSigning=true
+        env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Remove temporary signing keychain
+        if: ${{ always() && steps.signing.outputs.directory != '' }}
+        env:
+          SIGNING_DIR: ${{ steps.signing.outputs.directory }}
+        run: |
+          if [ -f "$SIGNING_DIR/search-list.txt" ]; then
+            SEARCH_KEYCHAINS=()
+            while read -r ENTRY; do
+              SEARCH_KEYCHAINS+=("${ENTRY//\"/}")
+            done < "$SIGNING_DIR/search-list.txt"
+            security list-keychains -d user -s "${SEARCH_KEYCHAINS[@]}"
+          fi
+          security delete-keychain "$SIGNING_DIR/release.keychain-db"
+      - name: Verify packaged macOS Gateway
+        run: node scripts/test/desktop-package-smoke.mjs "dist/desktop/mac-universal/Qwen Audio Agent.app"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: macos-dmg
@@ -230,7 +288,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.plan.outputs.tag }}
+          ref: ${{ needs.plan.outputs.revision }}
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -240,6 +298,8 @@ jobs:
       - run: npm ci
       - name: Build Windows NSIS installer
         run: npm run desktop:build:win
+      - name: Verify packaged Windows Gateway
+        run: node scripts/test/desktop-package-smoke.mjs dist/desktop/win-unpacked
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-exe

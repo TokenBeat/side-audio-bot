@@ -114,6 +114,9 @@ export const keep = [
   /logo-qwen-icon|qwenLogo|qwen_logo\.svg/g, // cockpit 示例的 qwen logo 资源（文件名约定）
   /Qwen\.app/g,
   /QwenFrontend/g, // 测试助手，rebrand 时即保留
+  /next-qwen-key/g, // 测试夹具假 API key 值，非品牌引用
+  /qwen-only/g, // 测试夹具假 voice 值，非品牌引用
+  /qwen-not-live/g, // 测试夹具假 voice 值，非品牌引用
   /QwenAudioRealtimeProvider/g, // DashScope 派生 provider 类名，rebrand 保留
   /(?<![\w-])Qwen(?![\w-])(?! ?Audio| Code|\.app|Frontend| Realtime)/g, // 其余裸 Qwen 提法
   // 模型 / 服务提供方品牌语境（rebrand 保留，区别于产品行文）

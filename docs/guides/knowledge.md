@@ -23,6 +23,9 @@ The voice Provider must support tool calls.
 2. Paste an **absolute file path on the Gateway host**, such as `/Users/me/Documents/handbook.md`.
 3. Click “Add to library” and wait for import completion. Ask questions once the document appears in the list.
 
+The built-in library accepts quoted paths copied from file managers and `file://` URLs.
+Both refer to files on the Gateway host. Invalid file URLs are rejected, not treated as ordinary paths.
+
 This is not a file uploader. A path on a remote phone does not refer to a file on the computer;
 place the document on the Gateway host first. The Desktop orb and conversation panel do not
 currently expose a library-management button.
@@ -35,6 +38,11 @@ currently expose a library-management button.
 Complex documents use an isolated execution session, not the everyday coordinator conversation,
 and do not inherit voice-chat context. Import errors appear in the panel. If no converter is available,
 convert the document to Markdown or TXT yourself before importing it.
+
+The built-in library holds up to 40 documents by default. At capacity, it asks you to remove
+unneeded documents instead of silently dropping older entries; existing text documents can still
+be updated. Imports and conversion targets avoid existing filenames on disk, including retained
+copies no longer shown in the list, so new documents do not overwrite them.
 
 ## 3. Query and Remove
 

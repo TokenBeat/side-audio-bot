@@ -1,27 +1,21 @@
 # Gateway Client Protocol
 
-> 状态：**Stable 6.0**<br>
+> 状态：**Stable 7.0**<br>
 > 线协议版本：**7.0.0**<br>
 > Roadmap：[GitHub issue #251](https://github.com/QwenAudio/qwen-audio-agent/issues/251)<br>
 > 当前实现事实源：`shared/protocol/gateway-client-protocol.mjs`、`server/src/client/client-event-router.mjs`、`server/src/client/client-command-runtime.mjs`、`shared/protocol/realtime-events.mjs`、`shared/protocol/gateway-events.mjs` 与 `server/src/core/gateway-protocol.mjs`
 
-本文档定义 qwen-audio-agent Gateway 与每个已认证用户的一个活动 Client Environment 之间已经落地的北向协议。当前第一方客户端使用 6.0 线协议；健康契约 5.x 的旧入口仅作为临时兼容别名保留。
+本文档定义 qwen-audio-agent Gateway 与每个已认证用户的一个活动 Client Environment 之间已经落地的北向协议。当前第一方客户端使用 7.0 线协议；旧 `connect` 与运行时 REST 入口仍作为兼容别名保留，不用于新客户端接入。健康契约与线协议独立版本化，见[Gateway 契约](contract.zh.md)。
 
 ## 1. 产品边界
 
-```text
-Client Environment
-        ↕ Gateway Client Protocol
-Gateway Core + Realtime Frontend Agent
-        ↕ BackendPort
-Backend Agent
-```
+核心逻辑架构是**前台 Agent、编排运行时、后台 Agent**。本协议定义客户端如何接入服务，不改变这三个组件的划分，详见[架构总览](architecture/overview.zh.md)。
 
-三个角色相互独立：
+- **前台 Agent** 通过实时模型、上下文和工具理解输入、组织回复。
+- **编排运行时** 管理任务、权限、会话、事件路由、结果投递与恢复，通过 `BackendPort` 对接后台。
+- **后台 Agent** 是用户提供的执行环境，ACP、A2A 或自定义 Adapter 实现其接入。
 
-- **Gateway Core** 管理 Realtime 前台 Agent、对话、工具、Task 生命周期、权限、路由、Presentation 与恢复。
-- **Backend Agent** 是用户提供的执行环境。Gateway 只通过 `BackendPort` 访问，由 ACP、A2A 或自定义 Adapter 实现。
-- **Client Environment** 负责 I/O、显示、播放、本地 UX、传感器、客户端状态、用户行为和外部环境动作。
+**Gateway** 是承载运行时与前后台接入的服务宿主，提供认证、连接管理和本协议入口。**Client Environment** 负责 I/O、显示、播放、本地 UX、传感器、用户行为和环境动作，通过本协议与 Gateway 通信。下文的“Gateway 处理”包含其承载的运行时行为，不表示把业务逻辑放进传输层。
 
 TUI、WebUI 和桌面悬浮球是第一方参考客户端；OpenCode、Qwen Code、MiniMax Code、Pi、OpenClaw、远程 A2A Agent 等是参考后台。两者都不限制框架可接入的实现。
 
@@ -145,16 +139,16 @@ Gateway 返回协商后的版本与能力交集：
 - 不同用户彼此独立，但每个用户仍只有一个活动 Client。
 - WebSocket 关闭或心跳超时后释放租约；租约代次 fencing 会阻止旧 Socket 释放或修改新租约。
 - 协商了 `session.heartbeat` 的 Client 必须使用关联的 `session.pong` 回复 Gateway 的每个 `session.ping`；正常业务消息同样会续租。这避免依赖某些反向代理无法可靠保留的 WebSocket 控制帧。
-- 6.0 不提供 Observer 连接或同一用户下的并发多 Client 控制。
+- 7.0 不提供 Observer 连接或同一用户下的并发多 Client 控制。
 - Client 必须依据协商后的 capabilities 判断能力，不能只比较产品版本。
 - 协议版本、Client 身份和能力不能在当前连接中改变；需要改变时重连。
-- 6.0 不定义 `context_source`、`integration` 或 Observer 连接角色。车辆总线、CRM、传感器等上下文来源通过客户端侧 Adapter 接入当前活动 Client Environment，再由该 Client 校验并转发已注册的语义事件。
+- 7.0 不定义 `context_source`、`integration` 或 Observer 连接角色。车辆总线、CRM、传感器等上下文来源通过客户端侧 Adapter 接入当前活动 Client Environment，再由该 Client 校验并转发信息事件。
 
 ### 3.1 GCP1 兼容落地
 
-GCP1 在不分叉 Gateway 业务逻辑的前提下实现信封与握手。6.0 Client 以
+GCP1 在不分叉 Gateway 业务逻辑的前提下实现信封与握手。当前 7.0 Client 以
 `session.hello` 开始；Gateway 返回 `session.ready`，为后续下行事件补充
-`event_id`，并把 6.0 输入别名归一化到现有内部事件模型。5.x Client 仍可使用
+`event_id`，并把协议输入归一化到现有内部事件模型。旧 5.x Client 仍可使用
 `connect`，收到的旧事件形状保持不变。握手只协商已有运行时实现的能力。GCP2 的
 Client Event 与运行时命令 capability、GCP3 Agent Delivery、GCP4 Client Action
 以及 GCP5 参考 Client 与有限回放均已实现。
@@ -165,33 +159,21 @@ GCP2 在协商后的同一条 WebSocket 上实现 `client.event.publish`，以�
 Task、权限和对话历史命令。即时结果与错误通过 `request_event_id` 关联。现有 REST
 路由调用同一个 Runtime Command Service，并暂时作为兼容别名保留。
 
-Client Event Definition 在 Gateway 组合阶段注册。Registry 统一定义 payload
-Schema、大小、频率、保存、合并、最大路由等级与可选确定性 Handler。Gateway 根据
-已认证连接填写 owner、Session、Client 类型与 Client 实例；这些可信字段不能由
-Event data 提供。首个内置定义是 `desktop.presence.sleep_requested`。GCP2 负责接收、
-校验、保存和确定性处理，不会把它伪装成用户输入；GCP3 已经把它投影到统一的 Agent
-Delivery 边界。
-
-确定性 Handler 可以使用 Gateway 宿主提供的窄效果，例如从部署方拥有的
-Assistant Profile 白名单中为当前 Realtime Session 选择一项。Client 仍然只能发送
-Schema 校验过的标识：Event data 不会直接变成指令，效果也不接受任意 Prompt 文本。
+普通 Client 信息事件携带文本和投递方式，不要求预注册。只有需要确定性处理的宿主扩展才注册事件定义。身份由已认证连接提供，业务操作与信息投递分离。详见第 5.2、5.3 节。
 
 ### 3.3 GCP3 Delivery 落地
 
 GCP3 实现第 6 节定义的 Provider 无关值与四种路由模式。Task 最终结果、有意义的低频
-进展、权限请求和已注册 Client Event 投影统一进入 `RealtimeAgentDeliveryRuntime`。
+进展、权限请求和Client Event 投影统一进入 `RealtimeAgentDeliveryRuntime`。
 Realtime Provider 只编码最终的上下文项与可选回复；Client 或后台协议原始对象不会
 进入模型。现有 Task 播报的批处理、安全窗口重试、通知认领和播放确认继续作为这条共享
 投影外围的可靠生命周期。
 
 ### 3.4 GCP4 Client Action 落地
 
-GCP4 实现有关联关系的 `client.action.request/result` 与协议无关的
-`ClientActionPort`。只有当前 Client 声明对应 capability，Realtime 才能看到由
-Action 派生的工具。`enter_sleep`、桌面空闲事件与旧 Gateway 超时入口统一进入
-幂等 `PresenceController`；支持 Action 的 Client 只有在环境切换成功回执后才会被
-标记为 sleeping。第一方桌面 Client 已通过 `session.hello` 协商并回传 Action
-Result；5.x `connect` 只保留为废弃兼容别名。
+GCP4 实现有关联关系的 `client.action.request/result` 和协议无关的
+`ClientActionPort`。当前桌面端在握手时提供自己的工具目录。客户端空闲策略、实际状态
+同步和模型可见信息各走自己的边界，详见第 7 节。宿主扩展仍可提供自定义动作。
 
 ### 3.5 GCP5 参考 Client 与回放落地
 
@@ -213,7 +195,7 @@ Gateway 采用扁平的 OpenAI Realtime 风格信封：
   "type": "client.event.publish",
   "event_id": "evt_client_42",
   "name": "user.object.touched",
-  "data": { "object_id": "cup" }
+  "text": "用户触摸了水杯。"
 }
 ```
 
@@ -229,7 +211,7 @@ Gateway 采用扁平的 OpenAI Realtime 风格信封：
 
 命名相似是有意为之，但本文定义的 Schema 才是权威契约。复用标准字段名或兼容形状，不代表引入该标准的对象类型，也不宣称线兼容。
 
-所有控制消息使用 UTF-8 JSON 文本帧。6.0 在 JSON 中以 base64 承载 PCM 音频；未来可以通过能力协商增加二进制媒体帧，而不改变语义事件路由。
+所有控制消息使用 UTF-8 JSON 文本帧。7.0 在 JSON 中以 base64 承载 PCM 音频；可选 WebRTC 媒体传输见[WebRTC 客户端](gateway-webrtc-client.zh.md)，不改变语义事件路由。
 
 ## 5. 协议面
 
@@ -271,96 +253,108 @@ Gateway 扩展包括 `turn.started`、`transcript.discard`、`playback.clear` �
 第一版只接受 JPEG，Base64 正文不超过 256 KiB，并且每秒最多接收一帧。视觉帧只
 更新实时视觉上下文：不创建用户回合、不主动触发回复、不进入对话历史，也不会成为
 后台附件。用户主动停止实时视觉或关闭相机时，Client 发送
-`input_image_buffer.clear`，避免 Provider 在之后消费最后一帧。短暂断线或麦克风状态
-切换只暂停 Client 传帧；传输恢复后继续，并保留用户已经开启实时视觉的意图。Session
-断开、休眠、输入抢占、麦克风静音和 Provider 切换仍会清除 Gateway 侧尚未消费的视觉
-状态，避免旧帧跨越传输生命周期残留。
+`input_image_buffer.clear`，清除尚未消费的帧，但不删除模型已收到的历史画面。
+图像缓冲协议不表示摄像头开关。Client 另行通过 `client.event.publish` 上报
+`media.visual_input.changed` 环境事件，仅更新模型上下文，不触发回复；不支持上下文
+注入的 Provider 跳过该通知。麦克风静音不清除视觉输入。短暂断线暂停
+Client 传帧，恢复后继续；Session 断开、休眠、输入抢占和 Provider 切换仍会清除待发送
+视觉状态，避免旧帧跨越传输生命周期残留。
 
-该 GCP 事件保持 Provider 无关。Qwen Omni Adapter 会在音频开始后写入服务端图像
-缓冲区；MiniCPM-o Adapter 则把最近一帧放入下一批音频 `input.append` 的
+该 GCP 事件保持 Provider 无关。Qwen Omni Adapter 在首次图像之前尚无音频时，以
+20 毫秒静音初始化音频时间线，无需打开麦克风；MiniCPM-o Adapter 把最近一帧放入下一批音频 `input.append` 的
 `video_frames`。
 
-### 5.2 Client 语义事件
+### 5.2 Client 信息事件
 
-公开、可扩展的 Client-to-Gateway API：
+环境状态、观察结果或非文字/语音的用户行为，使用 `client.event.publish`。
+普通信息无需预注册业务名称：
 
-```text
-client.event.publish
-client.event.publish.result
-```
-
-```jsonc
+```json
 {
   "type": "client.event.publish",
-  "event_id": "evt_client_17",
-  "occurred_at": 1787880000000,
-  "name": "user.object.touched",
-  "data": {
-    "object_id": "cup",
-    "object_name": "水杯"
-  }
+  "event_id": "evt_visual_1",
+  "name": "media.visual_input.changed",
+  "text": "摄像头已关闭，之前收到的画面只代表历史，不代表当前环境。",
+  "delivery_hint": "context"
 }
 ```
 
-```jsonc
+- `type` 选择协议操作；`event_id` 关联回执，并在有限时间内按连接身份去重。
+- 此形式必须提供 `text`。`name` 只是可选标签，不决定处理器。即使标签叫
+  `task.completed`，也不能更改 Task 或伪造内部事件。
+- `delivery_hint` 默认 `context`，只更新上下文；`respond` 安排回复；
+  `interrupt` 打断当前回复后请求回复。仍受 Provider 能力、连接和播放策略约束。
+- 文本上限 16,000 字符、载荷上限 32 KiB；同一来源的所有标签共用每 10 秒 20 次限额。
+  来源身份取自已认证连接，不能由消息自报。
+- `client.event.publish.result` 中的 `accepted: true` 只表示网关已接收，
+  **不表示模型已经收到或播报**。此接口不是持久化消息队列；连接不可用时投递可能跳过，
+  并记录日志。
+
+网关将文本标记为客户端提供的信息，通过 `AgentDelivery` 投递，不把整个信封当成
+系统指令，也不直接执行文本里的操作。仅上下文投递不会创建回复。
+`respond` / `interrupt` 允许模型回应或调用已有工具，但不会绕过工具权限，
+也不会按事件名称直接执行操作。
+
+WebUI 在实际开始采集、停止、失败时上报视觉状态，不逐帧上报。客户端只缓存最新状态，
+在 `voice.ready` 后重新投递；`input_image_buffer.clear` 仍是独立的图像缓冲操作。
+
+**宿主扩展：** 需要结构化校验或确定性处理的部署，仍可通过
+`createGatewayApplication({ clientEventDefinitions })` 注册扩展。扩展使用
+`{name, data}` 形式，不携带 `text`；未知名称拒绝处理。扩展自行定义 Schema、限额、
+处理器和模型投影，`delivery_hint` 不能超过注册的最高等级。这是可选扩展路径，
+不是普通信息投递的前置条件。混用 `text` 与 `data` 或 `handle` 会被拒绝；
+文本事件绝不会触发扩展处理器。
+
+### 5.3 客户端工具
+
+客户端在 `session.hello` 中通过 `client.tools` 能力声明工具：
+
+```json
 {
-  "type": "client.event.publish.result",
-  "event_id": "evt_gateway_31",
-  "request_event_id": "evt_client_17",
-  "accepted": true,
-  "name": "user.object.touched"
+  "capabilities": ["client.tools", "client.presence"],
+  "tools": [{
+    "name": "enter_sleep",
+    "description": "用户要求休息时，隐藏并静音当前客户端。",
+    "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+    "response_on_success": "none"
+  }]
 }
 ```
 
-`name` 必须由 Gateway 协议或已安装扩展注册。注册定义：
+以上是握手补充字段。工具定义采用 `name` / `description` / JSON Schema
+`inputSchema`；这是 **GCP 的工具发现和传输，不是 MCP Server**。
+配置的 MCP 工具仍通过现有标准 MCP 通道调用。
 
-- payload Schema 与大小限制；
-- 一次性或最新值保存策略；
-- 必要时的去重或合并键；
-- 默认路由策略；
-- 可选的确定性 Handler；
-- 可选的 Provider 无关模型投影；
-- 回放和客户端展示行为。
+工具目录仅属于当前连接，最多 32 个，不得覆盖网关或配置工具源的同名工具；
+断连或接管后，旧客户端工具不再可达。客户端负责校验参数、执行实际操作，
+网关负责向模型提供定义，通过已有请求/结果通道转发调用：
 
-建议命名空间包括 `desktop.*`、`environment.*`、`vehicle.*`、`hardware.*` 和扩展自己的前缀。未知名称返回 `client_event_unsupported`，不合法数据返回 `client_event_invalid`。
-
-调用方不能决定最终模型行为。事件定义可以选择接受 `delivery_hint`，但 Gateway 只能降级紧急程度，不能升级。
-
-### 5.3 Client Action
-
-Gateway-to-Client 操作使用请求/结果事件：
-
-```text
-client.action.request
-client.action.result
-```
-
-```jsonc
+```json
 {
   "type": "client.action.request",
-  "event_id": "evt_gateway_51",
-  "name": "desktop.presence.enter_sleep",
+  "event_id": "evt_call_1",
+  "name": "client.tool.enter_sleep",
   "arguments": {}
 }
 ```
 
-```jsonc
+```json
 {
   "type": "client.action.result",
-  "event_id": "evt_client_52",
-  "request_event_id": "evt_gateway_51",
+  "event_id": "evt_result_1",
+  "request_event_id": "evt_call_1",
   "status": "completed",
-  "output": null
+  "output": { "state": "hidden" }
 }
 ```
 
-`status` 为 `completed`、`failed` 或 `unsupported`。失败包含有界的 `{code, message}`。只有活动 Client 协商了相应 capability，Gateway 才向 Realtime 暴露由该 Action 派生的工具。
+网关管理能力检查、调用关联、超时和断连错误。失败返回 `failed` 或 `unsupported`，
+并附 `error.code/message`。`response_on_success` 默认 `auto`；
+设为 `none` 时，成功结果写入工具回执但不创建续答，失败仍触发回复。
+工具输出继续使用前台工具的统一大小限制。
 
-首个实现的 Action 是 `desktop.presence.enter_sleep`。它的工具调用、自动 Client
-Event 兜底、超时和重复请求共用一个 Presence 状态机。旧 `client.state` sleeping
-消息仍作为当前 Client 的迁移兼容入口，但不再承担实际执行边界。
-
-Client Action 不替代 MCP、OpenAPI、ACP 或 A2A。它只用于当前 Client Environment 自己拥有的能力；其他外部系统继续使用适合的工具或 Backend Adapter。
+宿主工具使用的 `xomni.visual.capture` 等动作继续复用此传输。它们与信息事件
+保持独立：`client.event.publish` 不执行客户端动作。
 
 ### 5.4 运行时命令与查询
 
@@ -450,6 +444,10 @@ Task 快照和更新使用 Gateway 自己的包装，但嵌套形状刻意与 A2
 
 Task 进展可以推送给 Client，但不一定进入 Realtime 模型。Gateway Event Policy 只选择有意义的进展、权限、补充输入、完成和失败事件进行模型投递。`input_required` 仍是活动 Task 状态；回答会恢复同一 Task，而不是新建一项工作。
 
+`task.progress` 只在后台活动实际变化时合并发送，不承担连接保活。WebSocket Client
+使用 `session.ping` / `session.pong`（旧客户端使用 WebSocket 控制帧）；兼容性的
+Task SSE 路由只写传输层注释心跳。这些注释不会进入 Task 回放或 Session Journal。
+
 ### 5.6 回执与决策
 
 | 事件 | 方向 | 语义 |
@@ -530,41 +528,36 @@ Gateway 自身产生且需要前台 Agent 感知的事件也使用同一边界�
 
 ## 7. Presence 与休眠
 
-两种休眠最终进入同一个 PresenceController 和 Client Action 链路，但只有用户主动休眠需要模型工具调用。
+主动休眠：模型调用客户端声明的 `enter_sleep` → 网关转发调用 →
+客户端静音并隐藏 → 返回工具结果。成功不触发续答，失败仍可说明原因。
 
-### 用户主动休眠
+自动休眠：客户端本地计时到期 → 自己静音并隐藏 →
+通过 `client.event.publish` 发送上下文说明。不要求模型再调用工具，
+网关也不按事件名称再次执行隐藏。
 
-```text
-用户输入 → Realtime → 可选承接语 → enter_sleep
-         → PresenceController → ClientActionPort
-         → desktop.presence.enter_sleep → Client Action Result
-         → Gateway 进入 sleeping
+两种情况都由客户端通过独立的 `client.presence.update` 同步实际状态：
+
+```json
+{
+  "type": "client.presence.update",
+  "event_id": "evt_presence_1",
+  "state": "sleeping"
+}
 ```
 
-模型可以先说话，也可以直接调用工具。协议不强制告别话术，也不强制等待播放结束。工具失败只作为工具结果返回，不主动触发播报。
+需协商 `client.presence`；`state` 为 `sleeping` 或 `active`。
+它只更新网关的输入/播报门控，不代表执行客户端隐藏，也不代替模型上下文信息。
+客户端只在实际状态改变后上报，并在重连后同步当前状态。
 
-### Client 自动休眠
+桌面客户端还通过 `client.event.publish` 的 `context` 模式同步休眠/唤醒状态文本。
+文本保留实际原因：空闲超时自动休眠、执行休眠请求、唤醒恢复；共用同一事件通道，
+不新增工具或协议类型，网关不根据原因执行操作。
+这是同一条最新状态快照，重复状态不重复投递，Realtime 重连后重新同步；不触发播报。
+因此模型既能知道休眠已经执行，也能知道用户已唤醒客户端，不会只看到旧的休眠回执。
 
-```text
-client.event.publish(desktop.presence.sleep_requested)
-         → GatewayEventRouter → AgentDelivery(context)
-         → Realtime 获知客户端即将休眠（不回复、不调用工具）
-         → Gateway → PresenceController → ClientActionPort
-         → 客户端静音并隐藏 → Gateway 进入 sleeping
-```
-
-Client 在本地空闲时间到期后发布事件，可携带空闲时长、原因等有界状态信息。Gateway 把它作为上下文投递给 Realtime 后，确定性地执行休眠；自动休眠不依赖模型生成，也不要求模型再次调用 `enter_sleep`。
-
-状态机：
-
-```text
-active → sleep_requested → sleeping
-```
-
-只有第一次转换发出 Client Action。重复请求复用正在进行的转换或返回已休眠状态。只有 Client Action 成功后，Gateway 才标记为 `sleeping`。休眠不会取消后台 Task，也不会丢弃待播报结果。
-
-唤醒手段属于 Client。休眠期间 Gateway 保持 Realtime Provider 连接，只停止向其发送
-客户端音频；唤醒事件恢复 Presence、麦克风输入并投递暂存通知。
+休眠不取消后台工作、不丢弃待播报结果、不主动断开 Realtime。
+唤醒由客户端实现，恢复 `active` 后投递暂存通知。已有宿主发起的 PresenceController
+动作仍保留，但不再承担客户端自动休眠的信息事件处理。
 
 ## 8. 回放、错误与限制
 
@@ -605,7 +598,7 @@ internal
 - 内置 Action 需要 capability；扩展 Action 需要已安装且可信的 Client/Host 扩展。
 - 一个活动 Client 可以聚合多个本地传感器和环境来源，不需要增加 Gateway Socket。
 
-基础 API 使用现有 WebSocket。6.0 不提供绕过活动 Client 的独立 HTTP、`context_source` 或 Integration 连接。未来部署若需要机器直接向 Gateway 投递事件，必须重新做出明确协议决策，不能悄悄演变成第二种 Client 角色。
+基础 API 使用现有 WebSocket。7.0 不提供绕过活动 Client 的独立 HTTP、`context_source` 或 Integration 连接。未来部署若需要机器直接向 Gateway 投递事件，必须重新做出明确协议决策，不能悄悄演变成第二种 Client 角色。
 
 ## 10. 与外部标准的关系
 
@@ -616,7 +609,7 @@ Gateway 协议定义自己的类型。下表是刻意且非规范性的语义对
 | `input_audio_buffer.*`、`conversation.item.create`、回复与音频事件名 | [OpenAI Realtime](https://platform.openai.com/docs/api-reference/realtime-client-events) 的媒体、对话、回复与取消词汇 | Gateway Schema、握手、扩展和生命周期才是权威契约；不宣称完整线兼容 |
 | `task_id`、`status.state`、`status.message.parts`、`artifacts[].parts` | [A2A](https://a2a-protocol.org/latest/specification/) 的 Task、状态、Message 与 Artifact 语义 | A2A 传输、JSON-RPC 对象、远程 Task ID 和 Agent Card 留在 A2A Backend Adapter 内部 |
 | 规范化权限和后台活动 | ACP 的权限、Session Update、Tool Call 与计划语义 | ACP 请求/更新对象与 Session ID 留在 ACP Backend Adapter 内部 |
-| 可选的只读活动投影 | AG-UI 活动语义 | AG-UI 不作为 6.0 基线传输或命令面 |
+| 可选的只读活动投影 | AG-UI 活动语义 | AG-UI 不作为 GCP 基线传输或命令面 |
 | 前台工具和外部服务 | MCP / OpenAPI 工具语义 | 不替代 Client Event、Client Action 或 Gateway 运行时命令面 |
 
 ## 11. 从 5.x 迁移
@@ -634,7 +627,7 @@ Gateway 协议定义自己的类型。下表是刻意且非规范性的语义对
 
 ## 12. Conformance 要求
 
-6.0 的稳定行为由以下测试范围锁定：
+当前线协议的稳定行为由以下测试范围锁定：
 
 - 按用户单 Client 占用、显式接管、租约代次 fencing、释放与心跳超时；
 - 版本与 capability 协商；
@@ -653,9 +646,9 @@ Gateway 协议定义自己的类型。下表是刻意且非规范性的语义对
 ## 13. 明确不做
 
 - 同一用户下的并发控制 Client、Observer 与任意踢出语义。
-- 在 Gateway Core 中依赖 Electron、React、CoreAudio 或具体 Client。
+- 在编排运行时中依赖 Electron、React、CoreAudio 或具体 Client。
 - 将 ACP 规定为唯一后台协议。
 - 允许任意 Client 数据成为模型指令。
 - 强制每个 Client Event 或 Task 进展进入模型或产生播报。
-- 在 Gateway Core 实现唤醒词、窗口布局或本地静音。
+- 在编排运行时中实现唤醒词、窗口布局或本地静音。
 - 在可靠回放完成前删除恢复接口。

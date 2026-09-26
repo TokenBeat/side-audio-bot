@@ -71,6 +71,7 @@ export class GatewayClient {
     accessToken,
     takeover = false,
     capabilities = [],
+    tools = [],
     locale,
     timeZone,
     configure,
@@ -97,8 +98,10 @@ export class GatewayClient {
     }
     this.accessToken = String(accessToken || '').trim()
     this.takeover = takeover === true
+    this.tools = tools
     this.requestedCapabilities = [...new Set([
       ...capabilities,
+      ...(tools.length ? [GatewayClientCapability.CLIENT_TOOLS] : []),
       ...(takeover ? [GatewayClientCapability.SESSION_TAKEOVER] : []),
     ])]
     this.locale = locale
@@ -151,6 +154,12 @@ export class GatewayClient {
 
   get readyState() {
     return this.socket?.readyState ?? 3
+  }
+
+  // Expose the browser WebSocket send buffer so live audio clients can apply
+  // backpressure without reaching through the SDK's socket abstraction.
+  get bufferedAmount() {
+    return this.socket?.bufferedAmount ?? 0
   }
 
   close() {
@@ -287,6 +296,7 @@ export class GatewayClient {
         clientInstanceId: this.client.instanceId,
         clientLabel: this.client.label,
         capabilities: this.requestedCapabilities,
+        tools: this.tools,
         locale: this.locale,
         timeZone: this.timeZone,
         connection: connectionConfiguration(configured),

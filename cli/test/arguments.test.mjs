@@ -53,6 +53,22 @@ test('parses independent TUI and WebUI client commands', () => {
   assert.equal(web.openBrowser, false)
 })
 
+test('shows help for subcommands that otherwise require arguments', () => {
+  for (const argv of [
+    ['install', '--help'],
+    ['skill', '-h'],
+    ['config', 'set', '--help'],
+    ['gateway', 'revoke', '--help'],
+  ]) {
+    const options = parseArguments(argv, {})
+    assert.equal(options.help, true, argv.join(' '))
+    assert.equal(options.command, argv[0])
+  }
+  // 未请求帮助时仍然报告缺少的参数；未知命令即使带 --help 也不隐藏。
+  assert.throws(() => parseArguments(['install'], {}), /install 缺少后台名称/)
+  assert.throws(() => parseArguments(['unknown', '--help'], {}), /未知命令/)
+})
+
 test('parses remote Gateway connection profile commands', () => {
   const pairingCode = 'qwaudio://connect?payload=abc'
   const connected = parseArguments(['connect', pairingCode], {})
@@ -108,6 +124,41 @@ test('parses Gateway backend settings', () => {
   assert.equal(options.backendAgent, 'build')
   assert.equal(options.backendUrl, 'http://localhost:18888')
   assert.equal(options.backendUrlSpecified, true)
+})
+
+test('rejects explicit backend flags outside their owning command', () => {
+  const flags = [
+    ['--backend', 'qoder'], ['--backend-agent', 'build'],
+    ['--backend-permission-mode', 'native'], ['--backend-url', 'http://localhost:4096'],
+  ]
+  for (const command of [['tui'], ['webui'], ['config'], ['doctor'], ['status'], ['gateway', 'status'], ['gateway', 'pair']]) {
+    for (const flag of flags) {
+      assert.throws(() => parseArguments([...command, ...flag], {}), /只适用于 gateway run/,
+        `${command.join(' ')} ${flag[0]}`)
+    }
+  }
+  for (const flag of flags.slice(1)) {
+    assert.throws(() => parseArguments(['setup', ...flag], {}), /只适用于 gateway run/)
+  }
+  // Configured values do not pretend that the client can modify the Gateway.
+  assert.equal(parseArguments(['tui'], { AGENT_PROTOCOL: 'qoder' }).command, 'tui')
+})
+
+test('resolves one Gateway address for all launch entrypoints, keeping wildcard binds separate', () => {
+  for (const argv of [[], ['gateway'], ['gateway', 'run']]) {
+    const options = parseArguments(argv, { HOST: '0.0.0.0', PORT: '3301' })
+    assert.equal(options.url, 'http://127.0.0.1:3301')
+    assert.equal(options.listenHost, '0.0.0.0')
+  }
+  assert.equal(parseArguments(['tui'], { PORT: '3301' }).url, 'http://127.0.0.1:3301')
+  assert.equal(parseArguments([], { HOST: '::1', PORT: '3301' }).url, 'http://[::1]:3301')
+  assert.equal(parseArguments([], { HOST: '::', PORT: '3301' }).url, 'http://127.0.0.1:3301')
+  const explicit = parseArguments(['gateway', '--url', 'http://localhost:4101'], { HOST: '0.0.0.0', PORT: '3301' })
+  assert.equal(explicit.url, 'http://localhost:4101')
+  assert.equal(explicit.listenHost, undefined)
+  const configured = parseArguments([], { QWEN_AUDIO_AGENT_URL: 'http://localhost:4201', HOST: '0.0.0.0', PORT: '3301' })
+  assert.equal(configured.url, 'http://localhost:4201')
+  assert.equal(configured.listenHost, undefined)
 })
 
 test('accepts Qoder as a Gateway-owned backend without a URL', () => {

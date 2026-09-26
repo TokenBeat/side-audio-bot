@@ -1,6 +1,5 @@
 import {
   CANCEL_AGENT_TASK_TOOL_NAME,
-  ENTER_SLEEP_TOOL_NAME,
   RESPOND_PERMISSION_TOOL_NAME,
   SPAWN_THINKING_TOOL_NAME,
   frontendToolRegistry,
@@ -8,12 +7,13 @@ import {
 import { buildFrontendToolContext } from './frontend-tool-context.mjs'
 import { optionalFrontendFeatures } from '../optional-features.mjs'
 import { agentTaskToolHandlers } from './features/agent-task-tools.mjs'
-import { clientToolHandlers } from './features/client-tools.mjs'
 import { coreToolHandlers } from './features/core-tools.mjs'
 import { personalToolHandlers } from './features/personal-tools.mjs'
 import { retrievalToolHandlers } from './features/retrieval-tools.mjs'
 import { scheduleToolHandlers } from './features/schedule-tools.mjs'
 import { AgentTaskRuntime } from './agent-task-runtime.mjs'
+import { TaskOperations } from '../../orchestration/task-operations.mjs'
+import { isTaskTerminal } from '../../task/task-state.mjs'
 import {
   findFrontendSourceTool,
 } from './frontend-tool-source.mjs'
@@ -72,7 +72,6 @@ function needsToolResultSummary(toolName, args) {
     SPAWN_THINKING_TOOL_NAME,
     RESPOND_PERMISSION_TOOL_NAME,
     CANCEL_AGENT_TASK_TOOL_NAME,
-    ENTER_SLEEP_TOOL_NAME,
   ].includes(toolName)
 }
 
@@ -86,6 +85,7 @@ export class ToolCallHandler {
     getTurnId,
     getTurnGeneration,
     backendRuntime,
+    taskOperations,
     backendAvailability = null,
     memoryService,
     notesStore,
@@ -97,13 +97,13 @@ export class ToolCallHandler {
     onPermissionDeliveryFailed = () => {},
     onToolResultReady = () => {},
     onToolCallDebug = () => {},
-    presenceController = null,
     onAgentActivity = () => {},
     inputAssets = null,
     frontendRetrieval = null,
     frontendKnowledge = null,
     disabledTools = [],
     frontendToolSources = [],
+    externalToolContext = {},
     turnCitations = null,
     sessionDigests = null,
   }) {
@@ -114,25 +114,24 @@ export class ToolCallHandler {
     this.getFrontend = getFrontend
     this.getTurnId = getTurnId
     this.getTurnGeneration = getTurnGeneration
-    this.backendRuntime = backendRuntime
+    this.taskOperations = taskOperations || (taskManager ? new TaskOperations({
+      taskManager, backendRuntime, respondAuthorization, respondInput, permissionPolicy,
+    }) : null)
     this.backendAvailability = backendAvailability
     this.memoryService = memoryService
     this.notesStore = notesStore
     this.getClientContext = getClientContext
     this.onMemoryChanged = onMemoryChanged
-    this.respondAuthorization = respondAuthorization
-    this.respondInput = respondInput
-    this.permissionPolicy = permissionPolicy
     this.onPermissionDeliveryFailed = onPermissionDeliveryFailed
     this.onToolResultReady = onToolResultReady
     this.onToolCallDebug = onToolCallDebug
-    this.presenceController = presenceController
     this.onAgentActivity = onAgentActivity
     this.inputAssets = inputAssets
     this.frontendRetrieval = frontendRetrieval
     this.frontendKnowledge = frontendKnowledge
     this.disabledTools = [...disabledTools]
     this.frontendToolSources = frontendToolSources
+    this.externalToolContext = externalToolContext
     this.turnCitations = turnCitations
     this.agentTaskRuntime = new AgentTaskRuntime(this)
     this.activeToolEntries = new Map()
@@ -145,7 +144,6 @@ export class ToolCallHandler {
       ...coreToolHandlers(this),
       ...personalToolHandlers(this),
       ...retrievalToolHandlers(this),
-      ...clientToolHandlers(this),
       ...Object.assign({}, ...optionalFrontendFeatures.map(feature => feature.handlers(this))),
     })
     this.processedCalls = new Set()
@@ -154,7 +152,6 @@ export class ToolCallHandler {
     this.cancelResponseByTurn = new Map()
     this.terminalToolResponses = new Set()
     this.deferredToolResponses = new Map()
-    this.pendingBackendPermissions = new Map()
     this.submittedBackendPermissions = new Set()
   }
 
@@ -171,13 +168,7 @@ export class ToolCallHandler {
   }
 
   hasPendingBackendPermission() {
-    if (this.pendingBackendPermissions.size) return true
-    if (!this.taskManager?.list) return false
-    return this.taskManager.list({
-      ownerId: this.ownerId,
-      sessionId: this.sessionId,
-      active: true,
-    }).some(task => task.authorization?.status === 'pending')
+    return (this.taskOperations?.pendingPermissions(this).size || 0) > 0
   }
 
   hasPendingBackendInput() {
@@ -189,11 +180,15 @@ export class ToolCallHandler {
     }).some(task => task.inputRequest?.status === 'pending')
   }
 
-  async executeExternalSource(external, args) {
+  async executeExternalSource(external, args, context = {}) {
     const { source, tool } = external
     let output
     try {
-      output = await source.execute(tool.name, args)
+      output = await source.execute(tool.name, args, {
+        ...this.externalToolContext,
+        turnId: context.turnId,
+        isCurrent: () => !this.isStale(context.turnId, context.turnGeneration),
+      })
     } catch {
       output = failure(
         'external_tool_unavailable',
@@ -234,8 +229,10 @@ export class ToolCallHandler {
       )
       return { handled: true, executed: false, limit }
     }
-    const output = await this.executeExternalSource(external, context.args)
-    await this.sendOutput(context.callId, output, context.turnId)
+    const output = await this.executeExternalSource(external, context.args, context)
+    const silent = tool.policy?.responseOnSuccess === 'none' && output?.error !== true && output?.isError !== true
+    await this.sendOutput(context.callId, output, context.turnId, null,
+      tool.policy?.responseOnSuccess === 'none' ? { createResponse: !silent } : undefined)
     return { handled: true, executed: true, value: output }
   }
 
@@ -274,6 +271,21 @@ export class ToolCallHandler {
     const tool = this.activeToolEntries.get(callId)
     const debug = this.activeToolDebugEntries.get(callId)
     const batch = this.deferredToolResponses.get(debug?.responseId)
+    // A successful in-progress receipt becomes obsolete once that work ends.
+    // Keep the tool output in model context, but do not speak its stale summary.
+    const task = taskId ? this.taskOperations?.get(taskId, { ownerId: this.ownerId }) : null
+    const progressReceipt = task && !output?.error && !output?.isError && (
+      ['accepted', 'duplicate', 'submitted'].includes(output?.status)
+      || !isTaskTerminal(output?.task_status || task.status)
+    )
+    const isCurrent = progressReceipt
+      ? () => {
+          const current = this.taskOperations?.get(taskId, { ownerId: this.ownerId })
+          return Boolean(current && !isTaskTerminal(current.status))
+        }
+      : () => true
+    if (batch) batch.responseGuards.push(isCurrent)
+    else frontendOptions.shouldRespond = isCurrent
     if (batch && frontendOptions.createResponse !== false) {
       // Return every result first. One response may contain several concurrent
       // calls, including a mix of built-in and external tools.
@@ -294,6 +306,8 @@ export class ToolCallHandler {
         callId,
         turnId,
         toolName: tool?.name || '',
+        failed: output?.error === true || output?.isError === true,
+        ...(typeof output?.error_code === 'string' ? { errorCode: output.error_code } : {}),
         ...(taskId ? { taskId } : {}),
       })
     } catch {
@@ -349,6 +363,7 @@ export class ToolCallHandler {
       turnId,
       turnGeneration,
       responseInstructions: [],
+      responseGuards: [],
       responseContext: {},
       taskIds: [],
     }
@@ -424,7 +439,9 @@ export class ToolCallHandler {
         } : {}),
       },
       {
-        shouldCreate: () => !this.isStale(batch.turnId, batch.turnGeneration),
+        afterToolResults: true,
+        shouldCreate: () => !this.isStale(batch.turnId, batch.turnGeneration)
+          && (!batch.responseGuards.length || batch.responseGuards.some(check => check())),
         ...(instructions.length ? {
           response: { instructions: instructions.join(' ') },
         } : {}),
@@ -443,10 +460,6 @@ export class ToolCallHandler {
       null,
       { createResponse: false },
     )
-  }
-
-  forwardBackendEvent(...args) {
-    return this.agentTaskRuntime.forwardBackendEvent(...args)
   }
 
   createWork(...args) {
@@ -517,7 +530,7 @@ export class ToolCallHandler {
       turnId,
       turnGeneration: generation,
       requestResponse: false,
-      requiresResultSummary: needsToolResultSummary(toolName, args),
+      requiresResultSummary: tool?.policy?.responseOnSuccess !== 'none' && needsToolResultSummary(toolName, args),
     })
     let failed = false
     try {

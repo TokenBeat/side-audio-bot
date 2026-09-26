@@ -1,11 +1,12 @@
 # Qwen Audio Agent
 
-[中文](README_ZH.md) | [English](README.md) | [User Guide](https://qwenaudio.github.io/qwen-audio-agent/) | [Quickstart](https://qwenaudio.github.io/qwen-audio-agent/getting-started/quickstart)
+[中文](README_ZH.md) | [English](README.md) | [User Guide](https://qwenaudio.github.io/qwen-audio-agent/) | [Quickstart](https://qwenaudio.github.io/qwen-audio-agent/getting-started/quickstart) | [Paper](https://arxiv.org/pdf/2609.25195)
 
 [![CI](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/qwen-audio-agent)](https://www.npmjs.com/package/qwen-audio-agent)
 [![node](https://img.shields.io/badge/node-%E2%89%A522.22.2-brightgreen)](https://nodejs.org/)
 [![license](https://img.shields.io/github/license/QwenAudio/qwen-audio-agent)](LICENSE)
+[![arXiv](https://img.shields.io/badge/arXiv-2609.25195-b31b1b)](https://arxiv.org/abs/2609.25195)
 [![WeChat](https://img.shields.io/badge/WeChat-join_chat-07C160?logo=wechat&logoColor=white)](#community)
 
 ## Agent Presence
@@ -26,8 +27,8 @@ tells you:
 
 ## News
 
-- **2026-08-27 · v2.0.0 (In development)**
-  🚧 The next major version is under active development, with ongoing work on the Agent architecture, task lifecycle, multimodal input, memory, and extensibility.
+- **2026-09-23 · [v2.0.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v2.0.0)**
+  🏗️ Rebuilt the orchestration runtime with a unified client protocol and ACP / A2A backend integration; 🎙️ expanded [voice and video model support](#voice-frontends); 🧠 enhanced frontend tools, memory, and knowledge libraries; 💬 added a desktop conversation panel and remote mobile access; 🧩 added [customer service, smart cockpit, digital human, and other examples](#examples-and-scenario-expansion); 📄 published the [technical report](https://arxiv.org/pdf/2609.25195).
 - **2026-08-20 · [v1.11.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.11.0)**
   🧩 Adds embeddable Gateway and Realtime Provider extensions; 🛠️ supports installing and managing Agent Skills; 📎 adds multimodal input to the TUI; 🎨 links pet animations to runtime states.
 - **2026-08-13 · [v1.9.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.9.0)**
@@ -102,13 +103,15 @@ tasks. They integrate independently and can be combined as needed.
 
 | Voice frontend | Deployment | Setup | Features |
 | --- | --- | --- | --- |
-| [Qwen Audio 3.0 Realtime](docs/voice-frontends/qwen-audio-realtime.md) | Cloud | Bailian API Key | Default frontend |
-| [GPT-Live / OpenAI Realtime](docs/voice-frontends/gpt-live.md) | Cloud | OpenAI API Key | OpenAI GA Realtime dialect |
-| [Google Gemini Live](docs/voice-frontends/google-live.md) | Cloud | Google API Key | Native Gemini Live WebSocket |
-| [Qwen3.5-Omni Realtime](docs/voice-frontends/qwen-omni-realtime.md) | Cloud | Bailian API Key | Video input |
-| [StepAudio 3 Realtime](docs/voice-frontends/stepfun.md) | Cloud | StepFun API Key | Preview model |
-| [Hugging Face Speech-to-Speech](docs/voice-frontends/speech-to-speech.md) | Local | Start the service and set its URL | Configurable components |
-| [MiniCPM-o 4.5](docs/voice-frontends/minicpm-o.md) | Local or cloud | Compatible service URL | Backend delegation not yet supported |
+| [Qwen Audio 3.0 Realtime](docs/voice-frontends/qwen-audio-realtime.md) | Cloud | Bailian API Key | Duplex voice, tool calling |
+| [GPT-Live / OpenAI Realtime](docs/voice-frontends/gpt-live.md) | Cloud | OpenAI API Key | — |
+| [Google Gemini Live](docs/voice-frontends/google-live.md) | Cloud | Google API Key | Live video input |
+| [Qwen3.5-Omni Realtime](docs/voice-frontends/qwen-omni-realtime.md) | Cloud | Bailian API Key | Live video input |
+| [Qwen3.8 Omni Flash Realtime](docs/voice-frontends/qwen-omni-realtime.md) | Cloud | Bailian API Key + workspace-specific endpoint | Live video input |
+| [Doubao Seeduplex 3.0 Realtime](docs/configuration/frontend.md#choose-a-service) | Cloud | Volcengine Speech API Key | — |
+| [StepAudio 3 Realtime](docs/voice-frontends/stepfun.md) | Cloud | StepFun API Key | — |
+| [Hugging Face Speech-to-Speech](docs/voice-frontends/speech-to-speech.md) | Local | Start the service and set its URL | Configurable STT / LLM / TTS |
+| [MiniCPM-o 4.5](docs/voice-frontends/minicpm-o.md) | Local or cloud | Compatible service URL | Live video input, no tool calling |
 
 To connect another voice service, implement the
 [Realtime Provider interface](docs/voice-frontends/custom-provider.md) without
@@ -131,6 +134,7 @@ changing the Gateway's core voice-session or backend-task logic.
 | Claude Code | External ACP adapter | One-click install (base + adapter), user config required | ★★★★☆ |
 | DeepSeek Harness | Native ACP | One-click install, DeepSeek API key required | ★★★★☆ |
 | Pi | External ACP adapter | One-click install (base + adapter), user config required | ★★★★☆ |
+| Muse Code | Native MSP adapter | Install Muse and its optional SDK on demand; user config required | ★★★☆☆ |
 
 Ratings reflect current integration completeness, compatibility, and
 verification level: five stars indicate a thoroughly tested recommended
@@ -221,8 +225,9 @@ chat naturally and get real work done.
 | --- | --- | --- | --- |
 | Desktop | Voice chat, progress follow-up, tools, and background tasks. | [Docs][desktop-docs] | Available |
 | Smart cockpit | Vehicle control, navigation, music, weather, and services. | [Example][smart-cockpit-example] | Available |
+| X-Omni | Visual conversation, on-demand capture, optional observation and narration. | [Example](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/x-omni/README.md) | Available |
 | AI Passport | Qwen Voice Bean on a hardware card, with voice conversation and backend tasks. Currently half-duplex only. | [Example][ai-passport-example] | Available |
-| Customer support | Issue clarification, order lookup, tickets, and human handoff. | TBD | Planned |
+| Customer Service | Voice customer service for retail and airline scenarios. | [Example](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/customer-service/README.md) | Available |
 | Embodied intelligence | Voice commands, action execution, inspection, and exception feedback. | TBD | Planned |
 | Livestream assistant | Audience interaction, product explanation, coupons, and risk reminders. | TBD | Planned |
 

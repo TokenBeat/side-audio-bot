@@ -37,8 +37,10 @@ const CAPABILITY_FLAGS = [
   'sessionOutputVoice',
   'restoreConversationContext',
   'conversationItems',
+  'automaticToolResponses',
   'clientResponses',
   'mutableSession',
+  'imageRequiresAudioStart',
 ]
 
 const MODEL_CAPABILITY_FLAGS = [
@@ -158,6 +160,14 @@ export function validateRealtimeProtocol(protocol, providerKey = 'unknown') {
       `Realtime Provider ${providerKey} protocol.connectionMessages 必须是函数`,
     )
   }
+  for (const method of ['inputMute', 'inputUnmute', 'sessionClose']) {
+    if (
+      protocol[method] !== undefined
+      && typeof protocol[method] !== 'function'
+    ) {
+      throw new Error(`Realtime Provider ${providerKey} protocol.${method} 必须是函数`)
+    }
+  }
   return protocol
 }
 
@@ -209,6 +219,9 @@ export function validateRealtimeProvider(provider) {
     }
   } else {
     validateRealtimeProtocol(provider.protocol, provider.key)
+  }
+  if (provider.validateSessionOptions !== undefined && typeof provider.validateSessionOptions !== 'function') {
+    throw new Error(`Realtime Provider ${provider.key} validateSessionOptions 必须是函数`)
   }
   for (const flag of Object.keys(provider.capabilities || {})) {
     if (!CAPABILITY_FLAGS.includes(flag)) {

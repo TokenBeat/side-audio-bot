@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { ClientEventState } from './client-event-state.js'
 import {
   GatewayClientEvent,
   GatewayServerEvent,
@@ -19,10 +20,12 @@ import { gatewayReferenceClientCapabilities } from '../../../shared/gateway/clie
 import {
   audioSchedulingLeadSeconds,
   createPcmPlaybackQueue,
+  createRealtimeAudioSendController,
   createStreamingResampler,
   decodePcm,
   pcmBase64,
 } from './audio.js'
+import { createMicrophoneAudioWorkletNode } from './microphone-audio-worklet.js'
 import {
   createMicrophoneCaptureLifecycle,
   microphoneErrorKind,
@@ -37,6 +40,11 @@ import {
 
 const DEFAULT_INPUT_RATE = 16000
 const OUTPUT_RATE = 24000
+// Desktop CSP permits same-origin scripts, not inlined data: worklet URLs.
+const microphoneAudioWorkletProcessorUrl = new URL(
+  './microphone-audio-worklet-processor.js?no-inline',
+  import.meta.url,
+).href
 
 export function acceptsVoiceState(event, currentTurnId) {
   return acceptsGatewayVoiceState(event, currentTurnId)
@@ -203,9 +211,12 @@ export default function useRealtimeVoice({
   clientLabel = 'WebUI',
   clientInstanceId: configuredClientInstanceId = '',
   clientStates = [],
+  clientTools = [],
+  clientPresence,
   onEvent,
   onInputError,
   onClientAction,
+  additionalCapabilities = [],
   onWakeWordAudio,
 }) {
   const [clientState, dispatchClientState] = useReducer(
@@ -215,6 +226,10 @@ export default function useRealtimeVoice({
   )
   const [inputReady, setInputReady] = useState(false)
   const [imageBufferAvailable, setImageBufferAvailable] = useState(false)
+  const additionalCapabilitiesSignature = JSON.stringify(additionalCapabilities)
+  const clientToolsSignature = JSON.stringify(clientTools)
+  const clientPresenceRef = useRef(clientPresence)
+  clientPresenceRef.current = clientPresence
   const [error, setError] = useState('')
   const [visualError, setVisualError] = useState(false)
   const [connectionAttempt, setConnectionAttempt] = useState(0)
@@ -308,12 +323,37 @@ export default function useRealtimeVoice({
       // GatewayClient owns the wire envelope and supplies event_id for every
       // client event. Keeping that responsibility in the SDK prevents audio,
       // microphone, playback, and lifecycle events from drifting out of GCP.
-      socket.send(event)
+      socket.send(event.type === GatewayClientEvent.SLEEP && socket.supports?.(GatewayClientCapability.CLIENT_PRESENCE)
+        ? { type: GatewayClientProtocolEvent.CLIENT_PRESENCE_UPDATE, state: 'sleeping' }
+        : event)
       return true
     } catch {
       return false
     }
   }, [])
+
+  const publishClientEvent = useCallback((name, data = {}, deliveryHint) => (
+    sendSocketEvent({
+      type: GatewayClientProtocolEvent.CLIENT_EVENT_PUBLISH,
+      event_id: createGatewayProtocolEventId('client'),
+      ...(typeof name === 'object' ? name : { name, data }),
+      ...(deliveryHint ? { delivery_hint: deliveryHint } : {}),
+    })
+  ), [sendSocketEvent])
+  const environmentState = useMemo(() => new ClientEventState((name, text) => (
+    socketRef.current?.supports?.(GatewayClientCapability.CLIENT_EVENTS) === true
+      && publishClientEvent({ name, text }, undefined, 'context')
+  )), [publishClientEvent])
+  const publishClientState = useCallback((name, data) => (
+    environmentState.set(name, data)
+  ), [environmentState])
+
+  const publishPresence = useCallback(() => {
+    if (clientPresenceRef.current && socketRef.current?.supports?.(GatewayClientCapability.CLIENT_PRESENCE)) {
+      sendSocketEvent({ type: GatewayClientProtocolEvent.CLIENT_PRESENCE_UPDATE, state: clientPresenceRef.current })
+    }
+  }, [sendSocketEvent])
+  useEffect(() => { publishPresence() }, [clientPresence, publishPresence])
 
   const flushPendingManualInputs = useCallback(() => {
     const pending = pendingManualInputsRef.current
@@ -597,23 +637,23 @@ export default function useRealtimeVoice({
 
   useEffect(() => {
     if (!suspended) return
+    // Suspension is local capture/presentation state, not a disconnection.
+    // The retained Realtime session may never emit another connected event
+    // on wake, so replacing its status with "hidden" strands wake readiness.
     dispatchClientState({
       type: GatewayServerEvent.VOICE_STATE,
       state: 'idle',
     })
-    dispatchClientState({
-      type: GatewayServerEvent.VOICE_CONNECTION,
-      state: 'hidden',
-    })
-    setInputReady(false)
-    setError('')
-    setVisualError(false)
   }, [suspended])
 
   useEffect(() => {
     const mutedResponses = mutedPlaybackResponses.current
     const handleEvent = event => {
       dispatchClientState(event)
+      if (event.type === GatewayServerEvent.VOICE_READY) environmentState.setReady(true)
+      if (event.type === GatewayServerEvent.VOICE_CONNECTION && event.state !== 'connected') {
+        environmentState.setReady(false)
+      }
       if (event.type === GatewayServerEvent.VOICE_READY && event.inputSampleRate) {
         inputSampleRate.current = event.inputSampleRate
         hasConnectedRef.current = true
@@ -678,7 +718,10 @@ export default function useRealtimeVoice({
       clientLabel,
       clientInstanceId: clientInstanceId.current,
       takeover: takeoverRef.current,
-      capabilities: gatewayClientCapabilities({ clientType }),
+      capabilities: [...new Set([...gatewayClientCapabilities({ clientType }), ...JSON.parse(additionalCapabilitiesSignature),
+        ...(clientType === 'desktop' ? [GatewayClientCapability.CLIENT_PRESENCE] : []),
+      ])],
+      tools: JSON.parse(clientToolsSignature),
       locale: navigator.language,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       configure: () => {
@@ -713,6 +756,7 @@ export default function useRealtimeVoice({
         ...recovery,
       }),
       onStatus: status => {
+        if (!['ready', 'connected'].includes(status.state)) environmentState.setReady(false)
         if (status.state === 'connected') {
           setError('')
           setVisualError(false)
@@ -721,6 +765,7 @@ export default function useRealtimeVoice({
           eventRef.current?.(connectedEvent)
         } else if (status.state === 'ready') {
           takeoverRef.current = false
+          publishPresence()
           setImageBufferAvailable(
             status.event?.capabilities?.includes(
               GatewayClientCapability.INPUT_IMAGE_BUFFER,
@@ -781,6 +826,7 @@ export default function useRealtimeVoice({
     client.start()
 
     return () => {
+      environmentState.setReady(false)
       stopPlayback('connection_closed')
       client.stop()
       socketRef.current = null
@@ -789,10 +835,14 @@ export default function useRealtimeVoice({
       releaseManualInputGuard()
     }
   }, [
+    additionalCapabilitiesSignature,
+    clientToolsSignature,
+    publishPresence,
     clientLabel,
     connectionAttempt,
     clientStatesSignature,
     clientType,
+    environmentState,
     consumeMutedAudio,
     finishMutedAudio,
     inputOnlyMute,
@@ -875,63 +925,84 @@ export default function useRealtimeVoice({
         const wakeWordResampler = createStreamingResampler()
         const inputResampler = createStreamingResampler()
         let inputResamplerSocket = null
+        let inputAudioSender = null
         let source
         let processor
+        let closeProcessor = () => {}
+        let captureClosed = false
         try {
           source = context.createMediaStreamSource(media)
-          processor = context.createScriptProcessor(2048, 1, 1)
-          processor.onaudioprocess = event => {
-            const samples = microphoneSamplesDuringManualInput(
-              event.inputBuffer.getChannelData(0),
-              manualInputPendingRef.current,
-            )
-            if (wakeWordOnlyRef.current) {
-              inputResampler.reset()
-              inputResamplerSocket = null
-              const wakeAudio = wakeWordResampler.process(samples, context.sampleRate, 16_000)
-              if (wakeAudio.length) wakeWordAudioRef.current?.(pcmBase64(wakeAudio), 16_000)
-              return
-            }
-            wakeWordResampler.reset()
-            const socket = socketRef.current
-            if (socket?.readyState !== WebSocket.OPEN) {
-              inputResampler.reset()
-              inputResamplerSocket = null
-              return
-            }
-            if (socket !== inputResamplerSocket) {
-              inputResampler.reset()
-              inputResamplerSocket = socket
-            }
-            const audio = inputResampler.process(
-              samples,
-              context.sampleRate,
-              inputSampleRate.current,
-            )
-            if (audio.length) {
-              socket.send({
-                type: GatewayClientEvent.AUDIO_APPEND,
-                audio: pcmBase64(audio),
-              })
-            }
-          }
+          const worklet = await createMicrophoneAudioWorkletNode({
+            context,
+            moduleUrl: microphoneAudioWorkletProcessorUrl,
+            onSamples: rawSamples => {
+              if (captureClosed) return
+              const samples = microphoneSamplesDuringManualInput(
+                rawSamples,
+                manualInputPendingRef.current,
+              )
+              if (wakeWordOnlyRef.current) {
+                inputResampler.reset()
+                inputResamplerSocket = null
+                inputAudioSender?.reset()
+                inputAudioSender = null
+                const wakeAudio = wakeWordResampler.process(samples, context.sampleRate, 16_000)
+                if (wakeAudio.length) wakeWordAudioRef.current?.(pcmBase64(wakeAudio), 16_000)
+                return
+              }
+              wakeWordResampler.reset()
+              const socket = socketRef.current
+              if (socket?.readyState !== WebSocket.OPEN) {
+                inputResampler.reset()
+                inputResamplerSocket = null
+                inputAudioSender?.reset()
+                inputAudioSender = null
+                return
+              }
+              if (socket !== inputResamplerSocket) {
+                inputResampler.reset()
+                inputResamplerSocket = socket
+                inputAudioSender = createRealtimeAudioSendController({
+                  send: event => socket.send(event),
+                  getBufferedAmount: () => socket.bufferedAmount,
+                })
+              }
+              const audio = inputResampler.process(
+                samples,
+                context.sampleRate,
+                inputSampleRate.current,
+              )
+              if (audio.length) {
+                inputAudioSender.send({
+                  type: GatewayClientEvent.AUDIO_APPEND,
+                  audio: pcmBase64(audio),
+                })
+              }
+            },
+          })
+          processor = worklet.node
+          closeProcessor = worklet.close
           source.connect(processor)
           processor.connect(context.destination)
           return {
             media,
             track: media.getAudioTracks()[0],
             close() {
+              captureClosed = true
               media.getTracks().forEach(track => track.stop())
               wakeWordResampler.reset()
               inputResampler.reset()
               inputResamplerSocket = null
-              processor?.disconnect()
+              inputAudioSender?.reset()
+              inputAudioSender = null
+              closeProcessor()
               source?.disconnect()
             },
           }
         } catch (error) {
+          captureClosed = true
           media.getTracks().forEach(track => track.stop())
-          processor?.disconnect()
+          closeProcessor()
           source?.disconnect()
           throw error
         }
@@ -1007,16 +1078,6 @@ export default function useRealtimeVoice({
   // 期间保持连接，不会重发 connect，需要专门的事件恢复前台语音连接。
   const wake = useCallback(() => (
     sendSocketEvent({ type: GatewayClientEvent.WAKE })
-  ), [sendSocketEvent])
-
-  const publishClientEvent = useCallback((name, data = {}, deliveryHint) => (
-    sendSocketEvent({
-      type: GatewayClientProtocolEvent.CLIENT_EVENT_PUBLISH,
-      event_id: createGatewayProtocolEventId('client'),
-      name,
-      data,
-      ...(deliveryHint ? { delivery_hint: deliveryHint } : {}),
-    })
   ), [sendSocketEvent])
 
   const requestGateway = useCallback((type, payload = {}) => {
@@ -1106,6 +1167,7 @@ export default function useRealtimeVoice({
     interrupt,
     wake,
     publishClientEvent,
+    publishClientState,
     sendInput,
     sendImageFrame,
     clearImageBuffer,

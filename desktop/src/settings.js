@@ -371,7 +371,7 @@ function renderBackendConnection() {
 // 不可用也保留可选，避免列表丢值。
 function renderBackendOptions(currentValue) {
   const states = backendOptionStates(backendReport)
-  const requestedValue = currentValue === 'acp' ? 'none' : currentValue
+  const requestedValue = currentValue
   if (requestedValue && !states.some(state => state.id === requestedValue)) {
     states.push({
       id: requestedValue,
@@ -702,6 +702,7 @@ function backendLabel(value) {
   if (value === 'claude') return 'Claude Code'
   if (value === 'deepseek') return 'DeepSeek'
   if (value === 'pi') return 'Pi'
+  if (value === 'muse') return 'Muse Code'
   if (value === 'acp') return 'ACP Agent'
   return value
 }

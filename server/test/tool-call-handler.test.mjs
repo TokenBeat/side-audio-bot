@@ -6,6 +6,8 @@ import { FrontendNotesStore } from '../src/conversation/frontend-notes.mjs'
 import { PermissionPolicy } from '../src/task/permission-policy.mjs'
 import { TurnTranscripts } from '../src/frontend/tools/turn-transcripts.mjs'
 import { REALTIME_PROVIDERS, RealtimeFrontend } from '../src/voice/realtime-provider.mjs'
+import { ClientToolSource } from '../src/frontend/tools/client-tool-source.mjs'
+import { desktopClientTools } from '../../web/src/desktop/client-tools.js'
 
 function harness({
   coordinator,
@@ -34,6 +36,16 @@ function harness({
   const toolResultsReady = []
   const ensuredResponses = []
   const transcripts = new TurnTranscripts({ waitMs: 5 })
+  if (presenceController) {
+    const source = new ClientToolSource({ actions: {
+      async request() {
+        await presenceController.requestSleep({ source: 'realtime_tool' })
+        return { output: { status: 'sleeping' } }
+      },
+    } })
+    source.configure(desktopClientTools)
+    frontendToolSources = [...(frontendToolSources || []), source]
+  }
   const frontend = {
     sendFunctionOutput: async (...args) => outputs.push(args),
     ensureResponse: async (...args) => ensuredResponses.push(args),
@@ -206,6 +218,7 @@ test('executes an explicitly enabled state-changing external tool inline', async
     callId: 'window-control',
     turnId: 'turn-one',
     toolName: 'mcp__cockpit__vehicle_window_control',
+    failed: false,
   }])
 })
 
@@ -654,8 +667,8 @@ test('rejects sleep when the client does not advertise the action', async () => 
     arguments: '{}',
   }, { turnId: 'turn-one', turnGeneration: 1 })
 
-  assert.equal(kit.outputs[0][1].error_code, 'client_action_unsupported')
-  assert.equal(kit.outputs[0][3].createResponse, true)
+  assert.equal(kit.outputs[0][1].error_code, 'unsupported_tool')
+  assert.notEqual(kit.outputs[0][3].createResponse, false)
 })
 
 test('fails closed for tools absent from the frontend registry', async () => {
@@ -733,7 +746,9 @@ async function permissionHarness({
     ...kit,
     task,
     onPermission: permission => {
-      kit.handler.forwardBackendEvent(task.id, {
+      kit.handler.taskOperations.forwardBackendEvent({
+        taskId: task.id, ownerId: 'owner', sessionId: 'voice',
+      }, {
         type: `backend.permission.${permission.status === 'pending' ? 'requested' : 'resolved'}`,
         permission,
       }, backendEvent)
@@ -771,7 +786,7 @@ test('submits one nonblocking coordinator work item with organized intent', asyn
     '工作已受理，请自然确认一次，不要再次调用工具。',
   )
   assert.equal(kit.outputs[0][1].marker, undefined)
-  assert.deepEqual(kit.outputs[0][3], {})
+  assert.equal(typeof kit.outputs[0][3].shouldRespond, 'function')
   assert.equal(kit.manager.list({ ownerId: 'owner' }).length, 1)
   await waitForTask(kit.manager, kit.outputs[0][1].task_id)
   assert.equal('originalRequest' in received, false)
@@ -930,7 +945,8 @@ test('accepts distinct spawn_thinking calls from one realtime response', async (
   )))
   assert.equal(kit.ensuredResponses.length, 1)
   assert.equal(kit.ensuredResponses[0][1].response, undefined)
-  assert.equal(kit.ensuredResponses[0][1].shouldCreate(), true)
+  // Both fake works finish immediately: their accepted-only speech is stale.
+  assert.equal(kit.ensuredResponses[0][1].shouldCreate(), false)
   await Promise.all(kit.manager.list({ ownerId: 'owner' }).map(task => (
     kit.manager.wait(task.id)
   )))
@@ -1343,6 +1359,29 @@ test('returns a backend answer to the same pending task', async () => {
   await manager.wait(task.id)
 })
 
+for (const kind of ['input', 'authorization']) test(`pending ${kind} cannot be queued as a new task`, async t => {
+  const manager = new TaskManager()
+  const done = Promise.withResolvers()
+  t.after(() => done.resolve({ content: 'done' }))
+  const task = manager.create({ objective: 'existing work', ownerId: 'owner', sessionId: 'voice',
+    runner: async (_objective, { onEvent }) => {
+      onEvent({ type: 'backend.input.requested', input: { id: 'pending-input', status: 'pending',
+        kind, mode: 'text', prompt: 'Customer question' } })
+      return done.promise
+    } })
+  await new Promise(resolve => setImmediate(resolve))
+  const kit = harness({ manager })
+  await kit.handler.handle({ call_id: 'wrong-spawn', name: 'spawn_thinking',
+    arguments: '{"objective":"yes, continue"}' })
+  assert.equal(kit.outputs.at(-1)[1].error_code, 'input_response_required')
+  assert.equal(kit.outputs.at(-1)[1].pending_inputs[0].task_id, task.id)
+  assert.equal(kit.outputs.at(-1)[1].pending_inputs[0].kind, kind)
+  assert.match(kit.outputs.at(-1)[3].response.instructions, /respond_agent_input/)
+  assert.equal(manager.list({ ownerId: 'owner', sessionId: 'voice' }).length, 1)
+  done.resolve({ content: 'done' })
+  await manager.wait(task.id)
+})
+
 test('deduplicates the same turn after a realtime handler reconnect', async () => {
   const manager = new TaskManager()
   let runs = 0
@@ -1381,7 +1420,7 @@ test('cancels the most recently submitted active work', async () => {
   const kit = harness()
   let release
   const cancellations = []
-  kit.handler.backendRuntime = {
+  kit.handler.taskOperations.backendRuntime = {
     run: async (_input, { signal }) => new Promise((resolve, reject) => {
       release = resolve
       signal.addEventListener('abort', () => reject(signal.reason), {
@@ -1741,7 +1780,10 @@ test('allows the current task without enabling session-wide automatic approval',
   )
   assert.equal(permissionPolicy.shouldAutoAllow('owner', 'voice'), false)
   assert.equal(permissionPolicy.shouldAutoAllow('owner', 'voice', kit.task.id), true)
+  const isCurrent = kit.outputs.at(-1)[3].shouldRespond
+  assert.equal(isCurrent(), true)
   await kit.finish()
+  assert.equal(isCurrent(), false, 'do not speak a delayed authorization receipt after work completes')
 })
 
 test('a sole permission needs only a natural decision, not permission_id or task_id', async t => {
@@ -1753,7 +1795,7 @@ test('a sole permission needs only a natural decision, not permission_id or task
         respondPermission: async (id, value) => calls.push([id, value]),
       })
       // Recovery path: this handler did not receive the original permission event.
-      assert.equal(kit.handler.pendingBackendPermissions.size, 0)
+      assert.equal(kit.handler.taskOperations.permissions.size, 0)
       await kit.handler.handle({
         call_id: 'decision-only', name: 'respond_permission',
         arguments: JSON.stringify({ decision }),
@@ -1889,7 +1931,9 @@ test('foreign owner or session permissions cannot be resolved through the tracke
         await kit.handler.handle({
           call_id: JSON.stringify(args), name: 'respond_permission', arguments: JSON.stringify(args),
         })
-        assert.equal(kit.outputs.at(-1)[1].error_code, 'permission_not_pending')
+        // Foreign requests do not even expose the permission tool now that
+        // capability discovery and execution use the same scoped operations.
+        assert.equal(kit.outputs.at(-1)[1].error_code, 'tool_unavailable')
       }
       assert.equal(calls.length, 0)
       await kit.finish()

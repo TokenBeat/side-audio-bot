@@ -3,6 +3,8 @@
 This section is for developers integrating clients, voice services, Backend Agents, or knowledge systems through existing extension interfaces.
 To configure built-in capabilities, start with [Configuration](configuration.md) and [Quickstart](getting-started/quickstart.md).
 
+The core logical components are the Frontend Agent, Orchestration Runtime, and Backend Agent. The Gateway exposes runtime capabilities as a service; clients own I/O and environment interaction. Extend the relevant model provider, tool, BackendPort, or client protocol without moving business logic into transport. See the [Architecture Overview](architecture/overview.md).
+
 ## Frontend Tools: MCP, OpenAPI, Profiles
 
 Add chatbot tools without touching the voice path: connect MCP servers through
@@ -24,8 +26,8 @@ registry.
 
 ## Knowledge: Retrieval Provider
 
-The Gateway provides a basic knowledge library behind a small Provider interface.
-Use it directly, or connect the knowledge system you already operate.
+The runtime connects knowledge modules through a small Provider interface.
+Use the built-in basic library, or connect the knowledge system you already operate.
 
 → [Knowledge Retrieval Provider](reference/knowledge.md)
 
@@ -62,7 +64,7 @@ The Gateway speaks typed events over a single WebSocket. Build a custom client
 against the client protocol, or embed the assistant into a host page through
 the stability contract — the same channel the desktop orb, TUI, and WebUI use.
 
-The [AI Passport voice client example](scenarios/ai-passport.md) connects Qwen
+The [AI Passport example](scenarios/ai-passport.md) connects Qwen
 Voice Bean to the Gateway through a LAN relay. It currently supports half-duplex
 only; firmware and audio drivers are maintained in the external project.
 

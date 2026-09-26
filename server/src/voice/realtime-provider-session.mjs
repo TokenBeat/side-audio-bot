@@ -19,6 +19,7 @@ export class RealtimeProviderSession {
     shouldReconnect,
     onEvent,
     onDiagnostic,
+    onResponseSettled,
     onConnected,
     onReady,
     onDisconnected,
@@ -39,6 +40,7 @@ export class RealtimeProviderSession {
     this.shouldReconnect = shouldReconnect
     this.onEvent = onEvent
     this.onDiagnostic = onDiagnostic
+    this.onResponseSettled = onResponseSettled
     this.onConnected = onConnected
     this.onReady = onReady
     this.onDisconnected = onDisconnected
@@ -58,6 +60,7 @@ export class RealtimeProviderSession {
     this.scheduledReconnect = null
     this.connectedAt = 0
     this.blockedError = ''
+    this.inputMuted = false
   }
 
   get ready() {
@@ -123,6 +126,11 @@ export class RealtimeProviderSession {
     this.frontend?.clearPendingImage?.()
   }
 
+  setInputMuted(muted) {
+    this.inputMuted = muted === true
+    this.frontend?.setInputMuted?.(this.inputMuted)
+  }
+
   cancelResponse() {
     this.frontend?.cancel()
   }
@@ -186,8 +194,13 @@ export class RealtimeProviderSession {
       providerRegistry: this.providerRegistry,
       agentContext: this.getAgentContext(),
       sessionOptions: this.getSessionOptions(),
-      onEvent: this.onEvent,
+      onEvent: event => {
+        if (this.frontend === createdFrontend) this.onEvent(event)
+      },
       onDiagnostic: this.onDiagnostic,
+      onResponseSettled: event => {
+        if (this.frontend === createdFrontend) this.onResponseSettled?.(event)
+      },
       onError: error => this.#handleProviderError(createdFrontend, error),
       onClose: () => this.#handleClose(createdFrontend),
     })
@@ -211,6 +224,7 @@ export class RealtimeProviderSession {
         this.pendingAudio = []
         if (this.pendingImage) createdFrontend.appendImage(this.pendingImage)
         this.pendingImage = null
+        createdFrontend.setInputMuted?.(this.inputMuted)
         this.onReady(createdFrontend)
       })
       .catch(error => {
@@ -249,6 +263,16 @@ export class RealtimeProviderSession {
   #handleProviderError(createdFrontend, error) {
     if (this.frontend !== createdFrontend) return
     const classification = createdFrontend.provider.classifyError(error.message)
+    // A rejected session.update arrives before the normal event lifecycle.
+    // Route it through the same bounded recovery as a rejected conversation.
+    if (classification === 'content_safety' && error.realtimeEvent) {
+      this.onEvent({
+        type: 'error',
+        error: { message: error.message },
+        __voiceOrigin: 'session',
+      })
+      return
+    }
     if (classification !== 'inactivity') {
       this.logger.warn('realtime.provider_error', {
         provider: createdFrontend.provider.key,

@@ -1,6 +1,6 @@
 # 接入新后台
 
-接入哲学：**只走协议，不做产品级定制**。网关面向协议中立的
+接入原则：**通用编排面向协议，产品差异留在适配器**。编排运行时面向协议中立的
 `BackendPort`，从不触碰后台内部实现。有四条路径可以把后台接到这个
 端口之后，从零代码到一等公民支持。
 
@@ -10,10 +10,14 @@
 
 ```dotenv
 AGENT_PROTOCOL=acp
-ACP_COMMAND=your-agent --acp
+ACP_COMMAND=your-agent
+ACP_ARGS=["--acp"]
 # 可选：逗号分隔、需要透传给 Agent 进程的环境变量名
 QWEN_AUDIO_AGENT_ACP_FORWARD_ENV=MY_AGENT_API_KEY
 ```
+
+`ACP_COMMAND` 只写可执行文件本身，子命令和参数要放进 `ACP_ARGS`
+（字符串组成的 JSON 数组）。
 
 对很多 Agent 来说这就是全部接入工作。
 

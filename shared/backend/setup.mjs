@@ -11,6 +11,7 @@ import {
   win32,
 } from 'node:path'
 import { spawn, spawnSync } from 'node:child_process'
+import { inspectBackendRuntimePackage } from './runtime-package.mjs'
 import {
   backendDefinition,
   backendNames,
@@ -18,6 +19,15 @@ import {
 
 function clean(value) {
   return String(value || '').trim()
+}
+
+// Windows 上 .cmd/.bat 必须经 cmd.exe 执行；cmd.exe 会在第一个空格处截断未加
+// 引号的命令路径（如 C:\Program Files\nodejs\npm.cmd）。
+function windowsShellCommand(command, platform) {
+  const value = String(command || '')
+  return platform === 'win32' && /\s/.test(value) && !/^".*"$/.test(value)
+    ? `"${value}"`
+    : value
 }
 
 function environmentValue(env, names) {
@@ -106,7 +116,7 @@ function versionAtLeast(actual, minimum) {
 }
 
 function defaultReadVersion(command, { env, platform }) {
-  const result = spawnSync(command, ['--version'], {
+  const result = spawnSync(windowsShellCommand(command, platform), ['--version'], {
     env,
     encoding: 'utf8',
     timeout: 5000,
@@ -133,7 +143,7 @@ function defaultReadVersionAsync(command, {
     }
     let child
     try {
-      child = spawn(command, ['--version'], {
+      child = spawn(windowsShellCommand(command, platform), ['--version'], {
         env,
         windowsHide: true,
         shell: platform === 'win32',
@@ -167,13 +177,17 @@ function packageIdentity(packageSpec) {
 
 function defaultReadGlobalPackages(command, { env, platform }) {
   if (!command) return { known: false, packages: {} }
-  const result = spawnSync(command, ['list', '-g', '--depth=0', '--json'], {
-    env,
-    encoding: 'utf8',
-    timeout: 5_000,
-    shell: platform === 'win32',
-    windowsHide: true,
-  })
+  const result = spawnSync(
+    windowsShellCommand(command, platform),
+    ['list', '-g', '--depth=0', '--json'],
+    {
+      env,
+      encoding: 'utf8',
+      timeout: 5_000,
+      shell: platform === 'win32',
+      windowsHide: true,
+    },
+  )
   try {
     const parsed = JSON.parse(result.stdout || '{}')
     return {
@@ -445,9 +459,11 @@ function inspectBackend(id, {
     }
   }
 
-  const adapter = backend.ready || spec.inspectAdapterIndependently
-    ? inspectAdapter(spec, env, find)
-    : { ready: spec.integration !== 'adapter', source: spec.integration }
+  const adapter = spec.runtimePackage
+    ? inspectBackendRuntimePackage(id, { env })
+    : backend.ready || spec.inspectAdapterIndependently
+      ? inspectAdapter(spec, env, find)
+      : { ready: spec.integration !== 'adapter', source: spec.integration }
   let packages = []
   let packageSetReady = true
   if (
@@ -581,6 +597,7 @@ export async function inspectBackendSetupsAsync({
 }
 
 function integrationText(item) {
+  if (item.integration === 'msp') return '原生 Muse Session Protocol'
   if (item.integration === 'native') return '原生 ACP'
   if (item.integration === 'bridge') return '内置 ACP Bridge'
   if (item.integration === 'generic') return '用户提供的 ACP 命令'

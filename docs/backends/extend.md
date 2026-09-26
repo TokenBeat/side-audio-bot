@@ -1,6 +1,6 @@
 # Adding a New Backend
 
-The integration philosophy: **over protocol, never per-product**. The Gateway
+The integration principle: **keep orchestration protocol-neutral and product differences in adapters**. The Orchestration Runtime
 talks to a protocol-neutral `BackendPort`; it never touches a backend's
 internals. There are four ways to put a backend behind that port, from zero
 code to first-class support.
@@ -12,10 +12,14 @@ does, users can attach it with configuration alone:
 
 ```dotenv
 AGENT_PROTOCOL=acp
-ACP_COMMAND=your-agent --acp
+ACP_COMMAND=your-agent
+ACP_ARGS=["--acp"]
 # Optional: comma-separated environment names forwarded to the agent process
 QWEN_AUDIO_AGENT_ACP_FORWARD_ENV=MY_AGENT_API_KEY
 ```
+
+`ACP_COMMAND` is the executable itself; subcommands and flags belong in
+`ACP_ARGS` as a JSON array of strings.
 
 This is the full integration for many agents.
 

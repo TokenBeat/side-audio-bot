@@ -196,24 +196,6 @@ KIMI_WORKSPACE=
 KIMI_CODE_HOME=
 ```
 
-其他支持 ACP stdio 的 Agent 可使用通用入口：
-
-```dotenv
-AGENT_PROTOCOL=acp
-ACP_COMMAND=your-agent
-ACP_ARGS=["--acp"]
-ACP_LABEL=Your Agent
-ACP_WORKSPACE=
-```
-
-通用入口由 Gateway 直接管理 ACP 子进程。`ACP_ARGS` 推荐写成
-JSON 字符串数组，以便参数中包含空格时仍能准确解析。它使用标准 ACP Session 和
-Gateway 提供的 Session MCP 工具，不假设某个 Agent 私有的启动、权限或 UI 能力。
-
-不提供 ACP 的办事系统可以在自定义 Node 启动器中实现 `BackendPort`，详见
-[Backend Adapter SDK](../reference/backend-adapter-sdk.zh.md)。SDK 接入不新增
-`AGENT_PROTOCOL` 名称，也不会让配置文件动态加载任意代码。
-
 ## Hermes
 
 Hermes Agent（[nousresearch/hermes-agent](https://github.com/nousresearch/hermes-agent)）
@@ -316,6 +298,26 @@ CLAUDE_CONFIG_DIR=
 设置 `CLAUDE_CONFIG_DIR` 会改用独立配置目录，需要在该目录中单独完成认证。
 `CLAUDE_CODE_EXECUTABLE` 只用于覆盖适配器默认使用的 Claude Code 可执行文件。
 
+## DeepSeek
+
+当前使用 DeepSeek Harness 的本地 ACP 运行组件。先安装，再在 DeepSeek 自身设置中配置凭据：
+
+```bash
+qwenaudio install deepseek
+dsh web
+```
+
+在 DeepSeek Web 的“设置 → Models”为 `deepseek-official` 保存 API Key，然后在 Gateway 配置中选择：
+
+```dotenv
+AGENT_PROTOCOL=deepseek
+DEEPSEEK_HARNESS_MODEL=deepseek-v4-pro
+```
+
+也可通过 `DEEPSEEK_API_KEY` 提供凭据。当前启动器默认使用 `deepseek-v4-pro`，可改为 `deepseek-v4-flash`；这不是从 Web 会话继承模型。该接入未声明 ACP Session 模型设置能力，不应使用通用模型覆盖代替专属启动设置。
+
+支持普通工作、权限确认、取消与结果回传；不提供 Gateway Session 工具、独立任务委派或原生 Session 历史恢复。完整能力随 Harness 版本变化，不能按其他 ACP 后台推断。
+
 ## Pi
 
 Pi（earendil-works 的 [pi coding agent](https://pi.dev)，npm 包
@@ -369,5 +371,131 @@ PI_ACP_RUNTIME=auto
 暂不提供 Gateway Session 工具和第三层独立任务委派；Pi 会使用自身工具在当前
 Session 内完成工作。
 
-MiniMax Code、Kimi Code、Hermes、CodeBuddy、Codex、Claude Code 和 Pi 均由 Gateway 直接管理 ACP
+## Muse Code
+
+Muse Code 通过 Meta 官方
+[`@muse-code/sdk`](https://github.com/meta-models/muse-code-sdk) 和 Muse Session
+Protocol（MSP）接入。Gateway 负责启动 `muse serve`，在其生命周期内为每个前台
+用户保留一个 Muse Session，并把 MSP 的执行项、权限请求、补充输入、取消和最终
+消息统一映射到 `BackendPort`。
+
+在 macOS 或 Linux 安装并完成 Muse Code 自身的登录/配置：
+
+```bash
+qwenaudio install muse
+muse
+```
+
+Adapter 代码随框架发布，但 `@muse-code/sdk@0.1.1` **不属于默认依赖**。
+只有显式运行上述安装命令或点击桌面版安装按钮时，SDK 才会安装到
+`<QWAUDIO_DATA_DIR>/backends/muse/runtime`（默认
+`~/.config/qwaudio/data/backends/muse/runtime`）。已有 Muse 本体会跳过重装。
+检测只检查文件，不执行 SDK；仅启动 Muse 后台时才加载。缺少 SDK 或版本不匹配
+时提示安装，不在启动时静默下载。即使 Muse 运行在 WSL 内，SDK 也安装和运行在
+Gateway 所在的宿主系统。
+
+然后选择该后台：
+
+```dotenv
+AGENT_PROTOCOL=muse
+QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+```
+
+可选设置：
+
+```dotenv
+MUSE_CODE_BIN=muse
+MUSE_CODE_WORKSPACE=
+QWEN_AUDIO_AGENT_BACKEND_MODEL=
+```
+
+如果 Muse Code 部署在 Windows 的 WSL2 中，请把适配器指向 `wsl.exe`，并将
+Windows 进程目录与 Linux 工作区分开：
+
+```dotenv
+MUSE_CODE_BIN=C:\\Windows\\System32\\wsl.exe
+MUSE_CODE_ARGS=["--distribution","Ubuntu-24.04","--user","muse","--","env","HOME=/home/muse","PATH=/home/muse/.local/bin:/usr/local/bin:/usr/bin:/bin","/home/muse/.local/bin/muse","serve"]
+MUSE_CODE_HOST_WORKSPACE=E:\\qwen-audio-agent
+MUSE_CODE_WORKSPACE=/home/muse/workspace
+```
+
+`MUSE_CODE_HOST_WORKSPACE` 是用于启动 WSL 的 Windows 工作目录；
+`MUSE_CODE_WORKSPACE` 是 Muse 在 Linux 内看到的路径，建议使用发行版自身的
+Linux 文件系统。Muse 本体需先在 WSL 内安装并完成认证；配置宿主可执行命令后，
+在 Windows 运行 `qwenaudio install muse`，只安装宿主侧 SDK。
+
+显式后台模型会作为 MSP `modelId` 传入；留空则沿用 Muse Code 自身配置。
+`native` 会把 Muse 提供的权限选项转交给语音/客户端确认流程；`full` 会用 Muse
+预配置的 `allowAll` 模式创建 Session，仅应在可信工作区启用。Gateway 的单任务/
+当前会话授权只选择 Muse 的单次允许选项，不会创建服务商侧持久授权规则。
+
+当前集成固定使用实验性的 Muse SDK `0.1.1`。首版不会跨 Gateway 重启保存 Muse
+Session ID、注入 Gateway MCP Server，也不会读取 MSP `outputRef` 指向的完整字节；
+文件改动仍保留在配置的工作区，最终文字会正常返回。当前 Adapter 只把内联图片
+作为 MSP 附件发送，其他附件类型会明确拒绝。
+
+Muse Code、MiniMax Code、Kimi Code、Hermes、CodeBuddy、Codex、Claude Code 和 Pi 均由 Gateway 直接管理
 子进程，不接受 `--backend-url`。
+
+## OpenCode / OpenClaw 启动来源
+
+OpenCode 和 OpenClaw 使用一致的用户环境优先顺序：
+
+1. `OPENCODE_BIN` / `OPENCLAW_BIN` 明确指定的可执行文件。
+2. `OPENCODE_SOURCE_DIR` / `OPENCLAW_SOURCE_DIR` 明确指定的源码目录。
+3. PATH 中用户已经安装的 `opencode` / `openclaw`。
+4. 找不到兼容安装时，通过 `npx` 自动使用当前版本验证过的固定 npm 包。
+
+源码目录只在用户明确配置后使用，不再推测相邻项目目录。需要强制选择某种启动
+方式时可配置：
+
+```dotenv
+# auto（默认）、binary、source、installed 或 package
+OPENCODE_RUNTIME=auto
+OPENCLAW_RUNTIME=auto
+```
+
+需要临时验证其他固定包版本或内部镜像时，可以显式覆盖完整 package specifier：
+
+```dotenv
+OPENCODE_PACKAGE=opencode-ai@1.18.5
+OPENCLAW_PACKAGE=openclaw@2026.6.33
+```
+
+OpenCode ACP 接入当前要求 OpenCode `1.18.0` 或更高版本。`auto` 模式发现更旧
+版本时会使用固定兼容包，不修改用户安装；显式设置 `installed` 时直接报错。
+最低版本可由 `OPENCODE_MIN_VERSION` 覆盖，用于验证其他兼容版本。
+
+qwen-audio-agent 启动的 OpenCode 默认继承用户原有的全局配置（通常是
+`~/.config/opencode/opencode.json`），因此已经安装的 MCP、Skill、权限、模型和
+插件可以继续使用。协调规则和可用的 Session 工具由 Gateway 通过后台接入层提供，不会额外安装或覆盖 OpenCode Agent。
+
+如果用户配置或第三方插件与 qwen-audio-agent 冲突，可以临时启用隔离模式排查：
+
+```dotenv
+QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG=true
+```
+
+也可以通过 `QWEN_AUDIO_AGENT_OPENCODE_XDG_CONFIG_HOME` 指定另一套 OpenCode 用户
+配置目录。隔离后，原全局配置中的 MCP 和插件不会自动加载。
+
+
+## 其他 ACP Agent
+
+其他支持 ACP stdio 的 Agent 可使用通用入口：
+
+```dotenv
+AGENT_PROTOCOL=acp
+ACP_COMMAND=your-agent
+ACP_ARGS=["--acp"]
+ACP_LABEL=Your Agent
+ACP_WORKSPACE=
+```
+
+通用入口由 Gateway 直接管理 ACP 子进程。`ACP_ARGS` 推荐写成
+JSON 字符串数组，以便参数中包含空格时仍能准确解析。它使用标准 ACP Session 和
+Gateway 提供的 Session MCP 工具，不假设某个 Agent 私有的启动、权限或 UI 能力。
+
+不提供 ACP 的办事系统可以在自定义 Node 启动器中实现 `BackendPort`，详见
+[Backend Adapter SDK](../reference/backend-adapter-sdk.zh.md)。SDK 接入不新增
+`AGENT_PROTOCOL` 名称，也不会让配置文件动态加载任意代码。

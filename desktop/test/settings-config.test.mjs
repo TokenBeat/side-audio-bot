@@ -34,6 +34,10 @@ const REALTIME_DEFAULTS = {
   googleLiveRealtimeUrl: 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent',
   googleLiveRealtimeModel: 'gemini-3.8-live',
   googleLiveRealtimeVoice: '',
+  doubaoApiKey: '',
+  doubaoSeeduplexRealtimeUrl: 'wss://openspeech.bytedance.com/api/v3/duplex/realtime/dialogue',
+  doubaoSeeduplexRealtimeModel: '1.2.6.1',
+  doubaoSeeduplexRealtimeVoice: 'zh_female_vv_jupiter_bigtts',
 }
 
 const BACKEND_CONNECTION_DEFAULTS = {
@@ -376,6 +380,30 @@ test('imports legacy provider settings without sharing their endpoints or creden
   assert.equal(switched.stepfunApiKey, 'legacy-step')
 })
 
+test('reads and updates the Doubao Seeduplex desktop configuration', () => {
+  const settings = parseSettings([
+    'QWEN_AUDIO_REALTIME_PROVIDER=doubao',
+    'DOUBAO_API_KEY=doubao-key',
+    'DOUBAO_SEEDUPLEX_REALTIME_URL=wss://doubao.example/realtime',
+    'DOUBAO_SEEDUPLEX_REALTIME_MODEL=1.2.6.1',
+    'DOUBAO_SEEDUPLEX_REALTIME_VOICE=doubao-voice',
+    '',
+  ].join('\n'))
+
+  assert.equal(settings.realtimeProvider, 'doubao-seeduplex')
+  assert.equal(settings.doubaoApiKey, 'doubao-key')
+  assert.equal(settings.doubaoSeeduplexRealtimeUrl, 'wss://doubao.example/realtime')
+  assert.equal(settings.doubaoSeeduplexRealtimeModel, '1.2.6.1')
+  assert.equal(settings.doubaoSeeduplexRealtimeVoice, 'doubao-voice')
+  assert.equal(realtimeSettingsConfigured(settings), true)
+
+  const content = updateSettingsContent('', settings)
+  assert.match(content, /QWEN_AUDIO_REALTIME_PROVIDER=doubao-seeduplex/)
+  assert.match(content, /DOUBAO_API_KEY=doubao-key/)
+  assert.match(content, /DOUBAO_SEEDUPLEX_REALTIME_URL=wss:\/\/doubao\.example\/realtime/)
+  assert.match(content, /DOUBAO_SEEDUPLEX_REALTIME_VOICE=doubao-voice/)
+})
+
 test('reads and updates the Speech-to-Speech desktop configuration', () => {
   const settings = parseSettings([
     'QWEN_AUDIO_REALTIME_PROVIDER=speech-to-speech',
@@ -647,4 +675,27 @@ test('a cleared setting releases its environment slot', () => {
   const env = { QWEN_AUDIO_AGENT_BACKEND_MODEL: 'pinned-model' }
   applySettingsEnvironment({ backendModel: '' }, env)
   assert.equal('QWEN_AUDIO_AGENT_BACKEND_MODEL' in env, false)
+})
+
+test('saved settings preserve literal backslashes, quotes and comment characters', () => {
+  for (const nodePath of [
+    String.raw`C:\Program Files\nodejs\node.exe`,
+    String.raw`\\server\工具 (x64)\node.exe`,
+    "C:\\Users\\O'Brien\\nodejs",
+    'D:\\tools\\node "lts"',
+    '/Users/a/`node` "lts"',
+    '/tools/node #release',
+  ]) {
+    let content = ''
+    for (let save = 0; save < 3; save += 1) {
+      content = updateSettingsContent(content, { nodePath })
+      assert.equal(parseSettings(content).nodePath, nodePath)
+    }
+  }
+})
+
+test('settings reject unrepresentable dotenv values rather than corrupting them', () => {
+  for (const nodePath of ["/a'\"`b", 'a\nb', 'a\rb', 'a\0b']) {
+    assert.throws(() => updateSettingsContent('', { nodePath }), /无法保存/)
+  }
 })

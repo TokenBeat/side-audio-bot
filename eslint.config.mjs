@@ -13,7 +13,7 @@ export default [
       '**/coverage/**',
       'docs/.vitepress/cache/**',
       'docs/.vitepress/.site/**',
-      'examples/!(lightrag)/**',
+      'examples/!(lightrag|x-omni)/**',
       'tui/native/**',
       'mobile/android/app/src/main/assets/public/**',
       'mobile/ios/App/App/public/**',
@@ -59,13 +59,22 @@ export default [
     },
   },
   {
+    files: [
+      'server/src/transport/gateway-client-transport.mjs',
+      'server/src/app/frontend-runtime.mjs',
+      'server/src/voice/realtime-session-runtime.mjs',
+      'server/src/orchestration/*.mjs',
+    ],
+    rules: { 'no-undef': 'error' },
+  },
+  {
     files: ['**/test/**/*.{js,mjs,cjs,jsx}', 'test/**/*.{js,mjs,cjs,jsx}'],
     rules: {
       'no-useless-escape': 'off',
     },
   },
   {
-    files: ['web/src/**/*.{js,jsx}', 'mobile/src/**/*.{js,jsx}'],
+    files: ['web/src/**/*.{js,jsx}', 'mobile/src/**/*.{js,jsx}', 'examples/x-omni/client/**/*.{js,jsx}'],
     plugins: {
       'react-hooks': reactHooks,
     },

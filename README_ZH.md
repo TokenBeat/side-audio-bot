@@ -1,11 +1,12 @@
 # Qwen Audio Agent
 
-[中文](README_ZH.md) | [English](README.md) | [用户手册](https://qwenaudio.github.io/qwen-audio-agent/zh/) | [快速开始](https://qwenaudio.github.io/qwen-audio-agent/zh/getting-started/quickstart)
+[中文](README_ZH.md) | [English](README.md) | [用户手册](https://qwenaudio.github.io/qwen-audio-agent/zh/) | [快速开始](https://qwenaudio.github.io/qwen-audio-agent/zh/getting-started/quickstart) | [技术报告](https://arxiv.org/pdf/2609.25195)
 
 [![CI](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QwenAudio/qwen-audio-agent/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/qwen-audio-agent)](https://www.npmjs.com/package/qwen-audio-agent)
 [![node](https://img.shields.io/badge/node-%E2%89%A522.22.2-brightgreen)](https://nodejs.org/)
 [![license](https://img.shields.io/github/license/QwenAudio/qwen-audio-agent)](LICENSE)
+[![arXiv](https://img.shields.io/badge/arXiv-2609.25195-b31b1b)](https://arxiv.org/abs/2609.25195)
 [![WeChat](https://img.shields.io/badge/WeChat-%E5%8A%A0%E5%85%A5%E8%AE%A8%E8%AE%BA-07C160?logo=wechat&logoColor=white)](#交流与分享)
 
 ## Agent，始终在场
@@ -20,8 +21,8 @@
 
 ## News
 
-- **2026-08-27 · v2.0.0（开发中）**
-  🚧 下一代版本正在积极开发，持续完善 Agent 架构、任务生命周期、多模态输入、记忆与扩展能力。
+- **2026-09-23 · [v2.0.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v2.0.0)**
+  🏗️ 重构编排运行时，统一客户端协议与 ACP / A2A 后台接入；🎙️ 扩展[语音与视频模型](#语音前台)；🧠 完善前台工具、记忆与资料库；💬 新增桌面对话面板与手机远程连接；🧩 新增[客服、座舱、数字人等示例](#示例与场景扩展)；📄 发布[技术报告](https://arxiv.org/pdf/2609.25195)。
 - **2026-08-20 · [v1.11.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.11.0)**
   🧩 开放可嵌入 Gateway 与 Realtime Provider 扩展；🛠️ 支持安装与管理 Agent Skill；📎 TUI 支持多模态输入；🎨 皮肤动画联动运行状态。
 - **2026-08-13 · [v1.9.0](https://github.com/QwenAudio/qwen-audio-agent/releases/tag/v1.9.0)**
@@ -94,13 +95,15 @@
 
 | 语音前台 | 部署方式 | 接入准备 | 特点 |
 | --- | --- | --- | --- |
-| [Qwen Audio 3.0 Realtime](docs/voice-frontends/qwen-audio-realtime.zh.md) | 云端 | 百炼 API Key | 默认前台 |
-| [GPT-Live / OpenAI Realtime](docs/voice-frontends/gpt-live.zh.md) | 云端 | OpenAI API Key | OpenAI GA Realtime 协议 |
-| [Google Gemini Live](docs/voice-frontends/google-live.zh.md) | 云端 | Google API Key | 原生 Gemini Live WebSocket |
-| [Qwen3.5-Omni Realtime](docs/voice-frontends/qwen-omni-realtime.zh.md) | 云端 | 百炼 API Key | 支持视频输入 |
-| [StepAudio 3 Realtime](docs/voice-frontends/stepfun.zh.md) | 云端 | StepFun API Key | 预览模型 |
-| [Hugging Face Speech-to-Speech](docs/voice-frontends/speech-to-speech.zh.md) | 本地 | 启动服务并填写地址 | 可自由配置组件 |
-| [MiniCPM-o 4.5](docs/voice-frontends/minicpm-o.zh.md) | 本地或云端 | 提供兼容服务地址 | 暂不支持后台委托 |
+| [Qwen Audio 3.0 Realtime](docs/voice-frontends/qwen-audio-realtime.zh.md) | 云端 | 百炼 API Key | 双工语音、工具调用 |
+| [GPT-Live / OpenAI Realtime](docs/voice-frontends/gpt-live.zh.md) | 云端 | OpenAI API Key | — |
+| [Google Gemini Live](docs/voice-frontends/google-live.zh.md) | 云端 | Google API Key | 实时视频输入 |
+| [Qwen3.5-Omni Realtime](docs/voice-frontends/qwen-omni-realtime.zh.md) | 云端 | 百炼 API Key | 实时视频输入 |
+| [Qwen3.8 Omni Flash Realtime](docs/voice-frontends/qwen-omni-realtime.zh.md) | 云端 | 百炼 API Key + 业务空间专属地址 | 实时视频输入 |
+| [豆包 Seeduplex 3.0 Realtime](docs/configuration/frontend.zh.md#选择服务) | 云端 | 火山引擎语音 API Key | — |
+| [StepAudio 3 Realtime](docs/voice-frontends/stepfun.zh.md) | 云端 | StepFun API Key | — |
+| [Hugging Face Speech-to-Speech](docs/voice-frontends/speech-to-speech.zh.md) | 本地 | 启动服务并填写地址 | 可配置 STT / LLM / TTS |
+| [MiniCPM-o 4.5](docs/voice-frontends/minicpm-o.zh.md) | 本地或云端 | 提供兼容服务地址 | 实时视频输入、不支持工具调用 |
 
 需要接入其他语音服务时，可实现 [Realtime Provider 接口](docs/voice-frontends/custom-provider.zh.md)，
 无需修改 Gateway 的核心语音会话与后台任务逻辑。
@@ -122,6 +125,7 @@
 | Claude Code | 外部 ACP 适配 | 支持一键安装本体与适配器，需用户配置 | ★★★★☆ |
 | DeepSeek Harness | 原生 ACP | 支持一键安装，需 DeepSeek API Key | ★★★★☆ |
 | Pi | 外部 ACP 适配 | 支持一键安装本体与适配器，需用户配置 | ★★★★☆ |
+| Muse Code | 原生 MSP 适配 | 按需安装本体与 SDK，需用户配置 | ★★★☆☆ |
 
 推荐指数综合反映当前集成完整度、兼容性和实际验证程度：五星表示已经过充分测试的
 推荐集成，四星表示正在开发或尚未完成同等范围验证。
@@ -203,8 +207,9 @@ npm run desktop:build:linux      # Linux（AppImage + deb，无需签名）
 | --- | --- | --- | --- |
 | 桌面办公 | 实时语音交流、进度追问、工具调用和后台任务执行。 | [文档][desktop-docs-zh] | 已提供 |
 | 智能座舱 | 车控、导航、音乐、天气和生活服务。 | [示例][smart-cockpit-example] | 已提供 |
+| X-Omni | 视觉对话、按需采集、可选画面观察与解说。 | [示例](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/x-omni/README_ZH.md) | 已提供 |
 | AI Passport | 在硬件卡片上运行千问语音豆，进行语音对话与后台任务交互；目前仅开放半双工。 | [示例][ai-passport-example] | 已提供 |
-| 客服助手 | 问题澄清、订单查询、工单处理和人工转接。 | 待补充 | 规划中 |
+| 客服助手 | 零售与航空场景的语音客服。 | [示例](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/customer-service/README_ZH.md) | 已提供 |
 | 具身智能 | 语音指令、动作执行、巡检和异常反馈。 | 待补充 | 规划中 |
 | 直播助手 | 弹幕互动、商品讲解、优惠发放和风险提醒。 | 待补充 | 规划中 |
 

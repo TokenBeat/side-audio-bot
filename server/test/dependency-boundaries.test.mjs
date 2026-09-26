@@ -20,6 +20,7 @@ const allowedDependencies = {
     'frontend',
     'frontend-provider',
     'optional-module-assembly',
+    'orchestration',
     'session',
     'task',
     'transport',
@@ -30,7 +31,7 @@ const allowedDependencies = {
   core: new Set(['core', 'shared']),
   frontend: new Set([
     'client', 'conversation', 'core', 'frontend', 'optional-frontend-assembly',
-    'tool-support', 'shared', 'task',
+    'tool-support', 'shared', 'task', 'orchestration',
   ]),
   'frontend-provider': new Set(['core', 'frontend', 'frontend-provider', 'shared']),
   'tool-support': new Set(['tool-support']),
@@ -47,18 +48,20 @@ const allowedDependencies = {
   'memory-provider': new Set(['core', 'memory', 'memory-provider', 'shared']),
   'backend-adapter': new Set(['backend-adapter', 'backend', 'core', 'shared']),
   backend: new Set(['backend', 'core', 'shared']),
-  client: new Set(['client', 'delivery', 'shared', 'task']),
+  client: new Set(['client', 'delivery', 'shared', 'task', 'orchestration']),
+  orchestration: new Set(['orchestration', 'backend', 'core', 'shared', 'task', 'delivery']),
   delivery: new Set(['delivery']),
   conversation: new Set(['conversation', 'core', 'shared']),
   session: new Set(['session', 'shared']),
   task: new Set(['backend', 'core', 'session', 'task']),
-  transport: new Set(['shared', 'task', 'transport']),
+  transport: new Set(['client', 'core', 'shared', 'task', 'transport']),
   voice: new Set([
     'client',
     'conversation',
     'core',
     'delivery',
     'frontend',
+    'orchestration',
     'shared',
     'task',
     'transport',
@@ -158,7 +161,7 @@ test('generic ACP and process cores do not bind to named backends', () => {
 })
 
 test('protocol-neutral backend core does not import Agent protocol SDKs', () => {
-  const protocolSdk = /from\s+['"](?:@agentclientprotocol\/|@a2a-js\/)/
+  const protocolSdk = /(?:from\s+|import\s*\(\s*)['"](?:@agentclientprotocol\/|@a2a-js\/|@muse-code\/)/
   const violations = sourceFiles(resolve(sourceRoot, 'backend'))
     .filter(file => layerFor(file) === 'backend')
     .filter(file => protocolSdk.test(readFileSync(file, 'utf8')))
@@ -180,6 +183,10 @@ test('domain grouping keeps provider implementations behind their contracts', ()
     ['frontend/frontend-tools.mjs', 'knowledge/tools.mjs'],
     ['frontend/tools/tool-call-handler.mjs', 'voice/realtime-provider.mjs'],
     ['frontend/tools/tool-call-handler.mjs', 'backend/adapters/acp/backend-adapter.mjs'],
+    ['orchestration/task-operations.mjs', 'voice/realtime-provider.mjs'],
+    ['orchestration/task-operations.mjs', 'transport/gateway-client-protocol-session.mjs'],
+    ['orchestration/task-operations.mjs', 'client/client-command-runtime.mjs'],
+    ['orchestration/task-operations.mjs', 'backend/adapters/acp/backend-adapter.mjs'],
   ]
   for (const [consumer, implementation] of cases) {
     const sourceLayer = layerFor(resolve(sourceRoot, consumer))
@@ -189,11 +196,43 @@ test('domain grouping keeps provider implementations behind their contracts', ()
   }
 })
 
+test('task orchestration has no transport, provider SDK or model receipt dependency', () => {
+  const files = sourceFiles(resolve(sourceRoot, 'orchestration'))
+  for (const file of files) {
+    const source = readFileSync(file, 'utf8')
+    assert.doesNotMatch(source, /(?:from\s+|import\s*\(\s*)['"](?:ws|express|(?:node:)?https?|@agentclientprotocol\/|@a2a-js\/)/u)
+    assert.doesNotMatch(source, /\b(?:sendOutput|response_id|call_id|tool_choice|WebSocket|GatewayClientProtocolEvent)\b/u)
+  }
+  for (const path of ['frontend/tools/agent-task-runtime.mjs', 'client/client-command-runtime.mjs']) {
+    const source = readFileSync(resolve(sourceRoot, path), 'utf8')
+    assert.doesNotMatch(source, /taskManager\.create\(|backendRuntime\.(?:run|cancel)\(|permissionPolicy\.(?:applyDecision|forwardBackendEvent)\(/u)
+  }
+})
+
+test('Realtime wiring delegates Task subscription and request/claim policy to orchestration', () => {
+  const gateway = readFileSync(resolve(sourceRoot, 'transport/gateway-client-transport.mjs'), 'utf8')
+  assert.doesNotMatch(gateway, /taskManager\.(?:subscribe|claimNotifications|markNotificationsDelivered|releaseNotificationClaims)\(/u)
+  assert.doesNotMatch(gateway, /announcedPermissions|announcedInputs|<permission_request>|<backend_input_request>/u)
+  const presentation = readFileSync(resolve(sourceRoot, 'voice/realtime-task-presentation.mjs'), 'utf8')
+  assert.doesNotMatch(presentation, /taskManager|backendRuntime|WebSocket|TaskDomainEvent/u)
+})
+
+test('Gateway transport does not assemble frontend state and frontend runtime owns no connection protocol', () => {
+  const gateway = readFileSync(resolve(sourceRoot, 'transport/gateway-client-transport.mjs'), 'utf8')
+  assert.doesNotMatch(gateway, /new (?:RealtimeProviderSession|RealtimeTurnState|ToolCallHandler|TurnTranscripts|SessionTaskCoordinator|PresenceController)\b/u)
+  assert.doesNotMatch(gateway, /response\.function_call_arguments\.done|response\.done|sessionAssistantProfile|sessionOutputVoice/u)
+  assert.doesNotMatch(gateway, /frontendToolSources|SessionObservers|createRealtimeSessionRuntime|realtimeProviderRegistry/u)
+  const runtime = readFileSync(resolve(sourceRoot, 'voice/realtime-session-runtime.mjs'), 'utf8')
+  assert.doesNotMatch(runtime, /from ['"](?:ws|express|[^'"]*\/transport\/)/u)
+  assert.doesNotMatch(runtime, /\b(?:WebSocket|GatewayClientProtocolSession|GatewayClientProtocolEvent|activeClientLeases|clientProtocol|identityManager)\b/u)
+  assert.doesNotMatch(runtime, /JSON\.parse|\.readyState|\.handleUpgrade\(/u)
+})
+
 test('Gateway Work consumers use BackendPort instead of ACP coordinator APIs', () => {
   const consumers = [
     resolve(sourceRoot, 'backend/backend-work-runtime.mjs'),
     resolve(sourceRoot, 'app/gateway-application.mjs'),
-    resolve(sourceRoot, 'voice/realtime-gateway.mjs'),
+    resolve(sourceRoot, 'transport/gateway-client-transport.mjs'),
     resolve(sourceRoot, 'frontend/tools/tool-call-handler.mjs'),
   ]
   const privateAcpApi = /\b(?:runCoordinator|cancelWork|queryDelegatedWork|coordinatorUsesMcpInstructions)\b|from\s+['"][^'"]*acp-/
@@ -201,6 +240,18 @@ test('Gateway Work consumers use BackendPort instead of ACP coordinator APIs', (
     .filter(file => privateAcpApi.test(readFileSync(file, 'utf8')))
     .map(file => relative(projectRoot, file))
   assert.deepEqual(violations, [])
+})
+
+test('Gateway application assembles services while HTTP adapters own route registration', () => {
+  const application = readFileSync(resolve(sourceRoot, 'app/gateway-application.mjs'), 'utf8')
+  assert.match(application, /registerGatewayHttpRoutes\(app,/u)
+  assert.doesNotMatch(application, /app\.(?:get|post|put|patch|delete|use)\(/u)
+  const routes = readFileSync(resolve(sourceRoot, 'app/gateway-http-routes.mjs'), 'utf8')
+  assert.doesNotMatch(routes, /new (?:TaskManager|SessionJournalRegistry|GatewayAccessManager|BackendWorkRuntime)\b/u)
+  assert.ok(routes.indexOf("app.post('/api/access/session'") < routes.indexOf('resolveHttp(req, res)'))
+  assert.ok(routes.indexOf('resolveHttp(req, res)') < routes.indexOf("app.get('/api/health'"))
+  assert.ok(routes.indexOf('module.mountRoutes?.(app)') < routes.indexOf("app.use('/api'"))
+  assert.ok(routes.indexOf("app.use('/api'") < routes.indexOf('express.static(webDist)'))
 })
 
 test('UI source code does not import Gateway or another client implementation', () => {
