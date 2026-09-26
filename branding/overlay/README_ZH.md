@@ -20,6 +20,8 @@
 
 ## News
 
+- **2026-09-26 · [v0.11.3](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.3)**
+  稳定性版本：实时语音**工具结果即时播报**，桌面端对话面板**定位最新消息**，MCP 工具**多页完整发现**，并修复 **Windows 含空格路径**的一系列问题。
 - **2026-09-19 · [v0.11.2](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.2)**
   前台语音新增 **StepFun Audio 3 Realtime**（stepaudio-3-realtime-preview），实时设置表单统一重构，并优化 **Bloub 悬浮球外观设置**体验。
 - **2026-09-16 · [v0.11.1](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.1)**

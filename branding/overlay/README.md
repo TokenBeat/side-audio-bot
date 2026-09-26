@@ -26,6 +26,8 @@ tells you:
 
 ## News
 
+- **2026-09-26 · [v0.11.3](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.3)**
+  Stability release: realtime voice **delivers tool results immediately**, the desktop conversation panel **opens at the latest message**, MCP tool discovery covers **all pages**, and a batch of **Windows paths-with-spaces** issues is fixed.
 - **2026-09-19 · [v0.11.2](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.2)**
   Adds the **StepFun Audio 3 Realtime** front-end voice option (stepaudio-3-realtime-preview) with a unified realtime settings form, and polishes **Bloub orb appearance settings**.
 - **2026-09-16 · [v0.11.1](https://github.com/TokenBeat/side-audio-bot/releases/tag/v0.11.1)**
