@@ -1,5 +1,5 @@
 // 场景自有的业务基础设施：把客服状态投影给 UI，并暴露两个 MCP 工具面。
-// 它不属于 Gateway，也不是 qwen-audio-agent 的额外一层。
+// 它不属于 Gateway，也不是 side-audio-bot 的额外一层。
 import { createServer } from 'node:http'
 import { pathToFileURL, fileURLToPath } from 'node:url'
 import {

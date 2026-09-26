@@ -1,6 +1,6 @@
 # Architecture Overview
 
-qwen-audio-agent connects realtime conversation with asynchronous execution.
+side-audio-bot connects realtime conversation with asynchronous execution.
 Its logical components and service deployment describe different aspects of the architecture.
 
 ## Core logical architecture

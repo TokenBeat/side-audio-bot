@@ -2,12 +2,12 @@
 
 ## Local Logs
 
-qwen-audio-agent uses unified structured logs, stored by their respective owners:
+side-audio-bot uses unified structured logs, stored by their respective owners:
 
-- CLI-hosted Gateway: `~/.config/qwaudio/state/logs/`.
-- Desktop-hosted Gateway: `~/.config/qwaudio/state/desktop/logs/`.
+- CLI-hosted Gateway: `~/.config/sideaudio/state/logs/`.
+- Desktop-hosted Gateway: `~/.config/sideaudio/state/desktop/logs/`.
 - Desktop Client: `logs/` under its [application data directory](../configuration.md#configuration-and-data-directories).
-- TUI: `~/.config/qwaudio/tui/logs/`.
+- TUI: `~/.config/sideaudio/tui/logs/`.
 
 The file responsibilities below do not mean all files share the same directory:
 
@@ -39,12 +39,12 @@ retained. These can be adjusted via the following environment variables:
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `QWEN_AUDIO_LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent` |
-| `QWEN_AUDIO_LOG_DIR` | `logs` under the instance state directory | Custom log directory |
-| `QWEN_AUDIO_LOG_MAX_BYTES` | `10485760` | Rotation threshold for a single log file |
-| `QWEN_AUDIO_LOG_MAX_FILES` | `5` | Total number of current and rotated files to retain |
-| `QWEN_AUDIO_LOG_FILE` | `1` | Set to `0` to disable file logging |
-| `QWEN_AUDIO_LOG_CONSOLE` | `1` | Set to `0` to disable terminal log output |
+| `SIDE_AUDIO_LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent` |
+| `SIDE_AUDIO_LOG_DIR` | `logs` under the instance state directory | Custom log directory |
+| `SIDE_AUDIO_LOG_MAX_BYTES` | `10485760` | Rotation threshold for a single log file |
+| `SIDE_AUDIO_LOG_MAX_FILES` | `5` | Total number of current and rotated files to retain |
+| `SIDE_AUDIO_LOG_FILE` | `1` | Set to `0` to disable file logging |
+| `SIDE_AUDIO_LOG_CONSOLE` | `1` | Set to `0` to disable terminal log output |
 
 Logs are only stored locally and are not automatically uploaded. Before reporting issues, check
 and share relevant snippets as needed; even though the system automatically desensitizes, you
@@ -56,16 +56,16 @@ you do not want to be public.
 For common connection, audio, and tool issues, start with [Troubleshooting](../operations/troubleshooting.md).
 
 ```bash
-qwenaudio doctor
-qwenaudio doctor --json
-qwenaudio doctor --turn <turnId>
+sideaudio doctor
+sideaudio doctor --json
+sideaudio doctor --turn <turnId>
 ```
 
 Check configuration, Gateway, voice frontend and MCP connections, backend readiness, and session files
 without starting a model, backend Agent, or microphone, changing configuration, or repairing files.
 Populated configuration does not prove that a key has remaining quota; without an active voice session,
 the report explicitly indicates that the connection is unverified. Use `--url https://<gateway>` for
-remote checks and `QWEN_AUDIO_GATEWAY_CLIENT_TOKEN` for credentials. Local files are not used to infer
+remote checks and `SIDE_AUDIO_GATEWAY_CLIENT_TOKEN` for credentials. Local files are not used to infer
 remote configuration.
 
 `--turn` assembles a timeline from existing log records matching `turnId`, showing identifiers and

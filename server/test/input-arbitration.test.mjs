@@ -62,7 +62,7 @@ test('suspend requires an owner so a hold can always be attributed', () => {
   const { arbitration } = controlled()
   assert.throws(
     () => arbitration.suspend({ reason: 'dictation' }),
-    error => error.code === 'QWAUDIO_INPUT_OWNER_REQUIRED',
+    error => error.code === 'SIDEAUDIO_INPUT_OWNER_REQUIRED',
   )
   assert.equal(arbitration.suspended, false)
 })

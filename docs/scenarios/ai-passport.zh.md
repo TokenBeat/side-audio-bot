@@ -1,7 +1,7 @@
 # AI Passport
 
 AI Passport（ESP32-C3）卡片运行“千问语音豆（Qwen Voice Bean）”，通过局域网使用
-qwen-audio-agent。卡片负责录音、播放回复和角色动画，电脑上的 Gateway 负责实时对话、
+side-audio-bot。卡片负责录音、播放回复和角色动画，电脑上的 Gateway 负责实时对话、
 工具调用与可选的后台 Agent 任务。
 
 ## 演示
@@ -27,7 +27,7 @@ qwen-audio-agent。卡片负责录音、播放回复和角色动画，电脑上�
 |---|---|
 | 千问语音豆固件 | 在 AI Passport 卡片上负责 Wi-Fi 配网、录音播放、半双工控制、按键和动画。 |
 | 设备转发器（`device-relay.mjs`） | 监听电脑局域网端口 `3101`，校验设备令牌、拆分音频小包并转发 GCP 消息。 |
-| qwen-audio-agent Gateway | 监听同机 `127.0.0.1:18888`，负责实时对话、工具和可选的后台任务。 |
+| side-audio-bot Gateway | 监听同机 `127.0.0.1:18888`，负责实时对话、工具和可选的后台任务。 |
 
 设备转发器与 Gateway 是同一电脑上的两个独立进程，分别负责卡片传输与对话任务处理。
 
@@ -38,7 +38,7 @@ qwen-audio-agent。卡片负责录音、播放回复和角色动画，电脑上�
 
 ```bash
 npm ci
-node cli/bin/qwenaudio.mjs gateway run --url http://127.0.0.1:18888
+node cli/bin/sideaudio.mjs gateway run --url http://127.0.0.1:18888
 ```
 
 另开一个终端，复制并编辑转发器配置：
@@ -69,6 +69,6 @@ npm run example:ai-passport
 
 ## 源码与致谢
 
-- [示例与协议说明](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/ai-passport/README_ZH.md)：完整配置步骤、音频传输与测试说明。
+- [示例与协议说明](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/ai-passport/README_ZH.md)：完整配置步骤、音频传输与测试说明。
 - [外部固件源码](https://github.com/liutaocode/esp32demo/tree/main/examples/qwen-voice-bean)：硬件驱动、交互和角色界面。
 - [Tao Liu](https://github.com/liutaocode)实现固件、硬件交互、角色界面及设备转发器；[Li Xu](https://github.com/x-lixu)维护框架侧接入与文档。[FoloToy 社区](https://ai-passport.folotoy.cn/plays/233/)提供固件分发。

@@ -14,7 +14,7 @@ https://github.com/user-attachments/assets/5301ef5e-b674-4561-93bb-e0c7544cf696
 
 ## 目标
 
-- 客户端只连接 qwen-audio-agent 网关。
+- 客户端只连接 side-audio-bot 网关。
 - Realtime 模型继续负责理解、对话和回复语音，模型侧仍用 WSS。
 - `DigitalHumanProvider` 只消费助手回复音频，文本是可选增强，不承担 ASR、LLM、TTS 或 S2S。
 - 首版接入方案复用 OpenAvatarChat 的 FlashHead Avatar 组件，在独立 Python GPU 服务中运行 SoulX-FlashHead Lite。

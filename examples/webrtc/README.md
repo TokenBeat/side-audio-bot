@@ -12,13 +12,13 @@ WebRTC is not yet published to npm. Use the source workflow for now.
 Install the framework and optional WebRTC extension without cloning the repository:
 
 ```sh
-npm install -g qwen-audio-agent
-npm install -g qwen-audio-agent-webrtc
-qwenaudio config
-qwenaudio gateway --webrtc
+npm install -g side-audio-bot
+npm install -g side-audio-bot-webrtc
+sideaudio config
+sideaudio gateway --webrtc
 ```
 
-In `qwenaudio config`, set `DASHSCOPE_API_KEY` and
+In `sideaudio config`, set `DASHSCOPE_API_KEY` and
 `QWEN_AUDIO_REALTIME_PROVIDER=dashscope`. Audio uses the default model. For Omni,
 set `QWEN_AUDIO_REALTIME_MODEL=qwen3.5-omni-plus-realtime` and restart the Gateway.
 
@@ -52,5 +52,5 @@ input. The model is selected at startup, not in the UI.
 [Protocol and deployment](../../docs/gateway-webrtc-client.md)
 
 For screen/image input, on-demand inspection and observation reminders, try
-the [X-Omni example](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/x-omni/README.md) with its optional WebRTC transport.
+the [X-Omni example](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/x-omni/README.md) with its optional WebRTC transport.
 Both examples share the browser connection and Gateway media implementation.

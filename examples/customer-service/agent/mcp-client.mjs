@@ -58,7 +58,7 @@ export class ServiceMcpTools {
     if (this.connecting) return this.connecting
     this.connecting = (async () => {
       const client = new Client({
-        name: 'qwen-audio-agent-customer-service-agent',
+        name: 'side-audio-bot-customer-service-agent',
         version: '1.0.0',
       })
       await client.connect(new StreamableHTTPClientTransport(this.url))

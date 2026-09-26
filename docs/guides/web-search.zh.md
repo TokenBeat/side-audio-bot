@@ -14,23 +14,23 @@ Adapter，只解析一次公开搜索结果页。该基础兜底属于实验性�
 `DASHSCOPE_API_KEY`：
 
 ```dotenv
-QWEN_AUDIO_WEB_SEARCH_PROVIDER=bailian
+SIDE_AUDIO_WEB_SEARCH_PROVIDER=bailian
 ```
 
 同一个与供应商无关的 Adapter 也可以接入其他兼容的 MCP 搜索服务；自定义地址必须
 显式提供自己的凭据：
 
 ```dotenv
-QWEN_AUDIO_WEB_SEARCH_PROVIDER=mcp
-QWEN_AUDIO_WEB_SEARCH_MCP_URL=https://example.com/mcp
-QWEN_AUDIO_WEB_SEARCH_MCP_TOKEN=your-token
-QWEN_AUDIO_WEB_SEARCH_MCP_TOOL=web_search
+SIDE_AUDIO_WEB_SEARCH_PROVIDER=mcp
+SIDE_AUDIO_WEB_SEARCH_MCP_URL=https://example.com/mcp
+SIDE_AUDIO_WEB_SEARCH_MCP_TOKEN=your-token
+SIDE_AUDIO_WEB_SEARCH_MCP_TOOL=web_search
 ```
 
 可选 `so360`（默认）、`bing`、`bailian`、`mcp` 或 `none`。设置 `none` 只关闭搜索，网页读取工具仍可用；同时关闭搜索和网页读取时设置：
 
 ```dotenv
-QWEN_AUDIO_WEB_TOOLS_ENABLED=false
+SIDE_AUDIO_WEB_TOOLS_ENABLED=false
 ```
 
 ## 结果与引用

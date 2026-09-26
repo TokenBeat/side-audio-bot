@@ -17,23 +17,23 @@ After enabling Model Studio's Web Search MCP service, select its built-in preset
 explicitly; it then reuses `DASHSCOPE_API_KEY`:
 
 ```dotenv
-QWEN_AUDIO_WEB_SEARCH_PROVIDER=bailian
+SIDE_AUDIO_WEB_SEARCH_PROVIDER=bailian
 ```
 
 The same provider-neutral adapter can connect to another compatible MCP search
 service. Custom endpoints must provide their own credentials explicitly:
 
 ```dotenv
-QWEN_AUDIO_WEB_SEARCH_PROVIDER=mcp
-QWEN_AUDIO_WEB_SEARCH_MCP_URL=https://example.com/mcp
-QWEN_AUDIO_WEB_SEARCH_MCP_TOKEN=your-token
-QWEN_AUDIO_WEB_SEARCH_MCP_TOOL=web_search
+SIDE_AUDIO_WEB_SEARCH_PROVIDER=mcp
+SIDE_AUDIO_WEB_SEARCH_MCP_URL=https://example.com/mcp
+SIDE_AUDIO_WEB_SEARCH_MCP_TOKEN=your-token
+SIDE_AUDIO_WEB_SEARCH_MCP_TOOL=web_search
 ```
 
 Choose `so360` (default), `bing`, `bailian`, `mcp`, or `none`. Setting `none` disables search, not page fetching. Disable both search and page fetching with:
 
 ```dotenv
-QWEN_AUDIO_WEB_TOOLS_ENABLED=false
+SIDE_AUDIO_WEB_TOOLS_ENABLED=false
 ```
 
 ## Results and Citations

@@ -21,10 +21,10 @@ Object.assign(process.env, {
   MINICPM_O_REALTIME_URL: `ws://127.0.0.1:${upstream.address().port}/v1/realtime?mode=video`,
   QWEN_AUDIO_REALTIME_MODEL: 'qwen3.5-omni-plus-realtime',
   QWEN_AUDIO_REALTIME_BASE_URL: `ws://127.0.0.1:${upstream.address().port}/realtime`,
-  QWAUDIO_CONFIG_DIR: directory, QWAUDIO_DATA_DIR: join(directory, 'data'),
-  QWAUDIO_STATE_DIR: join(directory, 'state'), QWAUDIO_CACHE_DIR: join(directory, 'cache'),
-  AGENT_PROTOCOL: 'none', QWEN_AUDIO_GATEWAY_ACCESS_TOKEN: '',
-  QWEN_AUDIO_GATEWAY_ACCESS_KEYS: '', QWEN_AUDIO_GATEWAY_TAILNET: '0',
+  SIDEAUDIO_CONFIG_DIR: directory, SIDEAUDIO_DATA_DIR: join(directory, 'data'),
+  SIDEAUDIO_STATE_DIR: join(directory, 'state'), SIDEAUDIO_CACHE_DIR: join(directory, 'cache'),
+  AGENT_PROTOCOL: 'none', SIDE_AUDIO_GATEWAY_ACCESS_TOKEN: '',
+  SIDE_AUDIO_GATEWAY_ACCESS_KEYS: '', SIDE_AUDIO_GATEWAY_TAILNET: '0',
 })
 let readerImages = 0
 let continuousImages = 0
@@ -154,7 +154,7 @@ try {
     assert.equal(continuousImages, 0)
     assert.equal(result.status, 'completed')
     assert.deepEqual(result.input_refs, ['input_1'])
-    if (webRtc) await page.waitForFunction(() => window.sentRtcEvents.some(event => event.type === 'qwaudio.playback.ended'), null, { timeout: 10000 })
+    if (webRtc) await page.waitForFunction(() => window.sentRtcEvents.some(event => event.type === 'sideaudio.playback.ended'), null, { timeout: 10000 })
     await page.getByRole('button', { name: '开启麦克风', exact: true }).click()
     await page.getByRole('button', { name: '持续画面', exact: true }).click()
     await page.waitForFunction(() => /已发送 [1-9]/.test(document.body.textContent))
@@ -195,7 +195,7 @@ try {
       await page.getByRole('textbox', { name: '消息' }).fill('Describe the noise image')
       await page.getByRole('button', { name: '发送', exact: true }).click()
       await assertEventually(() => readerImages === 2)
-      await page.waitForFunction(() => window.sentRtcEvents.filter(event => event.type === 'qwaudio.transport.chunk').length > 8)
+      await page.waitForFunction(() => window.sentRtcEvents.filter(event => event.type === 'sideaudio.transport.chunk').length > 8)
       await assertEventually(() => result?.input_refs?.[0] === 'input_2')
       await page.getByRole('textbox', { name: '消息' }).fill('Start observation')
       await page.getByRole('button', { name: '发送', exact: true }).click()

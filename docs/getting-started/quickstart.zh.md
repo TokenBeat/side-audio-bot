@@ -16,10 +16,10 @@
 ### 1. 创建配置
 
 ```bash
-qwenaudio config
+sideaudio config
 ```
 
-打开命令显示的 `config.env`。默认位置是 `~/.config/qwaudio/config.env`。
+打开命令显示的 `config.env`。默认位置是 `~/.config/sideaudio/config.env`。
 
 ### 2. 填写凭据
 
@@ -37,19 +37,19 @@ AGENT_PROTOCOL=none
 ### 3. 启动 Gateway
 
 ```bash
-qwenaudio
+sideaudio
 ```
 
 保持这个终端运行。另开一个终端，打开浏览器客户端：
 
 ```bash
-qwenaudio webui
+sideaudio webui
 ```
 
 也可使用终端客户端：
 
 ```bash
-qwenaudio tui
+sideaudio tui
 ```
 
 TUI 的音频依赖和平台差异见 [TUI 指南](tui.zh.md)。
@@ -68,12 +68,12 @@ TUI 的音频依赖和平台差异见 [TUI 指南](tui.zh.md)。
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_MODEL=
+SIDE_AUDIO_BOT_BACKEND_MODEL=
 ```
 
 后台模型留空时沿用 Agent 的配置。停止并重新启动 Gateway，再试“查询这台电脑的内存容量”，查看工作卡片与结果。
 
-没有现成后台时，可使用 [OpenCode / OpenClaw 托管初始化](../configuration/backend.zh.md#模型选择)。未配置后台或 `AGENT_PROTOCOL=none` 时，不启动后台 Agent；聊天和已启用的前台工具仍可使用。也可用 `qwenaudio --backend none` 临时覆盖。
+没有现成后台时，可使用 [OpenCode / OpenClaw 托管初始化](../configuration/backend.zh.md#模型选择)。未配置后台或 `AGENT_PROTOCOL=none` 时，不启动后台 Agent；聊天和已启用的前台工具仍可使用。也可用 `sideaudio --backend none` 临时覆盖。
 
 ## 下一步
 

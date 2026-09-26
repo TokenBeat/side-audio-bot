@@ -7,7 +7,7 @@ directory is reused; otherwise the app starts and manages one.
 
 ## First Run
 
-1. Download an installer from the [release page](https://github.com/QwenAudio/qwen-audio-agent/releases/latest) and open the app.
+1. Download an installer from the [release page](https://github.com/TokenBeat/side-audio-bot/releases/latest) and open the app.
 2. The first launch creates `config.env`. Open Settings and enter credentials for your voice frontend.
    For the default DashScope service, Settings links to the Bailian API Key page.
 3. Select a Backend Agent, or start in frontend-only mode. Installed Agents reuse their authentication
@@ -44,7 +44,7 @@ and pending announcements continue after waking.
 
 Wake it from the menu bar or show shortcut. The macOS default is `⇧⌘ Space`; view or change the
 actual binding in Settings. If wake-word detection is enabled, the microphone is used only for local
-keyword detection during sleep. Say “你好千问” to wake it. The first enable downloads and verifies
+keyword detection during sleep. Say “你好煤球” to wake it. The first enable downloads and verifies
 an approximately 33 MB [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) model, then reuses its cache.
 Detection runs in an isolated Desktop worker; wake-word audio is not uploaded.
 

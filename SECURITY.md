@@ -9,7 +9,7 @@
 请不要公开提交包含利用细节、用户数据或密钥的 Issue。优先使用 GitHub 仓库的
 **Security → Report a vulnerability** 私密报告功能：
 
-https://github.com/QwenAudio/qwen-audio-agent/security/advisories/new
+https://github.com/TokenBeat/side-audio-bot/security/advisories/new
 
 报告请包含受影响版本、复现条件、潜在影响和可行的缓解方式。维护者确认并准备好
 修复前，请避免公开漏洞细节。
@@ -21,7 +21,7 @@ https://github.com/QwenAudio/qwen-audio-agent/security/advisories/new
 - 网络可达不等于获得授权。远程客户端需要独立的设备配对凭据或访问 Token；
   设备凭据可撤销，连接码不得公开分享。自建代理还需正确转发 WebSocket、Host
   与转发头，并配置允许的浏览器 Origin，详见[远程连接与配对](docs/operations/remote-access.zh.md)。
-- `QWEN_AUDIO_AGENT_AUTH_SECRET` 是身份签名密钥，不是远程访问密码。
+- `SIDE_AUDIO_BOT_AUTH_SECRET` 是身份签名密钥，不是远程访问密码。
 - API Key、用户档案、记忆和任务状态必须留在用户配置目录，不得提交到仓库。
 - 从不受信任来源获得的 Agent 输出、Markdown、URL 和媒体都应视为不可信数据。
 

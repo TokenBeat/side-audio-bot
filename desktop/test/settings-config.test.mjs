@@ -94,8 +94,8 @@ test('reads desktop-owned settings with friendly defaults', () => {
 
 test('shows effective client settings when user config is empty', () => {
   assert.deepEqual(parseSettings('', {
-    QWEN_AUDIO_AGENT_URL: 'http://127.0.0.1:3200',
-    QWEN_AUDIO_ORB_STYLE: 'goo',
+    SIDE_AUDIO_BOT_URL: 'http://127.0.0.1:3200',
+    SIDE_AUDIO_ORB_STYLE: 'goo',
     DASHSCOPE_API_KEY: 'sk-from-env',
   }), {
     gatewayUrl: 'http://127.0.0.1:3200',
@@ -154,7 +154,7 @@ test('updates client settings without changing Gateway-owned configuration', () 
     'DASHSCOPE_API_KEY=secret',
     'QWEN_AUDIO_REALTIME_MODEL=realtime-model',
     'AGENT_PROTOCOL=qoder',
-    'QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=full',
+    'SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=full',
     '',
   ].join('\n'), {
     gatewayUrl: 'http://127.0.0.1:3200',
@@ -166,9 +166,9 @@ test('updates client settings without changing Gateway-owned configuration', () 
   assert.match(content, /DASHSCOPE_API_KEY=secret/)
   assert.match(content, /QWEN_AUDIO_REALTIME_MODEL=realtime-model/)
   assert.match(content, /AGENT_PROTOCOL=qoder/)
-  assert.match(content, /QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=full/)
-  assert.match(content, /QWEN_AUDIO_AGENT_URL=http:\/\/127\.0\.0\.1:3200/)
-  assert.match(content, /QWEN_AUDIO_ORB_STYLE=goo/)
+  assert.match(content, /SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=full/)
+  assert.match(content, /SIDE_AUDIO_BOT_URL=http:\/\/127\.0\.0\.1:3200/)
+  assert.match(content, /SIDE_AUDIO_ORB_STYLE=goo/)
   assert.deepEqual(parseSettings(content), {
     gatewayUrl: 'http://127.0.0.1:3200',
     orbStyle: 'goo',
@@ -193,14 +193,14 @@ test('updates client settings without changing Gateway-owned configuration', () 
 test('updates the DashScope key without touching other settings', () => {
   const content = updateSettingsContent([
     'DASHSCOPE_API_KEY=old-secret',
-    'QWEN_AUDIO_AGENT_URL=http://127.0.0.1:3200',
+    'SIDE_AUDIO_BOT_URL=http://127.0.0.1:3200',
     '',
   ].join('\n'), {
     dashscopeApiKey: 'sk-new',
   })
 
   assert.match(content, /DASHSCOPE_API_KEY=sk-new/)
-  assert.match(content, /QWEN_AUDIO_AGENT_URL=http:\/\/127\.0\.0\.1:3200/)
+  assert.match(content, /SIDE_AUDIO_BOT_URL=http:\/\/127\.0\.0\.1:3200/)
   assert.doesNotMatch(content, /old-secret/)
 })
 
@@ -252,12 +252,12 @@ test('an explicitly empty key and backend override stale process values', () => 
 })
 
 test('reads, normalizes, and persists the desktop language', () => {
-  assert.equal(parseSettings('QWEN_AUDIO_DESKTOP_LANGUAGE=en\n').language, 'en')
-  assert.equal(parseSettings('QWEN_AUDIO_DESKTOP_LANGUAGE=zh-TW\n').language, 'zh-CN')
-  assert.equal(parseSettings('QWEN_AUDIO_DESKTOP_LANGUAGE=invalid\n').language, 'auto')
+  assert.equal(parseSettings('SIDE_AUDIO_DESKTOP_LANGUAGE=en\n').language, 'en')
+  assert.equal(parseSettings('SIDE_AUDIO_DESKTOP_LANGUAGE=zh-TW\n').language, 'zh-CN')
+  assert.equal(parseSettings('SIDE_AUDIO_DESKTOP_LANGUAGE=invalid\n').language, 'auto')
   assert.match(
     updateSettingsContent('', { language: 'en' }),
-    /QWEN_AUDIO_DESKTOP_LANGUAGE=en/,
+    /SIDE_AUDIO_DESKTOP_LANGUAGE=en/,
   )
 })
 
@@ -276,45 +276,45 @@ test('updates the selected backend while preserving unrelated configuration', ()
 
 test('reads, updates, and disables desktop auto hide', () => {
   const content = updateSettingsContent('', { autoHideSeconds: 300 })
-  assert.match(content, /QWEN_AUDIO_DESKTOP_AUTO_HIDE_SECONDS=300/)
+  assert.match(content, /SIDE_AUDIO_DESKTOP_AUTO_HIDE_SECONDS=300/)
   assert.equal(parseSettings(content).autoHideSeconds, 300)
   assert.equal(parseSettings(
-    'QWEN_AUDIO_DESKTOP_AUTO_HIDE_SECONDS=0\n',
+    'SIDE_AUDIO_DESKTOP_AUTO_HIDE_SECONDS=0\n',
   ).autoHideSeconds, 0)
   assert.equal(parseSettings(
-    'QWEN_AUDIO_DESKTOP_AUTO_HIDE_SECONDS=5\n',
+    'SIDE_AUDIO_DESKTOP_AUTO_HIDE_SECONDS=5\n',
   ).autoHideSeconds, 60)
   assert.equal(parseSettings(
-    'QWEN_AUDIO_DESKTOP_AUTO_SLEEP_SECONDS=300\n',
+    'SIDE_AUDIO_DESKTOP_AUTO_SLEEP_SECONDS=300\n',
   ).autoHideSeconds, 300)
 })
 
 test('reads, updates, and falls back the orb skin selection', () => {
-  // 新配置：QWEN_AUDIO_ORB_SKIN 直接生效，写回不碰旧 orbStyle 行。
+  // 新配置：SIDE_AUDIO_ORB_SKIN 直接生效，写回不碰旧 orbStyle 行。
   const content = updateSettingsContent(
-    'QWEN_AUDIO_ORB_STYLE=goo\n',
+    'SIDE_AUDIO_ORB_STYLE=goo\n',
     { orbSkin: 'firefly--lingxiaotian' },
   )
-  assert.match(content, /QWEN_AUDIO_ORB_SKIN=firefly--lingxiaotian/)
-  assert.match(content, /QWEN_AUDIO_ORB_STYLE=goo/)
+  assert.match(content, /SIDE_AUDIO_ORB_SKIN=firefly--lingxiaotian/)
+  assert.match(content, /SIDE_AUDIO_ORB_STYLE=goo/)
   assert.equal(parseSettings(content).orbSkin, 'firefly--lingxiaotian')
 
   // 旧配置只有 orbStyle 时收敛为 orbSkin。
-  assert.equal(parseSettings('QWEN_AUDIO_ORB_STYLE=goo\n').orbSkin, 'goo')
+  assert.equal(parseSettings('SIDE_AUDIO_ORB_STYLE=goo\n').orbSkin, 'goo')
 
   // 非法 id 回退 fluid；空值回退 orbStyle。
   assert.equal(
-    parseSettings('QWEN_AUDIO_ORB_SKIN=../escape\n').orbSkin,
+    parseSettings('SIDE_AUDIO_ORB_SKIN=../escape\n').orbSkin,
     'fluid',
   )
   assert.equal(parseSettings([
-    'QWEN_AUDIO_ORB_SKIN=',
-    'QWEN_AUDIO_ORB_STYLE=goo',
+    'SIDE_AUDIO_ORB_SKIN=',
+    'SIDE_AUDIO_ORB_STYLE=goo',
     '',
   ].join('\n')).orbSkin, 'goo')
   assert.match(
     updateSettingsContent('', { orbSkin: 'bad id!' }),
-    /QWEN_AUDIO_ORB_SKIN=fluid\n$/,
+    /SIDE_AUDIO_ORB_SKIN=fluid\n$/,
   )
 })
 
@@ -324,7 +324,7 @@ test('reads and updates a supported desktop wake shortcut', () => {
   })
   assert.match(
     content,
-    /QWEN_AUDIO_DESKTOP_WAKE_SHORTCUT=CommandOrControl\+Alt\+Space/,
+    /SIDE_AUDIO_DESKTOP_WAKE_SHORTCUT=CommandOrControl\+Alt\+Space/,
   )
   assert.equal(
     parseSettings(content).wakeShortcut,
@@ -332,28 +332,28 @@ test('reads and updates a supported desktop wake shortcut', () => {
   )
   assert.equal(
     parseSettings(
-      'QWEN_AUDIO_DESKTOP_WAKE_SHORTCUT=CommandOrControl+Alt+Shift+J\n',
+      'SIDE_AUDIO_DESKTOP_WAKE_SHORTCUT=CommandOrControl+Alt+Shift+J\n',
     ).wakeShortcut,
     'CommandOrControl+Alt+Shift+J',
   )
   assert.equal(
-    parseSettings('QWEN_AUDIO_DESKTOP_WAKE_SHORTCUT=F13\n').wakeShortcut,
+    parseSettings('SIDE_AUDIO_DESKTOP_WAKE_SHORTCUT=F13\n').wakeShortcut,
     'F13',
   )
   assert.equal(
-    parseSettings('QWEN_AUDIO_DESKTOP_WAKE_SHORTCUT=invalid\n').wakeShortcut,
+    parseSettings('SIDE_AUDIO_DESKTOP_WAKE_SHORTCUT=invalid\n').wakeShortcut,
     'CommandOrControl+Shift+Space',
   )
   assert.equal(
     parseSettings(
-      'QWEN_AUDIO_DESKTOP_WAKE_SHORTCUT=CommandOrControl+Space\n',
+      'SIDE_AUDIO_DESKTOP_WAKE_SHORTCUT=CommandOrControl+Space\n',
     ).wakeShortcut,
     'CommandOrControl+Shift+Space',
   )
 })
 
 test('writes provider-owned endpoint, model and both voices and clears a backend model', () => {
-  const content = updateSettingsContent('QWEN_AUDIO_AGENT_BACKEND_MODEL=old\n', {
+  const content = updateSettingsContent('SIDE_AUDIO_BOT_BACKEND_MODEL=old\n', {
     realtimeBaseUrl: 'wss://voice.example.test/v1/realtime',
     realtimeModel: 'qwen-audio-3.0-realtime-plus',
     audioRealtimeVoice: 'custom-voice', omniRealtimeVoice: 'custom-omni',
@@ -366,7 +366,7 @@ test('writes provider-owned endpoint, model and both voices and clears a backend
   assert.equal(settings.omniRealtimeVoice, 'custom-omni')
   assert.equal(settings.backendModel, '')
   assert.match(content, /QWEN_AUDIO_REALTIME_BASE_URL=/)
-  assert.match(content, /^QWEN_AUDIO_AGENT_BACKEND_MODEL=$/m)
+  assert.match(content, /^SIDE_AUDIO_BOT_BACKEND_MODEL=$/m)
 })
 
 test('imports legacy provider settings without sharing their endpoints or credentials', () => {
@@ -618,7 +618,7 @@ test('desktop settings expose external backend connection controls', () => {
 test('reads and updates an external OpenClaw connection', () => {
   const settings = parseSettings([
     'AGENT_PROTOCOL=openclaw',
-    'QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP=external',
+    'SIDE_AUDIO_BOT_BACKEND_OWNERSHIP=external',
     'OPENCLAW_BASE_URL=wss://openclaw.example.test',
     'OPENCLAW_GATEWAY_TOKEN=private-token',
     '',
@@ -634,7 +634,7 @@ test('reads and updates an external OpenClaw connection', () => {
     backendUrl: 'https://openclaw.example.test/',
     backendCredential: 'new-token',
   })
-  assert.match(content, /QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP=external/)
+  assert.match(content, /SIDE_AUDIO_BOT_BACKEND_OWNERSHIP=external/)
   assert.match(content, /OPENCLAW_BASE_URL=https:\/\/openclaw\.example\.test/)
   assert.match(content, /OPENCLAW_GATEWAY_TOKEN=new-token/)
 })
@@ -672,9 +672,9 @@ test('applies a saved settings patch to the live environment', () => {
 })
 
 test('a cleared setting releases its environment slot', () => {
-  const env = { QWEN_AUDIO_AGENT_BACKEND_MODEL: 'pinned-model' }
+  const env = { SIDE_AUDIO_BOT_BACKEND_MODEL: 'pinned-model' }
   applySettingsEnvironment({ backendModel: '' }, env)
-  assert.equal('QWEN_AUDIO_AGENT_BACKEND_MODEL' in env, false)
+  assert.equal('SIDE_AUDIO_BOT_BACKEND_MODEL' in env, false)
 })
 
 test('saved settings preserve literal backslashes, quotes and comment characters', () => {

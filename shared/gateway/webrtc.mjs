@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url'
 
 const requireGateway = createRequire(new URL('../../package.json', import.meta.url))
 const developmentManifest = fileURLToPath(new URL('../../packages/webrtc/package.json', import.meta.url))
-const extensionName = 'qwen-audio-agent-webrtc'
+const extensionName = 'side-audio-bot-webrtc'
 const apiVersion = 1
-const installHint = 'Install qwen-audio-agent-webrtc alongside qwen-audio-agent: npm install -g qwen-audio-agent-webrtc. Source checkout: npm run example:webrtc:install.'
+const installHint = 'Install side-audio-bot-webrtc alongside side-audio-bot: npm install -g side-audio-bot-webrtc. Source checkout: npm run example:webrtc:install.'
 
 function extensionError(code, message, cause) {
   return Object.assign(new Error(message, { cause }), { code })
@@ -37,7 +37,7 @@ export function requireWebRtcDependencies({
   } catch (error) {
     throw extensionError('webrtc_extension_invalid', `Cannot read ${extensionName}/package.json. ${installHint}`, error)
   }
-  if (manifest?.name !== extensionName || manifest.qwaudioWebrtcApiVersion !== apiVersion) {
+  if (manifest?.name !== extensionName || manifest.sideaudioWebrtcApiVersion !== apiVersion) {
     throw extensionError('webrtc_extension_incompatible', `Incompatible ${extensionName}: Gateway requires extension API ${apiVersion}. Update the Gateway and extension together.`)
   }
 

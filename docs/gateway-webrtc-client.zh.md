@@ -13,12 +13,12 @@
 
 ## 启动
 
-完整演示与安装指导见 [examples/webrtc](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/webrtc/README_ZH.md)。
+完整演示与安装指导见 [examples/webrtc](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/webrtc/README_ZH.md)。
 正式版将使用独立扩展包（尚未发布）：
 
 ```sh
-npm install -g qwen-audio-agent qwen-audio-agent-webrtc
-qwenaudio gateway --webrtc
+npm install -g side-audio-bot side-audio-bot-webrtc
+sideaudio gateway --webrtc
 ```
 
 两个包应使用同一个 npm 安装目录。扩展只携带媒体依赖，不会自动开启 WebRTC。
@@ -33,12 +33,12 @@ npm run example:webrtc
 ```
 
 示例命令会为当前进程开启 WebRTC 并选择对应模型，不修改持久配置。
-CLI 可用 `qwenaudio gateway --webrtc` 开启同一个入口；先安装依赖并配置 Audio/Omni 模型。
-常驻服务使用 `qwenaudio gateway install --webrtc`，之后正常 start/restart。
+CLI 可用 `sideaudio gateway --webrtc` 开启同一个入口；先安装依赖并配置 Audio/Omni 模型。
+常驻服务使用 `sideaudio gateway install --webrtc`，之后正常 start/restart。
 已有的百炼 Key、Workspace 配置继续使用。也可以不用示例启动脚本，手动测试 Audio：
 
 ```sh
-QWAUDIO_WEBRTC_ENABLED=1 \
+SIDEAUDIO_WEBRTC_ENABLED=1 \
 QWEN_AUDIO_REALTIME_PROVIDER=dashscope \
 QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-plus \
 npm run start --workspace server
@@ -59,7 +59,7 @@ http://127.0.0.1:3101/api/realtime/webrtc/example
 示例页面及其 JavaScript 本身也受网关认证保护。
 
 关闭开关（默认）时没有 WebRTC 路由，不加载 native addon，也不创建媒体定时器。
-原生媒体依赖由 `qwen-audio-agent-webrtc` 管理；源码开发时安装在 `packages/webrtc` 中。
+原生媒体依赖由 `side-audio-bot-webrtc` 管理；源码开发时安装在 `packages/webrtc` 中。
 主 npm 包不包含扩展实现、原生依赖或示例中的私有 `.env`。
 开启 WebRTC 后两个客户端入口同时存在，不是把 WSS 切换掉；上游连接仍为 WSS。
 
@@ -166,15 +166,15 @@ await pc.setRemoteDescription({ type: 'answer', sdp: await response.text() })
 网关投影的用户转录使用相同事件名称，但不保证供应商原始 item ID。
 `response.audio_transcript.*` 是网关呈现文本，不承诺其来源一定是原始 TTS 转录。
 
-其他网关事件用 `{"type":"qwaudio.event","event":{...原有网关事件...}}` 包装。
-任务、权限、历史等 GCP 控制可用 `qwaudio.command` 的 `event` 字段发送原有受支持命令。
+其他网关事件用 `{"type":"sideaudio.event","event":{...原有网关事件...}}` 包装。
+任务、权限、历史等 GCP 控制可用 `sideaudio.command` 的 `event` 字段发送原有受支持命令。
 权限、owner 校验与能力协商仍在现有运行时执行，不把命令直接转发给供应商。
 
-客户端动作沿用 GCP：`client.action.request` 放在 `qwaudio.event` 中下发，
-`client.action.result` 通过 `qwaudio.command` 回传，保留 `request_event_id`。
+客户端动作沿用 GCP：`client.action.request` 放在 `sideaudio.event` 中下发，
+`client.action.result` 通过 `sideaudio.command` 回传，保留 `request_event_id`。
 `client.event.publish` 也通过同一命令通道发送，不另建 WebSocket 会话。
 
-截图等较大入站 JSON 可使用 `qwaudio.transport.chunk` 分片：
+截图等较大入站 JSON 可使用 `sideaudio.transport.chunk` 分片：
 `{type, id, index, total, data}`，其中 `index` 从 0 连续递增，`data` 为 JSON 文本片段。
 每片最多 8,192 个 UTF-16 代码单元，单帧最多 64 KiB，重组后最多 512 KiB；
 同一连接仅允许一个待重组消息，5 秒超时后丢弃，不接受嵌套分片。
@@ -186,10 +186,10 @@ await pc.setRemoteDescription({ type: 'answer', sdp: await response.text() })
 
 生成结束、服务器发完 RTP 与客户端真正播放完成是三件不同的事。
 
-- `qwaudio.output.started`：开始向 RTP 输出该响应，不代表客户端已经听到。
-- `qwaudio.output.drained`：该响应的服务器发送队列已排空，不代表浏览器抖动缓冲已排空。
-- 客户端实际开始播放后发送 `qwaudio.playback.started`，带 `response_id`。
-- 客户端实际播完/取消后发送 `qwaudio.playback.ended` / `qwaudio.playback.cancelled`。
+- `sideaudio.output.started`：开始向 RTP 输出该响应，不代表客户端已经听到。
+- `sideaudio.output.drained`：该响应的服务器发送队列已排空，不代表浏览器抖动缓冲已排空。
+- 客户端实际开始播放后发送 `sideaudio.playback.started`，带 `response_id`。
+- 客户端实际播完/取消后发送 `sideaudio.playback.ended` / `sideaudio.playback.cancelled`。
 - 播放回执用于现有转录呈现、历史落账、任务通知等；服务端不会伪造回执。
 
 预览页根据音频元素播放状态和接收端音量检测估计回执，也提供“确认已听完”按钮。
@@ -213,9 +213,9 @@ await pc.setRemoteDescription({ type: 'answer', sdp: await response.text() })
 可选环境变量：
 
 ```sh
-QWAUDIO_WEBRTC_ENABLED=1
-QWAUDIO_WEBRTC_ICE_SERVERS='[{"urls":"turn:turn.example.com:3478","username":"short-lived-user","credential":"short-lived-credential"}]'
-QWAUDIO_WEBRTC_ICE_TRANSPORT_POLICY=all
+SIDEAUDIO_WEBRTC_ENABLED=1
+SIDEAUDIO_WEBRTC_ICE_SERVERS='[{"urls":"turn:turn.example.com:3478","username":"short-lived-user","credential":"short-lived-credential"}]'
+SIDEAUDIO_WEBRTC_ICE_TRANSPORT_POLICY=all
 ```
 
 当前静态 ICE 配置会分享给已认证客户端，不要使用长期高权限 TURN 凭证。
@@ -226,7 +226,7 @@ QWAUDIO_WEBRTC_ICE_TRANSPORT_POLICY=all
 ```sh
 node --test server/test/webrtc.test.mjs server/test/webrtc-transport-regressions.test.mjs server/test/webrtc-media-process.test.mjs server/test/gateway-client-handshake.test.mjs server/test/gateway-application.test.mjs
 npx playwright install chromium
-QWAUDIO_TEST_WEBRTC_NATIVE=1 node --test server/test/webrtc-native.test.mjs
+SIDEAUDIO_TEST_WEBRTC_NATIVE=1 node --test server/test/webrtc-native.test.mjs
 ```
 
 默认测试不要求 native addon。原生测试使用 Playwright Chromium 打开实际调试页，

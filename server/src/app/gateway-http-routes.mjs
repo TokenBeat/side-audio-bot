@@ -256,8 +256,8 @@ export function registerGatewayHttpRoutes(app, {
       // Contract surface: clients branch on a capability, not a product version.
       protocolVersion: GATEWAY_PROTOCOL_VERSION,
       capabilities: GATEWAY_CAPABILITIES,
-      gatewayInstanceId: process.env.QWEN_AUDIO_GATEWAY_INSTANCE_ID || null,
-      gatewayStartedAt: process.env.QWEN_AUDIO_GATEWAY_STARTED_AT || null,
+      gatewayInstanceId: process.env.SIDE_AUDIO_GATEWAY_INSTANCE_ID || null,
+      gatewayStartedAt: process.env.SIDE_AUDIO_GATEWAY_STARTED_AT || null,
       publicEndpoint: publicEndpointRuntime?.status?.() || {
         mode: 'none',
         state: 'disabled',
@@ -338,7 +338,7 @@ export function registerGatewayHttpRoutes(app, {
         ttlMs: req.body?.ttlMs,
       }))
     } catch (error) {
-      if (error?.code === 'QWAUDIO_INPUT_OWNER_REQUIRED') {
+      if (error?.code === 'SIDEAUDIO_INPUT_OWNER_REQUIRED') {
         return res.status(400).json({ error: error.message, code: error.code })
       }
       throw error

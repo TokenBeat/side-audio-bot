@@ -1,14 +1,14 @@
-# qwen-audio-agent 架构
+# side-audio-bot 架构
 
 本文档定义产品边界。违反这些不变性的变更属于架构变更，而非局部功能开发。
 
 历史重构计划见
-[Realtime Voice Chatbot Runtime Roadmap](https://github.com/QwenAudio/qwen-audio-agent/blob/main/docs/roadmap/frontend-chatbot-runtime.zh.md)。
+[Realtime Voice Chatbot Runtime Roadmap](https://github.com/TokenBeat/side-audio-bot/blob/main/docs/roadmap/frontend-chatbot-runtime.zh.md)。
 本文描述当前已实现并受测试保护的运行时行为；概念与部署关系见[架构总览](overview.zh.md)。
 
 ## 1. 用户可见模型
 
-用户与一个 qwen-audio 助手对话。逻辑架构由三个核心组件组成：
+用户与一个 side-audio 助手对话。逻辑架构由三个核心组件组成：
 
 1. **前台 Agent** — 通过实时模型、提示词、上下文和工具进行自然交流，处理对话及轻量工具请求。
 2. **编排运行时（Orchestration Runtime）** — 管理任务、权限、会话和事件，调度后台执行与结果投递，不增加一个负责推理的协调 Agent。
@@ -21,7 +21,7 @@ Gateway 是承载这些能力的服务化运行形态，负责应用装配与网
 后端可以是 OpenCode、OpenClaw、Qoder、Qwen Code、MiniMax Code、Kimi Code、Pi 等 ACP Agent，
 也可以是远程 A2A Agent 或自定义 BackendPort Adapter。
 它内部可以使用工具、技能、Agent 或其他 Session。这些都是后端私有实现细节，
-不会创建额外的 qwen-audio-agent 层。ACP、A2A 或自定义协议细节只存在于各自
+不会创建额外的 side-audio-bot 层。ACP、A2A 或自定义协议细节只存在于各自
 BackendPort Adapter 内；后端特定的启动和能力行为位于已注册的驱动程序中。
 
 ## 2. 非阻塞请求流
@@ -159,7 +159,7 @@ Gateway/BackendPort 的结构化数据，不进入后台 Agent 的任务指令�
 ACP 适配器为每个 owner 和后端拥有一个持久协调器 Session 身份：
 
 ```text
-qwen-audio-agent:<owner>:backend
+side-audio-bot:<owner>:backend
 ```
 
 Gateway 在该稳定键之后存储原生 ACP Session ID，并在后续轮次调用
@@ -172,13 +172,13 @@ Gateway 在该稳定键之后存储原生 ACP Session ID，并在后续轮次调
 Gateway 队列和 ACP 适配器都对写入进行串行化。这种双重保护防止并发消息在一个
 后端 Session 内部发生竞争。
 
-后端 Agent 拥有自己的执行策略。qwen-audio-agent 只提供一条自包含自然任务指令和
+后端 Agent 拥有自己的执行策略。side-audio-bot 只提供一条自包含自然任务指令和
 当前轮次的协议原生附件；它不转发前台历史或偏好，不规定状态 JSON，也不指导后端
 Agent 如何使用后端特定能力。
 
 ## 5. Task 状态
 
-qwen-audio-agent Task 记录是交付回执，而非后端内部任务图的镜像。
+side-audio-bot Task 记录是交付回执，而非后端内部任务图的镜像。
 
 ```text
 queued → running ─────────────────────────→ completed
@@ -317,7 +317,7 @@ UI 仅消费公共 Task 与对话事件。包级别的 `shared` 模块是基础�
 具体 Provider 跟随所属功能模块。
 依赖测试区分模块核心与具体适配器：文件聚合不代表运行时可以导入具体 Provider，
 也不代表前台工具可以导入 Realtime 或后台 Adapter。内部文件移动时，公共包导出
-名称保持不变。详见[源码导航](https://github.com/QwenAudio/qwen-audio-agent/blob/main/server/src/README.md)。
+名称保持不变。详见[源码导航](https://github.com/TokenBeat/side-audio-bot/blob/main/server/src/README.md)。
 
 裁剪记忆或知识库时，删除模块目录，并取消 `app/optional-modules.mjs` 与
 `frontend/optional-features.mjs` 中对应的 import 和数组项；运行时服务、工具、路由和
@@ -357,7 +357,7 @@ BackendWorkRuntime 只负责把执行请求转换为 BackendPort 调用，系统
 前台工具调用、订阅和投递领取；迟到的模型回调不能创建新工作。显式任务取消仍由
 TaskOperations 处理。`app/` 仍是组合根，不新增服务、线上协议或共享模型会话。
 
-[#477](https://github.com/QwenAudio/qwen-audio-agent/issues/477) 的三个增量均直接测试生产中的
+[#477](https://github.com/TokenBeat/side-audio-bot/issues/477) 的三个增量均直接测试生产中的
 任务操作、协调器和前台运行时，只模拟模型与后台边界，不依赖网络。已有 WebSocket 和
 WebRTC 集成测试则验证传输层如何接入同一套运行时。
 
@@ -397,7 +397,7 @@ Session 生命周期代码。声明外部后台服务，并不意味着 ACP 连�
 能力，缺失或互相矛盾时在启动阶段直接拒绝。后台子进程只接收跨平台运行所需的系统
 变量和当前 Plugin 声明的凭证命名空间，Gateway 身份、Realtime、Memory 以及其他
 后台的密钥不会跨过该边界。通用 ACP 命令如确有需要，可通过
-`QWEN_AUDIO_AGENT_ACP_FORWARD_ENV` 显式列出额外变量名。
+`SIDE_AUDIO_BOT_ACP_FORWARD_ENV` 显式列出额外变量名。
 
 HTTP/WebSocket 应用由可注入的组合根构造。导入应用工厂不会监听端口；CLI 和桌面版
 使用轻量 bootstrap，而测试及未来客户端可以注入彼此隔离的 Agent、任务、会话、
@@ -415,7 +415,7 @@ OpenClaw 使用一个小型 ACP bridge。未显式配置地址时，Gateway 启�
 OpenClaw Gateway。外部连接不使用面向本地启动的短时端口探测，而由 bridge 报告实际的
 网络、TLS 和认证结果。本地 bridge 退出只会中断 ACP 连接，不会触碰远程 Gateway。
 
-Codex 也遵循同一边界：qwen-audio-agent 通过 ACP stdio 启动 `codex-acp`，该适配器再
+Codex 也遵循同一边界：side-audio-bot 通过 ACP stdio 启动 `codex-acp`，该适配器再
 通过自己的本地 stdio 协议启动 Codex App Server。Codex App Server 可以提供其他传输，
 但它们不是远程 ACP 端点，不应泄漏进共享 ACP 适配层。
 

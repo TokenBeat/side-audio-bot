@@ -219,7 +219,7 @@ test('页面声明了语音能力，且客户选择器有自己的样式', () =>
   assert.ok(!html.includes("el('div', 'surface-toggle')"),
     '客户选择器不能再用 client 里没有定义的 surface-toggle 类')
   assert.match(html, /\.picker span \{/)
-  // 【客户页不展示出口审计】维护者在 PR QwenAudio#301 明确提出：客户页不该
+  // 【客户页不展示出口审计】维护者在 PR SideAudio#301 明确提出：客户页不该
   // 出现工具调用、审批令牌、内部审计这类信息。出口审计原先会给每轮客服的话
   // 标一条「违规」红标（.turn.violation / .audit-flag），还会误报客服照实说出
   // 的真实金额 —— 客户根本看不懂，也不该看到。审计能力保留在后端
@@ -229,7 +229,7 @@ test('页面声明了语音能力，且客户选择器有自己的样式', () =>
     '客户页仍在请求 /api/service/audit')
   assert.ok(!html.includes('audit-flag') && !html.includes('turn.violation'),
     '客户页仍残留违规红标的样式或类')
-  // 【客户页不能有文字输入框】维护者在 PR QwenAudio#301 明确提出：客户打电话
+  // 【客户页不能有文字输入框】维护者在 PR SideAudio#301 明确提出：客户打电话
   // 不会打字，留着输入框会让演示走上"打字也能办成"的岔路。
   assert.ok(!html.includes('id="say"'), '客户页仍然有文字输入框')
   assert.ok(!html.includes("type: 'text.message'"), '客户页仍然能发文字消息')

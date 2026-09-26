@@ -1,6 +1,6 @@
 # LightRAG Knowledge Base
 
-qwen-audio-agent can use an independently operated
+side-audio-bot can use an independently operated
 [LightRAG](https://github.com/HKUDS/LightRAG) instance as frontend knowledge. LightRAG owns
 document parsing, embeddings, indexing, and retrieval; the Gateway calls it only through the
 `KnowledgeProvider` boundary.
@@ -47,7 +47,7 @@ lightrag-server --host 127.0.0.1 --port 9621
 
 ## Run the integration example
 
-From a qwen-audio-agent source checkout:
+From a side-audio-bot source checkout:
 
 ```bash
 cp examples/lightrag/.env.example examples/lightrag/.env.local
@@ -74,7 +74,7 @@ then query it by voice or text. This isolated example uses frontend-only mode an
 a backend Agent.
 
 `DASHSCOPE_API_KEY` belongs only to the voice frontend. LightRAG keeps its LLM and embedding
-configuration in its own process. qwen-audio-agent does not install, start, or modify LightRAG.
+configuration in its own process. side-audio-bot does not install, start, or modify LightRAG.
 
 ## Data and task boundaries
 
@@ -86,7 +86,7 @@ configuration in its own process. qwen-audio-agent does not install, start, or m
   that could affect other documents.
 - Users remain responsible for LightRAG documents, indexes, credentials, and workspace storage.
 
-See [`examples/lightrag`](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/lightrag)
+See [`examples/lightrag`](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/lightrag)
 for the full code and configuration reference.
 
 ## Authors and acknowledgements

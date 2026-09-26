@@ -3,10 +3,10 @@
 A Realtime Provider adapts a realtime model service to the runtime; it is neither the client nor the Orchestration Runtime itself. A product host can inject a custom provider without changing shared session or backend-work logic. The example below assembles it through the Gateway application entry point.
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 import {
   createRealtimeProviderRegistry,
-} from 'qwen-audio-agent/realtime-provider'
+} from 'side-audio-bot/realtime-provider'
 import { privateRealtimeProvider } from './private-realtime-provider.mjs'
 
 const realtimeProviderRegistry = createRealtimeProviderRegistry({

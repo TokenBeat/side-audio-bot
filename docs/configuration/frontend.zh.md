@@ -2,13 +2,13 @@
 
 语音前台负责实时交流；后台 Agent 负责执行工作。二者可独立选择。
 
-本页配置写入 `qwenaudio config` 显示的 `config.env`。桌面版也可在“语音前台”设置中选择服务并填写凭据。
+本页配置写入 `sideaudio config` 显示的 `config.env`。桌面版也可在“语音前台”设置中选择服务并填写凭据。
 
 ## 选择服务
 
 | 服务 | Provider 值 | 必填或首次使用配置 | 使用说明 |
 | --- | --- | --- | --- |
-| Qwen Audio / Omni 3.5 / Omni 3.8 | `dashscope`（默认） | `DASHSCOPE_API_KEY`；Omni 3.8 还需将 `QWEN_AUDIO_REALTIME_BASE_URL` 设为业务空间专属地址 | [Audio 语音](../voice-frontends/qwen-audio-realtime.zh.md) / [Omni 视觉](../voice-frontends/qwen-omni-realtime.zh.md) |
+| Side Audio / Omni 3.5 / Omni 3.8 | `dashscope`（默认） | `DASHSCOPE_API_KEY`；Omni 3.8 还需将 `QWEN_AUDIO_REALTIME_BASE_URL` 设为业务空间专属地址 | [Audio 语音](../voice-frontends/qwen-audio-realtime.zh.md) / [Omni 视觉](../voice-frontends/qwen-omni-realtime.zh.md) |
 | StepAudio 3 | `stepfun` | `STEPFUN_API_KEY` | [StepFun](../voice-frontends/stepfun.zh.md) |
 | OpenAI Realtime | `gpt-live` | `OPENAI_API_KEY` | [GPT-Live](../voice-frontends/gpt-live.zh.md) |
 | Gemini Live | `google-live` | `GOOGLE_API_KEY` | [Google Live](../voice-frontends/google-live.zh.md) |
@@ -61,15 +61,15 @@ DashScope 当前内置以下模型档案：
 
 ## 应用并验证
 
-1. 桌面版修改后点击“应用”。终端 Gateway 退出后重新启动；已安装的后台服务执行 `qwenaudio gateway restart`。
+1. 桌面版修改后点击“应用”。终端 Gateway 退出后重新启动；已安装的后台服务执行 `sideaudio gateway restart`。
 2. 连接客户端，确认“语音前台”已连接。
 3. 说一句话，确认能听到回答。需要工具时，再测试搜索或一个简单后台请求。
 
 CLI 可查看当前配置及支持的模型：
 
 ```bash
-qwenaudio config show
-qwenaudio config set --realtime-model qwen-audio-3.0-realtime-flash
+sideaudio config show
+sideaudio config set --realtime-model qwen-audio-3.0-realtime-flash
 ```
 
 `config set` 修改当前 Provider 的模型，不切换 Provider，也不自动重启 Gateway。远程客户端沿用远端配置；不能通过本机配置切换远端模型。

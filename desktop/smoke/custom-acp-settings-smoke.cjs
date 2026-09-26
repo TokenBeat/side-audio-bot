@@ -34,7 +34,7 @@ module.exports = async function customAcpSettingsSmoke({ BrowserWindow, ipcMain 
     },
   }
   for (const [name, handler] of Object.entries(handlers)) {
-    ipcMain.handle(`qwen-audio-agent:${name}`, handler)
+    ipcMain.handle(`side-audio-bot:${name}`, handler)
   }
   const window = new BrowserWindow({
     show: false,
@@ -95,7 +95,7 @@ module.exports = async function customAcpSettingsSmoke({ BrowserWindow, ipcMain 
     assert.equal(parseEnv(readFileSync(configPath, 'utf8')).ACP_ARGS, args)
   } finally {
     window.destroy()
-    for (const name of Object.keys(handlers)) ipcMain.removeHandler(`qwen-audio-agent:${name}`)
+    for (const name of Object.keys(handlers)) ipcMain.removeHandler(`side-audio-bot:${name}`)
     rmSync(directory, { recursive: true, force: true })
   }
 }

@@ -2,13 +2,13 @@
 
 The voice frontend handles realtime conversation; the backend Agent executes work. You can choose them independently.
 
-Put these settings in the `config.env` shown by `qwenaudio config`, or select a service and enter credentials in Desktop's voice frontend settings.
+Put these settings in the `config.env` shown by `sideaudio config`, or select a service and enter credentials in Desktop's voice frontend settings.
 
 ## Choose a Service
 
 | Service | Provider value | Required configuration or preparation | Guide |
 | --- | --- | --- | --- |
-| Qwen Audio / Omni 3.5 / Omni 3.8 | `dashscope` (default) | `DASHSCOPE_API_KEY`; Omni 3.8 also requires a workspace-specific `QWEN_AUDIO_REALTIME_BASE_URL` | [Audio](../voice-frontends/qwen-audio-realtime.md) / [Omni vision](../voice-frontends/qwen-omni-realtime.md) |
+| Side Audio / Omni 3.5 / Omni 3.8 | `dashscope` (default) | `DASHSCOPE_API_KEY`; Omni 3.8 also requires a workspace-specific `QWEN_AUDIO_REALTIME_BASE_URL` | [Audio](../voice-frontends/qwen-audio-realtime.md) / [Omni vision](../voice-frontends/qwen-omni-realtime.md) |
 | StepAudio 3 | `stepfun` | `STEPFUN_API_KEY` | [StepFun](../voice-frontends/stepfun.md) |
 | OpenAI Realtime | `gpt-live` | `OPENAI_API_KEY` | [GPT-Live](../voice-frontends/gpt-live.md) |
 | Gemini Live | `google-live` | `GOOGLE_API_KEY` | [Google Live](../voice-frontends/google-live.md) |
@@ -61,15 +61,15 @@ All profiles support tool calls. Live vision also requires client and transport 
 
 ## Apply and Verify
 
-1. Click Apply in Desktop. For a terminal Gateway, stop and restart it. For an installed background service, run `qwenaudio gateway restart`.
+1. Click Apply in Desktop. For a terminal Gateway, stop and restart it. For an installed background service, run `sideaudio gateway restart`.
 2. Connect a client and check that the voice frontend is connected.
 3. Speak and confirm that audio plays. If you need tools, also test search or a simple backend request.
 
 To inspect the configured provider and supported models:
 
 ```bash
-qwenaudio config show
-qwenaudio config set --realtime-model qwen-audio-3.0-realtime-flash
+sideaudio config show
+sideaudio config set --realtime-model qwen-audio-3.0-realtime-flash
 ```
 
 `config set` changes the current provider's model; it neither switches providers nor restarts the Gateway. Remote clients use the remote Gateway's settings, not local model settings.

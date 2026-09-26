@@ -39,7 +39,7 @@ async function checkGateway(executable, archive) {
     env: {
       ...environment,
       ELECTRON_RUN_AS_NODE: '1',
-      QWAUDIO_CONFIG_DIR: configDirectory,
+      SIDEAUDIO_CONFIG_DIR: configDirectory,
       DASHSCOPE_API_KEY: 'sk-packaged-smoke-placeholder',
       AGENT_PROTOCOL: 'none',
       PORT: '0',
@@ -98,13 +98,13 @@ try {
       ? `mac${process.arch === 'x64' ? '' : `-${process.arch}`}`
       : `${process.platform === 'win32' ? 'win' : 'linux'}${process.arch === 'x64' ? '' : `-${process.arch}`}-unpacked`
     appDirectory = join(outputDirectory, platformDirectory,
-      ...(process.platform === 'darwin' ? ['Qwen Audio Agent.app'] : []))
+      ...(process.platform === 'darwin' ? ['Side Audio Bot.app'] : []))
   }
   const resources = process.platform === 'darwin'
     ? join(appDirectory, 'Contents/Resources') : join(appDirectory, 'resources')
   const executable = process.platform === 'darwin'
-    ? join(appDirectory, 'Contents/MacOS/Qwen Audio Agent')
-    : join(appDirectory, process.platform === 'win32' ? 'Qwen Audio Agent.exe' : 'qwen-audio-agent')
+    ? join(appDirectory, 'Contents/MacOS/Side Audio Bot')
+    : join(appDirectory, process.platform === 'win32' ? 'Side Audio Bot.exe' : 'side-audio-bot')
   const archive = join(resources, 'app.asar')
   const files = new Set(listPackage(archive).map(file => file.replaceAll('\\', '/')))
   for (const file of ['desktop/src/main.mjs', 'server/src/index.mjs', 'shared/runtime-paths.mjs', 'web/dist/index.html']) {

@@ -12,7 +12,7 @@ import {
   resolveRealtimeModelProfile,
 } from '../../shared/realtime-provider-catalog.mjs'
 
-export const GATEWAY_RESTART_FOLLOW_UP = '配置已更新；请执行 qwenaudio gateway restart 使 Gateway 使用新模型'
+export const GATEWAY_RESTART_FOLLOW_UP = '配置已更新；请执行 sideaudio gateway restart 使 Gateway 使用新模型'
 
 function configText(path) {
   try { return readFileSync(path, 'utf8') } catch (error) {

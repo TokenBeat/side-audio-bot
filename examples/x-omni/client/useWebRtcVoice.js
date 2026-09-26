@@ -27,7 +27,7 @@ export default function useWebRtcVoice({ sessionId, enabled, additionalCapabilit
         if (connection.current !== current) return
         if (event.type === 'error') setError(event.error?.message || 'WebRTC error')
         if (event.type === 'response.done' && event.response?.status === 'failed') setError('本次模型回复失败，请重试。')
-        if (event.type === 'qwaudio.event') {
+        if (event.type === 'sideaudio.event') {
           const item = event.event
           callbacks.current.onEvent?.(item)
           if (item.type === 'voice.state') setState(item.state)

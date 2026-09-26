@@ -12,7 +12,7 @@
 | 使用托管 API 长期记忆 | [Memcode](memcode.zh.md)。 |
 | 使用外部知识库 | [LightRAG](lightrag.zh.md)。 |
 | 多场景客服与人工坐席 | [客服语音助手](customer-service.zh.md)：零售与航空场景。 |
-| 评测前台与完整系统 | [Benchmark](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/benchmark)。 |
+| 评测前台与完整系统 | [Benchmark](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/benchmark)。 |
 
 ## 选择扩展位置
 

@@ -52,7 +52,7 @@ export class WebRtcConnection extends EventEmitter {
       modalities: ['text', 'audio'],
       voice: this.voice,
       turn_detection: this.provider.modelProfile?.()?.sessionDefaults?.turnDetection || null,
-      qwaudio: { transport: 'webrtc', video_input: this.video, protocol: '0.1', experimental: true },
+      sideaudio: { transport: 'webrtc', video_input: this.video, protocol: '0.1', experimental: true },
     }
   }
 
@@ -102,7 +102,7 @@ export class WebRtcConnection extends EventEmitter {
         const text = item.content.map(part => part.text).join('\n')
         if (!text.trim() || text.length > 16000) throw new Error('text must contain 1-16000 characters')
         this.pendingItem = { id: id(), type: 'message', role: 'user', content: item.content }
-        this.output({ type: 'conversation.item.created', item: this.pendingItem, qwaudio: { staged: true } })
+        this.output({ type: 'conversation.item.created', item: this.pendingItem, sideaudio: { staged: true } })
         return
       }
       if (event.type === 'response.create') {
@@ -120,12 +120,12 @@ export class WebRtcConnection extends EventEmitter {
         this.output({ type: 'output_audio_buffer.cleared' })
         return
       }
-      if (['qwaudio.playback.started', 'qwaudio.playback.ended', 'qwaudio.playback.cancelled'].includes(event.type)) {
+      if (['sideaudio.playback.started', 'sideaudio.playback.ended', 'sideaudio.playback.cancelled'].includes(event.type)) {
         if (typeof event.response_id !== 'string' || !event.response_id || event.response_id.length > 128) throw new Error('response_id required')
         this.input({ type: event.type.slice(8), responseId: event.response_id, reason: 'user_interruption' })
         return
       }
-      if (event.type === 'qwaudio.command' && isGatewayClientRuntimeMessage(event.event?.type)) {
+      if (event.type === 'sideaudio.command' && isGatewayClientRuntimeMessage(event.event?.type)) {
         this.input({ ...event.event, event_id: event.event.event_id || id() })
         return
       }
@@ -159,7 +159,7 @@ export class WebRtcConnection extends EventEmitter {
       this.updated()
     } else if (event.type === 'voice.connection') {
       if (['connecting', 'disconnected', 'unavailable'].includes(event.state)) this.ready = false
-      this.output({ type: 'qwaudio.event', event })
+      this.output({ type: 'sideaudio.event', event })
     } else if (event.type === 'session.output_voice.updated') {
       this.voice = event.voice
       if (!event.reconnecting) this.updated()
@@ -190,7 +190,7 @@ export class WebRtcConnection extends EventEmitter {
     } else {
       if (event.type === 'input.suspend') this.inputAllowed = false
       if (event.type === 'input.resume') this.inputAllowed = true
-      this.output({ type: 'qwaudio.event', event })
+      this.output({ type: 'sideaudio.event', event })
     }
   }
 
@@ -208,7 +208,7 @@ export class WebRtcConnection extends EventEmitter {
     this.closing = true
     this.messages.clear()
     try {
-      this.output({ type: 'qwaudio.connection.closed', code, reason })
+      this.output({ type: 'sideaudio.connection.closed', code, reason })
     } catch {
       // Closing notifications are best effort; cleanup must still run.
     }

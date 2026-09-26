@@ -3,7 +3,7 @@ import test from 'node:test'
 import {
   ClientEventDefinitionRegistry,
   GatewayEventRouter,
-} from 'qwen-audio-agent/client-events'
+} from 'side-audio-bot/client-events'
 import { config } from '../../../../server/src/core/config.mjs'
 import { buildFrontendToolContext } from '../../../../server/src/frontend/tools/frontend-tool-context.mjs'
 import { frontendSourceToolDefinitions } from '../../../../server/src/frontend/tools/frontend-tool-source.mjs'

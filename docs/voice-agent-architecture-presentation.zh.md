@@ -3,9 +3,9 @@ marp: true
 theme: default
 paginate: true
 size: 16:9
-title: qwen-audio-agent：面向持续对话与长时任务的语音 Agent 架构
+title: side-audio-bot：面向持续对话与长时任务的语音 Agent 架构
 description: 前后台协同、异步任务、独立执行、自然播报与长期记忆
-footer: qwen-audio-agent · Voice Agent Architecture
+footer: side-audio-bot · Voice Agent Architecture
 style: |
   section {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -258,7 +258,7 @@ style: |
 
 # 面向持续对话与长时任务的语音 Agent 架构
 
-## qwen-audio-agent 架构设计
+## side-audio-bot 架构设计
 
 低延迟对话 · 异步工作 · 独立执行 · 自然播报 · 长期记忆
 
@@ -266,11 +266,9 @@ style: |
 
 <!-- _class: diagram -->
 
-# 交互原理：实时语音与后台 Agent 协同
+# 系统总览：实时语音与后台 Agent 协同
 
-![前后台交互原理示意，省略编排运行时](./architecture-overview.png)
-
-此图只展示交互思路；图中的 Agent Runtime 指后台执行环境，不是框架的编排运行时。
+![前台与后台二级架构](./architecture-overview.png)
 
 <!--
 [Sources]
@@ -328,30 +326,28 @@ style: |
 
 ---
 
-# 前后台交互：ACP 接入示例
+<!-- _class: diagram -->
 
-| 环节 | 职责 |
-| --- | --- |
-| 前台 Agent | 理解请求，调用 `spawn_thinking`，继续与用户交流 |
-| 编排运行时 | 创建任务、管理权限和状态，通过 BackendPort 调用后台 |
-| ACP Adapter 与后台 Agent | 在协调 Session 中处理，或使用独立 Session 执行委派工作 |
-| 编排运行时与前台 Agent | 安排结果投递，由前台自然表达结果 |
+# 两级运行架构：实时前台与后台协调
 
-Gateway 承载运行时与模型接入；客户端只负责输入输出与环境交互。
+![三级架构的前两级](./side-audio-bot-architecture-en.png)
+
+<!--
+[Sources]
+- docs/side-audio-bot-architecture-en.png
+-->
 
 ---
 
-# 三个核心组件与实现职责
-
-**前台 Agent — 编排运行时 — 后台 Agent**。Gateway 是服务宿主，客户端负责 I/O；下表是实现职责，不是六个架构层。
+# 两级架构划分为六个职责域
 
 | 职责域 | 组件 | 架构职责 |
 | --- | --- | --- |
 | 实时对话 | Realtime Frontstage | 理解对话、决定直接回答或提交异步任务，承接后台结果 |
-| 语音控制 | 前台会话运行时 | 管理模型连接、回合、打断与播放；GCP 接入由独立传输层处理 |
+| 语音控制 | Realtime Gateway | 管理语音连接、回合、打断、Realtime 协议、响应关联与播放状态 |
 | 任务账本 | TaskManager | 记录任务是否排队、运行、完成或取消 |
-| 后台接入 | BackendPort / Adapter | 将 ACP、A2A 与自定义后台 Agent 归一为统一事件与状态 |
-| 持续协调 | ACP Coordinator Session | 后台的持久执行上下文，不是编排运行时；决定直接完成或继续委派 |
+| 协议适配 | Backend Adapter | 将不同后台 Agent 归一为统一事件与状态 |
+| 持续协调 | Coordinator Session | 维持用户上下文，决定直接完成或继续委派 |
 | 结果播报 | AnnouncementManager | 等到合适时机，再让前台自然说出结果 |
 
 **具体实现可以替换，职责边界必须保持稳定。**
@@ -386,7 +382,7 @@ Gateway 承载运行时与模型接入；客户端只负责输入输出与环境
   </div>
 </div>
 
-> <strong>编排运行时衔接前后台，Gateway 将这些能力作为服务提供：</strong> TaskManager 负责受理，后台 Agent 负责执行，播报模块负责结果交付。
+> <strong>Gateway 服务统一承载并编排任务链路：</strong> Realtime Gateway 维护语音交互状态；TaskManager、后台协调器与 AnnouncementManager 分别负责受理、执行和交付。
 
 ---
 
@@ -410,7 +406,7 @@ Gateway 承载运行时与模型接入；客户端只负责输入输出与环境
 ## 提交后台
 
 - 需要搜索、工具或文件
-- 通过 `spawn_thinking` 提交异步任务
+- 通过 `spawn_thinking` 提交异步 Work
 - 得到任务编号后结束本轮
 - 后台独立继续执行
 
@@ -422,47 +418,43 @@ Gateway 承载运行时与模型接入；客户端只负责输入输出与环境
 
 ---
 
-# 工具注册表，让前台能力保持可控
+# 工具白名单，让前台能力保持可控
 
 ```js
-export const frontendToolRegistry = new FrontendToolRegistry([
-  { definition: spawnThinkingTool, policy: { repeatHandling: 'handler' } },
-  { definition: scheduleReminderTool },
-  { definition: getCurrentTimeTool },
-  { definition: memoryTool },
-  { definition: notesTool },
-  { definition: cancelAgentTaskTool },
-  { definition: getAgentTaskStatusTool },
-  // 能力或客户端动作存在时才提供相应工具
-  { definition: webSearchTool,         policy: { requiredCapabilities: […] } },
-  { definition: fetchUrlTool,          policy: { requiredCapabilities: […] } },
-  { definition: knowledgeTool,         policy: { requiredCapabilities: […] } },
-  { definition: recallTool,            policy: { requiredCapabilities: […] } },
-  { definition: respondPermissionTool, policy: { requiredCapabilities: […] } },
-  { definition: respondAgentInputTool, policy: { requiredCapabilities: […] } },
-  { definition: enterSleepTool,        policy: { requiredClientActions: […] } },
-])
+export const TOOLS = [
+  spawnThinkingTool,          // spawn_thinking：提交异步任务
+  scheduleReminderTool,       // schedule_reminder：创建提醒或定时任务
+  cancelAgentTaskTool,        // cancel_agent_task：取消后台任务
+  getAgentTaskStatusTool,     // get_agent_task_status：查询状态与结果
+  getCurrentTimeTool,         // get_current_time：获取用户本地时间
+  memoryTool,                 // memory：读写长期记忆
+  notesTool,                  // notes：管理命名清单
+  respondAgentPermissionTool, // respond_agent_permission：回答权限请求
+]
 ```
 
-> <strong>前台工具集保持最小且有界：</strong> 仅声明实际生效的策略；注册后仍按配置和当前能力筛选，不靠分类标签决定执行方式。
+> <strong>前台工具集保持最小且有界：</strong> 复杂执行能力统一下沉后台，确保实时回合的低延迟与可预测性。
+
+- 这些工具要么很快，要么只负责“提交和查询”。
+- 前台没有创建后台 Session、选择子 Agent 或选择执行模式的工具。
+- 工具越少，实时回合越可预测，也越容易保证安全。
 
 <!--
 [Sources]
-- server/src/frontend/frontend-tools.mjs
-- server/src/frontend/tools/spawn-thinking-tool.mjs
+- server/src/voice/frontend-tools.mjs
 -->
 
 ---
 
 # `spawn_thinking` ：快速受理，不等待结果
 
-> **`spawn_thinking`** 是实时前台提交异步任务的唯一入口：Gateway 写入权威任务记录并立即返回内部受理回执，后台任务继续独立执行。
+> **`spawn_thinking`** 是实时前台提交异步 Work 的唯一入口：Gateway 返回 `work_id` 后立即结束当前工具回合，后台任务继续独立执行。
 
 | 步骤 | 系统做什么 | 用户得到什么 |
 | ---: | --- | --- |
 | 1 | 保留目标和约束 | 请求不会被改写成另一件事 |
 | 2 | 检查后台是否已配置、权限是否待处理 | 明确失败原因，不假装成功 |
-| 3 | 写入一个权威任务记录 | 产生唯一任务 ID（`task_N`） |
+| 3 | 写入一个权威任务记录 | 产生唯一 `work_id` |
 | 4 | 立即返回受理回执 | 可以继续下一轮对话 |
 | 5 | 后台独立取得调度槽并执行 | 不占用实时语音回合 |
 
@@ -471,24 +463,22 @@ accepted 只表示“任务已经进入系统”
 不表示“任务已经完成”
 ```
 
-> 除 `objective` 外，任务还可携带 `input_refs`：把本轮或此前轮次标注为“可引用输入”的图片、文件作为原生附件一并移交后台。
-
 
 ---
 
-# 自包含指令承载前后台之间的任务交接
+# 协调信封承载前后台之间的任务交接
 
-Gateway 内部保留两份信息：
+前台会同时传递两份信息：
 
 | 字段 | 含义 | 为什么需要 |
 | --- | --- | --- |
-| 用户原话 | 用户本轮最终表达 | 作为内部事实依据，避免转述丢失细节 |
-| `objective` | 前台整理后的执行目标 | 解析指代并形成自包含任务边界 |
+| `final_asr` | 用户本轮最终原话 | 它是事实来源，避免转述丢失细节 |
+| `objective` | 前台整理后的执行目标 | 让后台快速理解目标与约束 |
 
 示例：
 
 ```text
-用户原话：“接着刚才那个页面，把登录失败的问题修掉，不要修改现有视觉。”
+final_asr: “接着刚才那个页面，把登录失败的问题修掉，不要修改现有视觉。”
 
 objective: “继续当前页面工作，修复登录失败问题；保持现有视觉不变。”
 ```
@@ -497,37 +487,37 @@ objective: “继续当前页面工作，修复登录失败问题；保持现有
 
 ---
 
-# 协调信息：结构留在 Gateway，后台只收自然指令
+# 协调信封将对话请求转化为结构化协议
 
-用户本轮说：“接着刚才那个页面，把登录失败的问题修掉，不要修改现有视觉。”
-
-```text
-① 前台发起工具调用
-spawn_thinking({ objective: "继续当前页面工作，修复登录失败问题；保持现有视觉不变。" })
-
-② Gateway 写入权威任务：身份、会话、路由分字段存放，不进 prompt
-{ id: "task_12", status: "queued", scope: "user", kind: "work",
-  objective: "继续当前页面工作，…", ownerId: "personal", sessionId: "main", turnId: "…" }
-
-③ 后台协调会话实际收到
-objective 文本 + COORDINATOR_STABLE_INSTRUCTIONS 稳定指令块 + 用户原话（ACP ContentBlock 附件）
+```json
+{
+  "protocol": "side-audio-bot.coordination.v1",
+  "request_id": "work_...",
+  "owner_scope": "current_authenticated_user",
+  "voice_session_id": "...",
+  "turn_id": "...",
+  "input": {
+    "final_asr": "用户本轮原话",
+    "objective": "前台整理后的目标"
+  },
+  "client_context": {
+    "working_directory": "..."
+  }
+}
 ```
 
-> 协调信息**内化为 Gateway 的权威任务记录**；投递给后台的只是投影——前台人格、完整记忆与聊天历史不会被批量转发，稳定指令块同时承载 Project Session 的路由纪律。
+信封把身份、任务、对话和工作目录分开表达，后台不必从一段长 Prompt 中猜测这些信息。
 
 <!--
 [Sources]
-- server/src/task/task-manager.mjs
-- server/src/backend/backend-work-input.mjs
-- server/src/backend/adapters/acp/coordinator-contract.mjs
-- server/src/backend/adapters/acp/coordinator-instructions.mjs
+- server/src/agent/coordinator.mjs
 -->
 
 ---
 
-# TaskManager 维护任务生命周期的权威事实
+# TaskManager 维护 Work 生命周期的权威事实
 
-每个任务都保存：
+每个任务（Work）都保存：
 
 - **任务归属**：用户身份、语音 Session、来源回合。
 - **要做什么**：objective。
@@ -540,7 +530,7 @@ objective 文本 + COORDINATOR_STABLE_INSTRUCTIONS 稳定指令块 + 用户原�
 
 ---
 
-# 任务生命周期由显式状态机驱动
+# Work 生命周期由显式状态机驱动
 
 ```text
 scheduled
@@ -611,7 +601,7 @@ queued → running ────────────────────�
 协调 Session 是 Backend Adapter 为当前用户创建或恢复的一条后台 Agent 原生会话，用于承接跨任务的持续理解与执行协调。
 
 - 同一用户反复复用，而不是每次重新开始。
-- 每轮只看到自包含任务指令和当前任务所需的原生附件。
+- 看到最近对话、长期记忆和当前任务状态。
 - 简单后台工作可以自己完成。
 - 复杂、独立或长期工作可以进入独立执行层。
 - 独立任务完成后，它负责校验结果并整理最终表达。
@@ -626,8 +616,8 @@ return `${protocol}:${encodeURIComponent(
 
 <!--
 [Sources]
-- server/src/backend/adapters/acp/backend-session-utils.mjs
-- server/src/backend/adapters/acp/backend-adapter.mjs
+- server/src/agent/acp-backend-session-utils.mjs
+- server/src/agent/acp-backend-adapter.mjs
 -->
 
 ---
@@ -646,9 +636,8 @@ Backend Adapter 是后台协议适配层：
 
 这样更换后台 Agent 时，不需要重写前台工具、任务状态机和播报逻辑。
 
-> **扩展红利**：后台接入收敛为 **BackendPort** 契约——ACP 后台走通用 Adapter，
-> 远程 A2A Agent 有专属 Adapter，非 ACP 系统可用 Backend Adapter SDK 自行实现。
-> 统一的一致性测试套件对所有适配器执行同一组行为验证。
+>  **扩展红利**：得益于 **ACP 协议**的普及，无需为每个 Agent 单独写适配器。
+> 实现一套 ACP Adapter，即可无缝对接大部分主流 Agent。
 
 ---
 
@@ -697,16 +686,14 @@ if (outcome?.completed) {
 <!--
 [Sources]
 - server/src/voice/announcement/announcement-manager.mjs
-- server/src/transport/gateway-client-transport.mjs
-- server/src/app/frontend-runtime.mjs
-- server/src/voice/realtime-session-runtime.mjs
+- server/src/voice/realtime-gateway.mjs
 -->
 
 ---
 
-# 后台内部：独立执行 Session
+# 独立执行层：动态衍生的“第三层”
 
-具备委派能力的后台 Agent 可创建子 Agent 或新 Session，形成独立执行空间。这属于后台内部组织，不增加新的核心架构层。
+后台执行 Agent 具备**自主衍生能力**：可单独创建子 Agent （新 Session），形成类似“第三层”的独立执行空间。
 
 
 <div class="two-col">
@@ -738,16 +725,16 @@ if (outcome?.completed) {
 
 ---
 
-# 独立工作如何保持可控
+<!-- _class: diagram-only -->
+<!-- _footer: "" -->
+<!-- _paginate: false -->
 
-| 操作 | 责任方 |
-| --- | --- |
-| 创建与关联 | Adapter 保存委派关系，运行时以统一 Task ID 跟踪 |
-| 状态查询 | 运行时读取任务状态与后台归一化活动，不要求协调模型再次查询 |
-| 取消工作 | 运行时发起取消，Adapter 映射到对应后台执行 |
-| 完成与交付 | Adapter 确认执行结束，运行时安排结果回到前台对话 |
+![bg contain](./side-audio-bot-architecture-en.png)
 
-协调 Session 与独立 Session 都是后台内部上下文，不构成额外的核心架构层。
+<!--
+[Sources]
+- docs/side-audio-bot-architecture-en.png
+-->
 
 ---
 
@@ -787,11 +774,11 @@ if (outcome?.completed) {
 
 ```js
 export const ACP_SESSION_TOOL_NAMES = [
-  'qwen_audio_agent_sessions_list',
-  'qwen_audio_agent_session_start',
-  'qwen_audio_agent_session_send',
-  'qwen_audio_agent_session_status',
-  'qwen_audio_agent_session_cancel',
+  'side_audio_bot_sessions_list',
+  'side_audio_bot_session_start',
+  'side_audio_bot_session_send',
+  'side_audio_bot_session_status',
+  'side_audio_bot_session_cancel',
 ]
 ```
 
@@ -807,7 +794,7 @@ MCP Session 工具不暴露给语音前台，仅作为协调会话管理独立�
 
 <!--
 [Sources]
-- server/src/backend/adapters/acp/session-tools.mjs
+- server/src/agent/acp-session-tools.mjs
 -->
 
 ---
@@ -820,13 +807,13 @@ MCP Session 工具不暴露给语音前台，仅作为协调会话管理独立�
 | ---: | --- | --- |
 | 1 | 协调会话 | 调用 `session_start` 或 `session_send` |
 | 2 | Adapter | 记录 delegation ID 与目标 Session |
-| 3 | TaskManager | 任务进入 `delegated`，释放协调槽位 |
+| 3 | TaskManager | Work 进入 `delegated`，释放协调槽位 |
 | 4 | 独立 Session | 使用文件、终端、搜索等能力长期执行 |
 | 5 | Adapter | 等待与当前委派精确匹配的最终结果 |
 | 6 | 协调会话 | 重新取得控制权，校验并整理结果 |
-| 7 | TaskManager | 任务进入 `completed`，等待自然播报 |
+| 7 | TaskManager | Work 进入 `completed`，等待自然播报 |
 
-> 取消、查询、权限和重启恢复，始终绑定同一项任务与目标 Session。
+> 取消、查询、权限和重启恢复，始终绑定同一个 Work 与目标 Session。
 
 ---
 
@@ -845,16 +832,15 @@ MCP Session 工具不暴露给语音前台，仅作为协调会话管理独立�
 
 ---
 
-# 记忆架构：三路径写入与统一上下文消费
+# 记忆架构：双路径写入与统一上下文消费
 
-明确上下文边界后，仅 `USER.md` 与 `MEMORY.md` 参与动态写入。它们通过三条路径进入统一服务，最终供前后台消费：
+明确上下文边界后，仅 `USER.md` 与 `MEMORY.md` 参与动态写入。它们通过两条路径进入统一服务，最终供前后台消费：
 
 <div class="memory-arch">
 
 <div class="memory-stack">
   <div class="memory-node"><strong>显式写入</strong>Realtime <code>memory</code> tool</div>
-  <div class="memory-node"><strong>会后整理</strong>MemoryExtractor（不得推测）</div>
-  <div class="memory-node"><strong>观察推断</strong>ProfileObserver → 候选池 → 晋升</div>
+  <div class="memory-node"><strong>会后整理</strong>MemoryExtractor</div>
 </div>
 
 <div class="memory-arrow">›</div>
@@ -864,7 +850,7 @@ MCP Session 工具不暴露给语音前台，仅作为协调会话管理独立�
 <div class="memory-arrow">›</div>
 
 <div class="memory-stack">
-  <div class="memory-node memory-store"><strong>USER.md</strong>明确要求 ＋ 观察推断（分区存放）</div>
+  <div class="memory-node memory-store"><strong>USER.md</strong>长期交互偏好</div>
   <div class="memory-node memory-store"><strong>MEMORY.md</strong>长期事实数据</div>
 </div>
 
@@ -881,17 +867,15 @@ MCP Session 工具不暴露给语音前台，仅作为协调会话管理独立�
 <!--
 [Sources]
 - server/src/conversation/frontend-agent-context.mjs
-- server/src/memory/providers/markdown/provider.mjs
-- server/src/memory/learning/extractor.mjs
-- server/src/memory/learning/profile-observer.mjs
-- server/src/memory/learning/preference-promoter.mjs
+- server/src/conversation/frontend-memory-service.mjs
+- server/src/conversation/memory-extractor.mjs
 -->
 
 ---
 
-# 长期信息通过三种入口写入，纪律各不相同
+# 长期信息通过显式记忆与会后整理两种入口写入
 
-<div class="three-col">
+<div class="two-col">
 
 <div>
 
@@ -907,29 +891,18 @@ MCP Session 工具不暴露给语音前台，仅作为协调会话管理独立�
 
 <div>
 
-## 会后整理（不得推测）
+## 会话结束后自动整理
 
 - 由语音 Session 关闭异步触发
-- MemoryExtractor 只记录用户明说的事实
+- MemoryExtractor 提议最小修改
 - 只处理 `USER.md` 与 `MEMORY.md`
 - 静默运行，不阻塞会话关闭
 
 </div>
 
-<div>
-
-## 观察推断（允许推测）
-
-- ProfileObserver 观察画像字段，证据必须逐字出自用户发言
-- 候选进入槽位池，跨会话攒确认
-- 过门后由晋升器写入 `USER.md` 的「观察推断」区
-- 永不覆盖「用户明确要求」区
-
 </div>
 
-</div>
-
-**三个入口最终都经过统一的 MemoryProvider 运行时边界；模型和工具都不能绕过 Provider 直接写入存储。**
+**两个入口最终调用同一个 FrontendMemoryService；模型和工具都不能直接改写 Markdown 文件。**
 
 ---
 
@@ -952,8 +925,8 @@ MCP Session 工具不暴露给语音前台，仅作为协调会话管理独立�
 
 <!--
 [Sources]
-- server/src/memory/learning/extractor.mjs
-- server/src/memory/providers/markdown/provider.mjs
+- server/src/conversation/memory-extractor.mjs
+- server/src/conversation/frontend-memory-service.mjs
 -->
 
 ---
@@ -983,7 +956,7 @@ ConversationSync 是 Gateway 内的短期会话账本，记录用户说了什么
 
 - **连接重建**：把最近对话重新交给 Realtime Frontstage
 - **结果交付**：判断后台结果是否已经说过，避免重复注入或播报
-- **记忆整理**：会话结束后向 MemoryExtractor 与 ProfileObserver 提供完整转写
+- **记忆整理**：会话结束后向 MemoryExtractor 提供完整转写
 
 </div>
 
@@ -1004,7 +977,7 @@ ConversationSync 是 Gateway 内的短期会话账本，记录用户说了什么
 ### 职责边界
 
 - 前台工具越少，实时路径越稳定
-- 编排运行时管事实，模型管表达
+- Gateway 管事实，模型管表达
 - 协调会话和执行 Session 分开
 - 事实记忆和行为偏好分开
 - 权限绑定用户身份与 Session
@@ -1032,8 +1005,8 @@ ConversationSync 是 Gateway 内的短期会话账本，记录用户说了什么
 # 总结：七项架构设计原则
 
 1. **用异步协议连接不同时间尺度。**
-2. **编排运行时管系统事实，模型管理解与表达；Gateway 提供服务接入。**
-3. **ACP 后台用协调 Session 维持连续性，独立 Session 承担委派工作。**
+2. **Gateway 管系统事实，模型管理解与表达。**
+3. **协调 Session 维持连续性，独立 Session 承担长任务执行。**
 4. **后台任务完成不等于结果已交付，交付需要独立调度与确认。**
 5. **记忆按权威分层，个性化不能突破安全边界。**
 6. **跨会话能力必须可查询、可取消、可恢复、可审计。**

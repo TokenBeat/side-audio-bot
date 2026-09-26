@@ -3,7 +3,7 @@
 [English](README.md) | 中文
 
 在 AI Passport（ESP32-C3）硬件卡片上运行“千问语音豆（Qwen Voice Bean）”，
-通过局域网使用 qwen-audio-agent。卡片负责录音、播放回复和角色动画；电脑上的
+通过局域网使用 side-audio-bot。卡片负责录音、播放回复和角色动画；电脑上的
 Gateway 负责实时对话、工具调用及可选的后台 Agent 任务。
 
 本目录提供电脑端的设备转发器。卡片固件由外部项目维护，安装与源码见
@@ -33,7 +33,7 @@ https://github.com/user-attachments/assets/0af4ce90-ee59-4950-9d0b-cfc5a7d5c7d1
 |---|---|---|
 | 千问语音豆固件 | AI Passport 卡片 | 录音播放、半双工控制、Wi-Fi 配网、按键与角色动画。 |
 | [设备转发器（device-relay.mjs）](device-relay.mjs) | 电脑，`局域网IP:3101` | 校验设备令牌，将回复音频拆成小包，缓冲并转发 GCP 消息。 |
-| qwen-audio-agent Gateway | 同一电脑，`127.0.0.1:18888` | 实时对话、工具及可选的后台任务。 |
+| side-audio-bot Gateway | 同一电脑，`127.0.0.1:18888` | 实时对话、工具及可选的后台任务。 |
 
 电脑上需要运行**两个独立进程**。`3101` 是转发器的局域网端口，`18888` 是 Gateway 的本机端口。
 
@@ -48,7 +48,7 @@ https://github.com/user-attachments/assets/0af4ce90-ee59-4950-9d0b-cfc5a7d5c7d1
 
 ```bash
 npm ci
-node cli/bin/qwenaudio.mjs config
+node cli/bin/sideaudio.mjs config
 ```
 
 按 [Gateway 快速开始](../../docs/getting-started/quickstart.zh.md)配置语音前台；
@@ -57,7 +57,7 @@ node cli/bin/qwenaudio.mjs config
 在第一个终端启动 Gateway，并保持运行：
 
 ```bash
-node cli/bin/qwenaudio.mjs gateway run --url http://127.0.0.1:18888
+node cli/bin/sideaudio.mjs gateway run --url http://127.0.0.1:18888
 ```
 
 可先打开 `http://127.0.0.1:18888`，在 WebUI 验证语音。连接卡片前先断开 WebUI 对话，

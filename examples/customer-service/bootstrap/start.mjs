@@ -55,8 +55,8 @@ function environmentFor(domain) {
     CS_DESK_PORT: String(port.desk),
     // 【运行时目录也要分开】两组共用 .runtime 会让对话历史串在一起 ——
     // 网关按 sessionId 分目录，而两组用的都是 default。
-    QWAUDIO_CONFIG_DIR: `${ROOT}.runtime-${domain}`,
-    QWAUDIO_DATA_DIR: `${ROOT}.runtime-${domain}`,
+    SIDEAUDIO_CONFIG_DIR: `${ROOT}.runtime-${domain}`,
+    SIDEAUDIO_DATA_DIR: `${ROOT}.runtime-${domain}`,
     port,
   }
 }

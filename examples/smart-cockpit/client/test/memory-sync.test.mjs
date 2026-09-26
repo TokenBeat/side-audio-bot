@@ -53,9 +53,9 @@ async function fixture(t, { voice = false } = {}) {
   }
   const load = mockHookImports(t, {
     react: harness.react,
-    'qwen-audio-agent/gateway-client-sdk': { GatewayClient: FakeGatewayClient },
-    'qwen-audio-agent/realtime-events': realtimeEvents,
-    'qwen-audio-agent/gateway-client-protocol': gatewayClientProtocol,
+    'side-audio-bot/gateway-client-sdk': { GatewayClient: FakeGatewayClient },
+    'side-audio-bot/realtime-events': realtimeEvents,
+    'side-audio-bot/gateway-client-protocol': gatewayClientProtocol,
     '../config/gateway': {
       gatewayHttpUrl: path => `http://gateway.invalid${path}`,
       gatewayWebSocketUrl: path => new URL(path, 'ws://gateway.invalid'),

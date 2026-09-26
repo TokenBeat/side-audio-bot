@@ -14,7 +14,7 @@ import { updateRealtimeModelConfig } from '../../cli/src/config-command.mjs'
 import { assertGatewaySetup, gatewaySetupStatus } from '../../shared/gateway/setup.mjs'
 
 function fixture(t) {
-  const root = mkdtempSync(join(tmpdir(), 'qwaudio-realtime-lifecycle-'))
+  const root = mkdtempSync(join(tmpdir(), 'sideaudio-realtime-lifecycle-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   const env = {}
   const options = { configDir: join(root, 'config'), clientDir: join(root, 'desktop'), env }
@@ -27,7 +27,7 @@ function cliConfiguration(root, configDir) {
   const source = `
     import { loadRuntimeEnvironment, requireRealtimeFrontendConfiguration } from ${JSON.stringify(new URL('../../shared/runtime-environment.mjs', import.meta.url).href)};
     import { resolveRealtimeFrontendConfiguration } from ${JSON.stringify(new URL('../../shared/realtime-provider-catalog.mjs', import.meta.url).href)};
-    const env = { QWAUDIO_CONFIG_DIR: ${JSON.stringify(configDir)} };
+    const env = { SIDEAUDIO_CONFIG_DIR: ${JSON.stringify(configDir)} };
     loadRuntimeEnvironment({ root: ${JSON.stringify(root)}, env, readOnly: true });
     requireRealtimeFrontendConfiguration(env);
     process.stdout.write(JSON.stringify(resolveRealtimeFrontendConfiguration(env)));
@@ -59,7 +59,7 @@ test('Desktop save, restart and independent CLI startup use the same complete ac
   assert.equal(persisted.STEPFUN_API_KEY, drafts.stepfunApiKey)
   assert.equal(persisted.STEPFUN_REALTIME_URL, drafts.stepfunRealtimeUrl)
   assert.equal(persisted.STEPFUN_REALTIME_VOICE, drafts.stepfunRealtimeVoice)
-  assert.doesNotMatch(raw, /QWEN_AUDIO_REALTIME_(API_KEY|ENDPOINT)=/)
+  assert.doesNotMatch(raw, /SIDE_AUDIO_REALTIME_(API_KEY|ENDPOINT)=/)
   assert.equal(persisted.DASHSCOPE_API_KEY, drafts.dashscopeApiKey)
   assert.equal(persisted.QWEN_AUDIO_REALTIME_MODEL, drafts.realtimeModel)
   assert.equal(persisted.QWEN_OMNI_REALTIME_VOICE, drafts.omniRealtimeVoice)

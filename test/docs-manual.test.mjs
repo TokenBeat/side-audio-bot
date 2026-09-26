@@ -40,7 +40,7 @@ test('client protocol references match the implemented wire version', () => {
 
 test('bilingual manual pairs document the same configuration identifiers', () => {
   const identifiers = text => [...new Set(text.match(
-    /\b(?:QWEN_[A-Z_0-9]+|QWAUDIO_[A-Z_0-9]+|(?:DASHSCOPE|DEEPSEEK|GPT_LIVE|GOOGLE_LIVE|STEPFUN|SPEECH_TO_SPEECH|MINICPM_O|ACP|OPENCODE|OPENCLAW|QODER|KIMI|PI|CODEX|CLAUDE_CODE|MUSE)_[A-Z_0-9]+)\b/g,
+    /\b(?:QWEN_[A-Z_0-9]+|SIDEAUDIO_[A-Z_0-9]+|(?:DASHSCOPE|DEEPSEEK|GPT_LIVE|GOOGLE_LIVE|STEPFUN|SPEECH_TO_SPEECH|MINICPM_O|ACP|OPENCODE|OPENCLAW|QODER|KIMI|PI|CODEX|CLAUDE_CODE|MUSE)_[A-Z_0-9]+)\b/g,
   ) || [])].sort()
   for (const file of pairs) {
     assert.deepEqual(identifiers(read(file)), identifiers(read(file.replace(/\.md$/, '.zh.md'))), file)
@@ -64,7 +64,7 @@ test('manual shell examples use CLI arguments accepted by the current parser', (
   for (const file of pairs.flatMap(file => [file, file.replace(/\.md$/, '.zh.md')])) {
     for (const fence of read(file).matchAll(/```(?:bash|sh|shell)\n([\s\S]*?)```/g)) {
       for (const line of fence[1].replace(/\\\r?\n/g, ' ').split('\n')) {
-        if (!/^qwenaudio(?:\s|$)/.test(line)) continue
+        if (!/^sideaudio(?:\s|$)/.test(line)) continue
         // These examples use simple quoted arguments, not arbitrary shell programs.
         const words = line.match(/"(?:[^"\\]|\\.)*"|'[^']*'|\S+/g) || []
         const comment = words.findIndex(word => word.startsWith('#'))

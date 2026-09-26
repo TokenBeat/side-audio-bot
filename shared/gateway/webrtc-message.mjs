@@ -3,7 +3,7 @@
 export const WEBRTC_FRAME_BYTES = 64 * 1024
 export const WEBRTC_MESSAGE_BYTES = 512 * 1024
 const CHUNK_SIZE = 8 * 1024
-const CHUNK_TYPE = 'qwaudio.transport.chunk'
+const CHUNK_TYPE = 'sideaudio.transport.chunk'
 const bytes = text => new TextEncoder().encode(text).length
 
 export function encodeWebRtcMessage(event) {

@@ -23,7 +23,7 @@ test('keeps automatic Bailian configuration separate from backend login', () => 
   assert.deepEqual(backendAuthenticationSupport('opencode', {
     env: {
       DASHSCOPE_API_KEY: 'key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
     },
     platform: 'darwin',
   }), { required: false, supported: false })

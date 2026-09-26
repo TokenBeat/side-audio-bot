@@ -69,7 +69,7 @@ test('persists an exact local snapshot only after Memcode completes the update',
   assert.match(result.documents.find(item => item.scope === 'user').content, /concise/)
   assert.equal(calls.ingest.length, 1)
   assert.match(calls.ingest[0].input.user_query, /Append: - Keep answers concise\./)
-  assert.match(calls.ingest[0].options.idempotencyKey, /^qwen-audio:/)
+  assert.match(calls.ingest[0].options.idempotencyKey, /^side-audio:/)
   assert.equal(JSON.parse(readFileSync(stateFile, 'utf8')).owner_id, 'user_personal')
 })
 
@@ -265,15 +265,15 @@ test('launcher disables learning before importing Gateway and does not start a r
     registerHooks({ load(url, context, next) {
       if (url.endsWith('/server/src/app/gateway-application.mjs')) return {
         format: 'module', shortCircuit: true,
-        source: 'export function createGatewayApplication({ memoryProvider }) { console.log(JSON.stringify({auto: process.env.QWEN_AUDIO_MEMORY_AUTO, preferences: process.env.QWEN_AUDIO_PREFERENCE_LEARNING, stateFile: memoryProvider.stateFile})); return { close() {} }; }'
+        source: 'export function createGatewayApplication({ memoryProvider }) { console.log(JSON.stringify({auto: process.env.SIDE_AUDIO_MEMORY_AUTO, preferences: process.env.SIDE_AUDIO_PREFERENCE_LEARNING, stateFile: memoryProvider.stateFile})); return { close() {} }; }'
       };
       return next(url, context);
     }});
     await import(${JSON.stringify(launcher)});
   `
   const env = { ...process.env, MEMCODE_API_KEY: 'test-key',
-    MEMCODE_API_URL: 'https://memory.example.test', QWAUDIO_CONFIG_DIR: `${stateFile}-config`,
-    QWEN_AUDIO_MEMORY_AUTO: 'on', QWEN_AUDIO_PREFERENCE_LEARNING: 'on' }
+    MEMCODE_API_URL: 'https://memory.example.test', SIDEAUDIO_CONFIG_DIR: `${stateFile}-config`,
+    SIDE_AUDIO_MEMORY_AUTO: 'on', SIDE_AUDIO_PREFERENCE_LEARNING: 'on' }
   delete env.NODE_TEST_CONTEXT
   delete env.NODE_OPTIONS
   const result = JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', source], { env, encoding: 'utf8', timeout: 10000 }))

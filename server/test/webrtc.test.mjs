@@ -7,9 +7,9 @@ import { rtcHarness, FakeMedia, testProvider, waitUntil, OFFER, JPEG } from './f
 
 test('WebRTC defaults to disabled and validates opt-in ICE configuration', () => {
   assert.equal(webRtcOptions({}), null)
-  assert.equal(webRtcOptions({ QWAUDIO_WEBRTC_ICE_SERVERS: 'invalid' }), null)
-  assert.deepEqual(webRtcOptions({ QWAUDIO_WEBRTC_ENABLED: '1' }).iceServers, [])
-  assert.throws(() => webRtcOptions({ QWAUDIO_WEBRTC_ENABLED: '1', QWAUDIO_WEBRTC_ICE_SERVERS: '[{"urls":"https://invalid"}]' }))
+  assert.equal(webRtcOptions({ SIDEAUDIO_WEBRTC_ICE_SERVERS: 'invalid' }), null)
+  assert.deepEqual(webRtcOptions({ SIDEAUDIO_WEBRTC_ENABLED: '1' }).iceServers, [])
+  assert.throws(() => webRtcOptions({ SIDEAUDIO_WEBRTC_ENABLED: '1', SIDEAUDIO_WEBRTC_ICE_SERVERS: '[{"urls":"https://invalid"}]' }))
 })
 
 test('PCM preserves byte order, stereo folding and streaming boundaries', () => {
@@ -62,7 +62,7 @@ test('generation and send completion never manufacture playback receipts', () =>
   connection.onResponseDone({ id: 'r1', status: 'failed' })
   assert.equal(inputs.length, 0)
   assert.equal(media.events.at(-1).response.status, 'failed')
-  connection.receive('{"type":"qwaudio.playback.started","response_id":"r1"}')
+  connection.receive('{"type":"sideaudio.playback.started","response_id":"r1"}')
   assert.equal(inputs[0].type, 'playback.started')
   connection.close()
 })
@@ -125,12 +125,12 @@ for (const video of [false, true]) {
     frontend.emit({ type: 'response.audio.delta', response_id: 'reply1', delta: 'AAAAAA==' })
     frontend.emit({ type: 'response.audio_transcript.done', response_id: 'reply1', transcript: 'Synthetic reply' })
     assert.equal(media.events.some(event => event.type === 'response.audio_transcript.done'), false)
-    media.onEvent('{"type":"qwaudio.playback.started","response_id":"reply1"}')
+    media.onEvent('{"type":"sideaudio.playback.started","response_id":"reply1"}')
     assert.equal(media.events.find(event => event.type === 'response.audio_transcript.done').transcript, 'Synthetic reply')
     frontend.emit({ type: 'response.done', response: { id: 'reply1', status: 'completed' } })
     assert.equal(media.events.find(event => event.type === 'response.done').response.status, 'completed')
     assert.equal(media.chunks[0].sampleRate, 24000)
-    media.onEvent('{"type":"qwaudio.playback.ended","response_id":"reply1"}')
+    media.onEvent('{"type":"sideaudio.playback.ended","response_id":"reply1"}')
     media.onEvent('{"type":"response.cancel"}')
     assert.ok(media.clearCount > 0)
     const deleted = await fetch(h.base + response.headers.get('location'), { method: 'DELETE', headers: h.headers })

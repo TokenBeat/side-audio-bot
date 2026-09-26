@@ -73,7 +73,7 @@ components:
 `
 
 function setup(t, overrides = {}) {
-  const directory = mkdtempSync(join(tmpdir(), 'qwen-audio-openapi-'))
+  const directory = mkdtempSync(join(tmpdir(), 'side-audio-openapi-'))
   const documentPath = join(directory, 'weather.yaml')
   writeFileSync(documentPath, overrides.document || DOCUMENT, 'utf8')
   t.after(() => rmSync(directory, { recursive: true, force: true }))

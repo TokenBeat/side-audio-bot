@@ -3,7 +3,7 @@
 [Start the Gateway](../operations/gateway.md), then run in another terminal:
 
 ```bash
-qwenaudio tui
+sideaudio tui
 ```
 
 For a remote Gateway, [import a connection code](../operations/remote-access.md#_3-connect-a-client) first. TUI does not select or start a Backend Agent.
@@ -55,7 +55,7 @@ TUI reads and uploads attachments; the Gateway does not need access to your loca
 
 macOS always uses CoreAudio AEC full-duplex: audio is continuously captured during playback, supporting direct-speech interruption,
 without additional configuration. The CoreAudio helper program is compiled by default to
-`~/Library/Caches/qwaudio/tui/macos-voice-io` and is automatically built on first launch. If the Swift compiler is missing, install Xcode Command Line Tools with `xcode-select --install`.
+`~/Library/Caches/sideaudio/tui/macos-voice-io` and is automatically built on first launch. If the Swift compiler is missing, install Xcode Command Line Tools with `xcode-select --install`.
 
 ## Linux / Windows
 
@@ -72,7 +72,7 @@ Linux uses `python3` by default; Windows uses `python`. Set `PYTHON` to an absol
 You can also enable full-duplex mode without echo cancellation:
 
 ```bash
-qwenaudio tui --audio-mode full
+sideaudio tui --audio-mode full
 ```
 
 This mode has no echo cancellation; please wear headphones to avoid misrecognition or false interruptions caused by speaker audio.
@@ -84,7 +84,7 @@ experience input overflow, output underflow, or device errors, please exit and f
 The default audio mode can also be set persistently via an environment variable:
 
 ```dotenv
-QWEN_AUDIO_AGENT_TUI_AUDIO_MODE=half
+SIDE_AUDIO_BOT_TUI_AUDIO_MODE=half
 ```
 
 Setting it to `full` is equivalent to `--audio-mode full`. For full parameter details, see

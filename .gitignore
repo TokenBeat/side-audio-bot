@@ -3,7 +3,7 @@ output/playwright/browser-webui-smoke/
 web/dist/
 dist/
 .venv/
-.qwen-audio/
+.side-audio/
 __pycache__/
 *.py[cod]
 .env

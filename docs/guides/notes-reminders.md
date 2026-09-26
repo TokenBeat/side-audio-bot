@@ -15,7 +15,7 @@ Name the list and describe the change:
 The default store is `<data-dir>/frontend-notes.json` and survives restarts. No backend Agent is required. To disable the tool:
 
 ```dotenv
-QWEN_AUDIO_NOTES_TOOL_ENABLED=false
+SIDE_AUDIO_NOTES_TOOL_ENABLED=false
 ```
 
 ## Set Reminders
@@ -31,7 +31,7 @@ Supported schedules are one-time, daily, weekly, and weekdays. Check the confirm
 To disable the reminder tool:
 
 ```dotenv
-QWEN_AUDIO_SCHEDULE_TOOL_ENABLED=false
+SIDE_AUDIO_SCHEDULE_TOOL_ENABLED=false
 ```
 
 ## Operating Conditions

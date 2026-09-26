@@ -19,6 +19,6 @@ class MicrophoneAudioWorkletProcessor extends AudioWorkletProcessor {
 }
 
 registerProcessor(
-  'qwen-audio-microphone',
+  'side-audio-microphone',
   MicrophoneAudioWorkletProcessor,
 )

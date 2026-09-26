@@ -1,9 +1,9 @@
-# Qwen Audio Agent X-Omni Example
+# Side Audio Bot X-Omni Example
 
 English | [中文](README_ZH.md)
 
 A standalone reference implementation for realtime multimodal interaction with
-qwen-audio-agent. It combines visual conversation, on-demand image inspection,
+side-audio-bot. It combines visual conversation, on-demand image inspection,
 and user-requested visual observation through the framework's Gateway and
 Realtime Provider interfaces.
 
@@ -70,7 +70,7 @@ npm run example:x-omni
 Open **http://127.0.0.1:5178**. The example owns a separate localhost Gateway on
 port **18890**. Its default configuration, state, and memory live under the
 git-ignored `examples/x-omni/.runtime/`; it does not connect to the desktop
-Gateway. Explicit `QWAUDIO_*` directory overrides still apply.
+Gateway. Explicit `SIDEAUDIO_*` directory overrides still apply.
 
 Credentials stay in Node.js, never in the browser bundle. For DashScope,
 `QWEN_AUDIO_REALTIME_BASE_URL` optionally changes the WebSocket endpoint for

@@ -8,19 +8,19 @@ For example, in `config.env`:
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_MODEL=
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_MODEL=
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 See [Backend Agents](../backends/overview.md) for names and requirements. Leave the selection empty or use `none` to disable the backend while keeping chat and enabled frontend tools.
 
-For one run, use `qwenaudio gateway --backend qwen`. After changing persistent settings, [restart the actual Gateway](../operations/gateway.md#applying-configuration-changes).
+For one run, use `sideaudio gateway --backend qwen`. After changing persistent settings, [restart the actual Gateway](../operations/gateway.md#applying-configuration-changes).
 
 ## Check and Install
 
 ```bash
-qwenaudio setup --backend qwen
-qwenaudio install qwen
+sideaudio setup --backend qwen
+sideaudio install qwen
 ```
 
 `setup` checks executables and integration components; it does not install, sign in, or verify quota. `install` adds only missing components, including external ACP adapters when required. Script-based steps ask for confirmation; `--yes` skips it.
@@ -31,7 +31,7 @@ The generic `acp` entry has no installer. Set `ACP_COMMAND` and `ACP_ARGS` yours
 
 ## Model Selection
 
-For ACP backends supporting standard model configuration, when `QWEN_AUDIO_AGENT_BACKEND_MODEL` is empty:
+For ACP backends supporting standard model configuration, when `SIDE_AUDIO_BOT_BACKEND_MODEL` is empty:
 
 - The Gateway passes no model, guesses no default, and calls no model-setting interface.
 - New Sessions use the backend's choice; restored Sessions keep their existing model.
@@ -49,14 +49,14 @@ These two backends support automatic installation when missing and DashScope ini
 ```dotenv
 AGENT_PROTOCOL=opencode
 DASHSCOPE_API_KEY=your-key
-QWEN_AUDIO_AGENT_BACKEND_MODEL=qwen3.7-max
+SIDE_AUDIO_BOT_BACKEND_MODEL=qwen3.7-max
 ```
 
 For OpenClaw, use `AGENT_PROTOCOL=openclaw`. This is deployment-time initialization, not a universal backend behavior. Leave the backend model empty to preserve an existing Agent's model. See [OpenCode](../backends/configuration.md#opencode) / [OpenClaw](../backends/configuration.md#openclaw).
 
 ## Workspace and Processes
 
-The default workspace is `<data-dir>/workspace`. Change it globally with `QWAUDIO_WORKSPACE` or per backend with its dedicated variable. A workspace is a project directory, not a sandbox.
+The default workspace is `<data-dir>/workspace`. Change it globally with `SIDEAUDIO_WORKSPACE` or per backend with its dedicated variable. A workspace is a project directory, not a sandbox.
 
 The Gateway normally starts its own backend process while reusing user configuration. It stops processes it owns on exit. An explicitly configured external OpenClaw Gateway retains its own lifecycle.
 

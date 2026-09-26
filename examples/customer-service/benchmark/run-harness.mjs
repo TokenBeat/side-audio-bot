@@ -12,8 +12,8 @@ import { createMaxOnly } from './max-only.mjs'
 loadServiceEnvironment()
 const runtimeRoot = mkdtempSync(join(tmpdir(), 'qwen-tau-harness-'))
 // Must precede gateway imports: never read/write the user's global runtime state.
-process.env.QWAUDIO_CONFIG_DIR = runtimeRoot
-process.env.QWAUDIO_DATA_DIR = runtimeRoot
+process.env.SIDEAUDIO_CONFIG_DIR = runtimeRoot
+process.env.SIDEAUDIO_DATA_DIR = runtimeRoot
 process.env.NODE_ENV = 'test'
 const root = process.env.CS_TAU2_ROOT
 const python = process.env.CS_TAU2_PYTHON

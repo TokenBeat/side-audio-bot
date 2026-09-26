@@ -13,7 +13,7 @@ test('public examples depend only on exported framework entry points', async () 
   for (const path of examples) {
     const source = await readFile(new URL(path, import.meta.url), 'utf8')
     const imports = [...source.matchAll(
-      /from ['"]qwen-audio-agent\/([^'"]+)['"]/g,
+      /from ['"]side-audio-bot\/([^'"]+)['"]/g,
     )]
     assert.ok(imports.length, `${path} does not use a public framework entry`)
     for (const [, subpath] of imports) {

@@ -17,7 +17,7 @@ import { openClawBackendDriver } from '../src/backend/adapters/acp/drivers/openc
 test('starts a Windows batch ACP command from a directory containing spaces', {
   skip: process.platform !== 'win32',
 }, async () => {
-  const root = mkdtempSync(join(tmpdir(), 'qwen-audio-acp-'))
+  const root = mkdtempSync(join(tmpdir(), 'side-audio-acp-'))
   try {
     const directory = join(root, 'Agent Tools')
     mkdirSync(directory)
@@ -128,7 +128,7 @@ test('preserves ENOENT when a local ACP executable cannot be spawned', {
 }, async () => {
   const client = new AcpProcessClient({
     label: 'Missing Agent',
-    command: '__qwen_audio_agent_missing_acp__',
+    command: '__side_audio_bot_missing_acp__',
   })
 
   await assert.rejects(client.start(), error => {

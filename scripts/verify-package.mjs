@@ -152,7 +152,7 @@ if (isMain) {
     throw new Error(`npm 成品缺少公开导出目标：${missingExports.join(', ')}`)
   }
   const required = [
-    'cli/bin/qwenaudio.mjs',
+    'cli/bin/sideaudio.mjs',
     'examples/webrtc/README.md',
     'examples/webrtc/README_ZH.md',
     'examples/webrtc/package.json',

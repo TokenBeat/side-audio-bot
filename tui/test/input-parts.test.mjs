@@ -184,7 +184,7 @@ test('keeps an unavailable Windows share as ordinary text', {
 }, async () => {
   // 本机一定可达，但共享名不存在：Windows 报 ERROR_BAD_NETPATH，
   // Node 把它映射成 UNKNOWN 而不是 ENOENT。
-  const share = String.raw`\\127.0.0.1\qwen-audio-agent-missing-share\report.pdf`
+  const share = String.raw`\\127.0.0.1\side-audio-bot-missing-share\report.pdf`
   assert.deepEqual(
     await inputPartsFromText(share),
     [{ type: 'text', text: share }],

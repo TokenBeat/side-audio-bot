@@ -3,10 +3,10 @@
 Realtime Provider 是运行时与实时模型服务之间的适配器，不是客户端，也不是编排运行时本身。业务宿主可以注入自定义 Provider，而不必修改通用会话与后台工作逻辑。下面通过 Gateway 应用入口进行装配。
 
 ```js
-import { createGatewayApplication } from 'qwen-audio-agent/gateway-application'
+import { createGatewayApplication } from 'side-audio-bot/gateway-application'
 import {
   createRealtimeProviderRegistry,
-} from 'qwen-audio-agent/realtime-provider'
+} from 'side-audio-bot/realtime-provider'
 import { privateRealtimeProvider } from './private-realtime-provider.mjs'
 
 const realtimeProviderRegistry = createRealtimeProviderRegistry({

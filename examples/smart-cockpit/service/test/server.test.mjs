@@ -324,7 +324,7 @@ test('scopes MCP tools according to domain surface routing', async t => {
 })
 
 test('serves persistent custom skill management to the scenario UI', async t => {
-  const root = await mkdtemp(resolve(tmpdir(), 'qwen-cockpit-http-skills-'))
+  const root = await mkdtemp(resolve(tmpdir(), 'sideaudio-cockpit-http-skills-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const service = serviceFixture()
   service.customSkills = new CustomSkillStore({ root })
@@ -386,7 +386,7 @@ test('serves persistent custom skill management to the scenario UI', async t => 
 })
 
 test('exposes temperature-rule fields and emits a structured activity after a real HTTP change', async t => {
-  const root = await mkdtemp(resolve(tmpdir(), 'qwen-cockpit-http-rules-'))
+  const root = await mkdtemp(resolve(tmpdir(), 'sideaudio-cockpit-http-rules-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const service = serviceFixture()
   service.customSkills = new CustomSkillStore({ root })

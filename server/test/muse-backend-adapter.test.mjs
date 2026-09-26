@@ -170,7 +170,7 @@ test('Muse backend adapter satisfies the public BackendPort contract', async () 
 
 test('reports a missing Muse executable before the MSP handshake', async () => {
   const backend = new MuseBackendAdapter({
-    museBin: 'E:\\qwen-audio-agent\\.missing-muse\\muse.exe',
+    museBin: 'E:\\side-audio-bot\\.missing-muse\\muse.exe',
     env: { PATH: process.env.PATH },
     timeoutMs: 0,
   })
@@ -221,7 +221,7 @@ test('keeps the host working directory separate from the MSP workspace root', as
   const runtime = fakeRuntime()
   const backend = new MuseBackendAdapter({
     clientFactory: runtime.clientFactory,
-    directory: 'E:\\qwen-audio-agent',
+    directory: 'E:\\side-audio-bot',
     workspaceRoot: '/home/muse/workspace',
     timeoutMs: 0,
   })
@@ -323,9 +323,9 @@ test('projects MSP user input and sends a structured answer', async () => {
 })
 
 test('AgentClient selects the MSP adapter for the Muse protocol', async () => {
-  const previousConfigDirectory = process.env.QWAUDIO_CONFIG_DIR
-  const configDirectory = mkdtempSync(join(tmpdir(), 'qwaudio-muse-test-'))
-  process.env.QWAUDIO_CONFIG_DIR = configDirectory
+  const previousConfigDirectory = process.env.SIDEAUDIO_CONFIG_DIR
+  const configDirectory = mkdtempSync(join(tmpdir(), 'sideaudio-muse-test-'))
+  process.env.SIDEAUDIO_CONFIG_DIR = configDirectory
   try {
     const { createAgentClient } = await import('../src/backend/adapters/agent-client.mjs')
     const runtime = fakeRuntime()
@@ -341,8 +341,8 @@ test('AgentClient selects the MSP adapter for the Muse protocol', async () => {
     assert.equal((await client.submit(work())).content, 'Muse finished the requested work.')
     await client.close()
   } finally {
-    if (previousConfigDirectory === undefined) delete process.env.QWAUDIO_CONFIG_DIR
-    else process.env.QWAUDIO_CONFIG_DIR = previousConfigDirectory
+    if (previousConfigDirectory === undefined) delete process.env.SIDEAUDIO_CONFIG_DIR
+    else process.env.SIDEAUDIO_CONFIG_DIR = previousConfigDirectory
     rmSync(configDirectory, { recursive: true, force: true })
   }
 })

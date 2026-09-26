@@ -169,7 +169,7 @@ class JsonLineSidecar {
  */
 export class VoiceMemProvider {
   constructor({
-    stateDirectory = resolve(process.cwd(), '.qwen-audio', 'voicemem'),
+    stateDirectory = resolve(process.cwd(), '.side-audio', 'voicemem'),
     python = null,
     sidecarPath = null,
     timeoutMs = 30_000,

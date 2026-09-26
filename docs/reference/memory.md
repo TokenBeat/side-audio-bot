@@ -22,14 +22,14 @@ After a session ends, the default Markdown provider can use a text model to save
 The default is DashScope `qwen-flash` using `DASHSCOPE_API_KEY`. Without an available key, automatic extraction is disabled; explicit memory-tool requests remain available. Disable extraction or configure another OpenAI-compatible text service:
 
 ```dotenv
-QWEN_AUDIO_MEMORY_AUTO=off
+SIDE_AUDIO_MEMORY_AUTO=off
 ```
 
 | Setting | Purpose |
 | --- | --- |
-| `QWEN_AUDIO_MEMORY_MODEL` | Text model for extraction |
-| `QWEN_AUDIO_MEMORY_BASE_URL` | OpenAI-compatible service endpoint |
-| `QWEN_AUDIO_MEMORY_API_KEY` | Credentials for that service |
+| `SIDE_AUDIO_MEMORY_MODEL` | Text model for extraction |
+| `SIDE_AUDIO_MEMORY_BASE_URL` | OpenAI-compatible service endpoint |
+| `SIDE_AUDIO_MEMORY_API_KEY` | Credentials for that service |
 
 Extraction incurs additional model usage. It learns only from new conversation, not replayed history. After a successful memory edit through a tool or client, stale learning results cannot restore the old content. Extraction can still make mistakes; review and correct memories periodically.
 
@@ -38,7 +38,7 @@ Extraction incurs additional model usage. It learns only from new conversation, 
 Disabled by default. Enable topic summaries after sessions; the default retention is 90 days:
 
 ```dotenv
-QWEN_AUDIO_SESSION_DIGEST=on
+SIDE_AUDIO_SESSION_DIGEST=on
 ```
 
 Ask “What was the project we discussed a few days ago?” Summaries are retrieved on demand; they are not recordings or verbatim transcripts.
@@ -50,7 +50,7 @@ A summary may record earlier work, but does not freeze its status. Available sta
 Optional [VoiceMem](../scenarios/voicemem.md) takes over memory, retrieval, and session learning. Install it separately; the core npm package does not include it:
 
 ```dotenv
-QWEN_AUDIO_MEMORY_PROVIDER=voicemem
+SIDE_AUDIO_MEMORY_PROVIDER=voicemem
 VOICEMEM_PYTHON=/absolute/path/to/python
 VOICEMEM_SIDECAR=/absolute/path/to/voicemem-sidecar.py
 VOICEMEM_INPUT_MODE=text

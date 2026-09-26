@@ -76,7 +76,7 @@ visual frames in this release.
 
 ## Which family should I pick?
 
-- **Audio** (`qwen-audio-3.0-realtime-*`) — the default; voice-first
+- **Audio** (`side-audio-3.0-realtime-*`) — the default; voice-first
   conversation, nothing else needed.
 - **Omni** — pick when you want the frontend to combine live visual frames with voice;
   3.8 additionally requires a workspace-specific endpoint.

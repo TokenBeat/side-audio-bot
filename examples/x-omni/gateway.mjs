@@ -13,10 +13,10 @@ const directory = fileURLToPath(new URL('.', import.meta.url))
 export async function startXOmni({ port = 18_890, host = '127.0.0.1', envFile = `${directory}.env.local`, transport = 'websocket' } = {}) {
   if (envFile && existsSync(envFile)) process.loadEnvFile(envFile)
   // Isolated state: never read/write a running desktop's conversation or config.
-  process.env.QWAUDIO_CONFIG_DIR ||= `${directory}.runtime`
-  process.env.QWEN_AUDIO_AGENT_RUNTIME_ROOT ||= directory
-  process.env.QWEN_AUDIO_AGENT_FRONTEND_PROMPT_DIR ||= fileURLToPath(new URL('../../config/frontend-agent', import.meta.url))
-  process.env.QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH ||= fileURLToPath(new URL('../../config/frontend-agent/ASSISTANT.md', import.meta.url))
+  process.env.SIDEAUDIO_CONFIG_DIR ||= `${directory}.runtime`
+  process.env.SIDE_AUDIO_BOT_RUNTIME_ROOT ||= directory
+  process.env.SIDE_AUDIO_BOT_FRONTEND_PROMPT_DIR ||= fileURLToPath(new URL('../../config/frontend-agent', import.meta.url))
+  process.env.SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH ||= fileURLToPath(new URL('../../config/frontend-agent/ASSISTANT.md', import.meta.url))
   process.env.AGENT_PROTOCOL ||= 'none'
   process.env.QWEN_AUDIO_REALTIME_PROVIDER ||= 'dashscope'
   process.env.QWEN_AUDIO_REALTIME_MODEL ||= 'qwen3.5-omni-plus-realtime'
@@ -25,7 +25,7 @@ export async function startXOmni({ port = 18_890, host = '127.0.0.1', envFile = 
   const { resolveRealtimeProvider } = await import('../../server/src/voice/providers/registry.mjs')
   const provider = resolveRealtimeProvider()
   validateTransport(transport, provider.key)
-  process.env.QWAUDIO_WEBRTC_ENABLED = transport === 'webrtc' ? '1' : '0'
+  process.env.SIDEAUDIO_WEBRTC_ENABLED = transport === 'webrtc' ? '1' : '0'
   if (transport === 'webrtc') {
     const { requireWebRtcDependencies } = await import('../../shared/gateway/webrtc.mjs')
     requireWebRtcDependencies()
@@ -41,8 +41,8 @@ export async function startXOmni({ port = 18_890, host = '127.0.0.1', envFile = 
     endpoint: process.env.QWEN_AUDIO_REALTIME_BASE_URL || undefined,
   }) : null
   const tools = reader ? createVisionTools({ reader }) : null
-  const { createGatewayApplication } = await import('qwen-audio-agent/gateway-application')
-  const { createAgentDelivery } = await import('qwen-audio-agent/agent-delivery')
+  const { createGatewayApplication } = await import('side-audio-bot/gateway-application')
+  const { createAgentDelivery } = await import('side-audio-bot/agent-delivery')
   const application = createGatewayApplication({
     autoStart: false,
     clientActionNames: tools ? [CAPTURE_ACTION] : [],

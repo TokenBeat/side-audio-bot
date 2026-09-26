@@ -1,6 +1,6 @@
 # 座舱示例架构
 
-本示例是 qwen-audio-agent 前后台基础架构在智能座舱领域的完整实现：
+本示例是 side-audio-bot 前后台基础架构在智能座舱领域的完整实现：
 
 - **前台对话层**由 `cockpit-client` 与 `cockpit-gateway` 组成，既负责实时对话，
   也直接调用前台工具。客户端是可替换 I/O 组件，Gateway/Realtime 复用框架核心。
@@ -8,7 +8,7 @@
   领域工具与新闻检索等异步任务；任务运行期间，前台仍可聊天和使用前台工具。
   多意图或多途经点本身不意味着必须委托后台。当前示例不派生独立 Agent Session。
 - `cockpit-service` 是 Demo 为同时驱动 UI 和工具而提供的场景基础设施，不属于
-  qwen-audio-agent 的层级模型。
+  side-audio-bot 的层级模型。
 
 早期座舱原型只提供了可复用的界面代码和视觉资源；下面的运行链路基于当前框架
 公开协议重新实现，不承担旧架构兼容。
@@ -18,7 +18,7 @@
 | 目录 / 入口 | 性质 | 允许依赖 | 不应承担 |
 |---|---|---|---|
 | `client/` | 前台客户端示例 | GCP Client SDK、座舱 Service HTTP/SSE | Realtime Provider、后台 Agent 实现、业务执行 |
-| `gateway/` | 前台 Agent 与 Gateway 装配 | qwen-audio-agent 公开导出、场景 Profile、A2A Agent Card | 复制 Gateway 核心、解析座舱业务对象 |
+| `gateway/` | 前台 Agent 与 Gateway 装配 | side-audio-bot 公开导出、场景 Profile、A2A Agent Card | 复制 Gateway 核心、解析座舱业务对象 |
 | `agent/` | 模型驱动的后台 Agent 示例 | DashScope、A2A SDK、`/mcp/backend` | UI 控制、Realtime 会话、场景状态存储 |
 | `service/` | 座舱环境与基础设施 | `service/tools/`、场景状态与规则、外部服务适配、HTTP/SSE/MCP Transport | 对话、播报、Agent 编排 |
 | `bootstrap/` | 本地示例启动支持 | `.env.local`、端口探测 | 对话、业务状态或 Agent 行为 |
@@ -40,7 +40,7 @@ cockpit-client ── GCP 7.0 ──► cockpit-gateway ── A2A ──► coc
 ```
 
 这里不存在“框架 WebUI”。`client` 是客户场景客户端的参考实现，它直接使用
-公开的 `qwen-audio-agent/gateway-client-sdk`，并自行负责浏览器麦克风、音频播放、
+公开的 `side-audio-bot/gateway-client-sdk`，并自行负责浏览器麦克风、音频播放、
 页面布局和业务面板。客户端与 Gateway 是前台内部组件关系，而非独立 Agent 层。
 
 ## 对话面与业务面
@@ -79,7 +79,7 @@ Gateway `GET/PATCH /api/memory` 控制面，与 Realtime 记忆工具共用同�
 事件，由客户端转交前台自然播报，不需要让后台模型持续轮询。
 
 这里不会为每个技能动态注册 MCP Tool，也不会修改 A2A Agent Card。它与通过
-`qwenaudio skill install` 安装给开发者后台的 Agent Skills 是不同概念。
+`sideaudio skill install` 安装给开发者后台的 Agent Skills 是不同概念。
 
 ## 场景装配
 

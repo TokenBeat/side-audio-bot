@@ -2,12 +2,12 @@
 
 ## 本地日志
 
-qwen-audio-agent 使用统一的本地结构化日志，各自保存：
+side-audio-bot 使用统一的本地结构化日志，各自保存：
 
-- CLI 启动的 Gateway：`~/.config/qwaudio/state/logs/`。
-- 桌面代管的 Gateway：`~/.config/qwaudio/state/desktop/logs/`。
+- CLI 启动的 Gateway：`~/.config/sideaudio/state/logs/`。
+- 桌面代管的 Gateway：`~/.config/sideaudio/state/desktop/logs/`。
 - 桌面客户端：[应用数据目录](../configuration.zh.md#配置与数据目录)下的 `logs/`。
-- TUI：`~/.config/qwaudio/tui/logs/`。
+- TUI：`~/.config/sideaudio/tui/logs/`。
 
 以下是日志文件职责；并非所有文件都在同一个目录：
 
@@ -37,12 +37,12 @@ Authorization、Cookie、密码和 Secret 字段会在写入前脱敏；默认�
 
 | 设置 | 默认值 | 说明 |
 | --- | --- | --- |
-| `QWEN_AUDIO_LOG_LEVEL` | `info` | `trace`、`debug`、`info`、`warn`、`error`、`fatal` 或 `silent` |
-| `QWEN_AUDIO_LOG_DIR` | 实例状态目录下的 `logs` | 自定义日志目录 |
-| `QWEN_AUDIO_LOG_MAX_BYTES` | `10485760` | 单个日志文件的轮转阈值 |
-| `QWEN_AUDIO_LOG_MAX_FILES` | `5` | 当前文件和轮转文件的总保留数量 |
-| `QWEN_AUDIO_LOG_FILE` | `1` | 设为 `0` 禁用文件日志 |
-| `QWEN_AUDIO_LOG_CONSOLE` | `1` | 设为 `0` 禁用终端日志输出 |
+| `SIDE_AUDIO_LOG_LEVEL` | `info` | `trace`、`debug`、`info`、`warn`、`error`、`fatal` 或 `silent` |
+| `SIDE_AUDIO_LOG_DIR` | 实例状态目录下的 `logs` | 自定义日志目录 |
+| `SIDE_AUDIO_LOG_MAX_BYTES` | `10485760` | 单个日志文件的轮转阈值 |
+| `SIDE_AUDIO_LOG_MAX_FILES` | `5` | 当前文件和轮转文件的总保留数量 |
+| `SIDE_AUDIO_LOG_FILE` | `1` | 设为 `0` 禁用文件日志 |
+| `SIDE_AUDIO_LOG_CONSOLE` | `1` | 设为 `0` 禁用终端日志输出 |
 
 日志仅保存在本机，不会自动上传。反馈问题前可按需检查并分享相关片段；即使系统会
 自动脱敏，也应在发送前再次确认其中没有不希望公开的本机路径或业务信息。
@@ -52,15 +52,15 @@ Authorization、Cookie、密码和 Secret 字段会在写入前脱敏；默认�
 常见连接、音频和工具问题先看[故障排查](../operations/troubleshooting.zh.md)。
 
 ```bash
-qwenaudio doctor
-qwenaudio doctor --json
-qwenaudio doctor --turn <turnId>
+sideaudio doctor
+sideaudio doctor --json
+sideaudio doctor --turn <turnId>
 ```
 
 检查配置、Gateway、语音前台与 MCP 连接、后台就绪情况及会话文件，不启动模型、后台 Agent
 或麦克风，也不修改配置或修复文件。配置已填写不代表密钥额度有效；没有活动语音会话时，
 会明确提示连接尚未验证。远程检查可加 `--url https://<gateway>`，凭据使用
-`QWEN_AUDIO_GATEWAY_CLIENT_TOKEN`；不会用本机文件推断远程配置。
+`SIDE_AUDIO_GATEWAY_CLIENT_TOKEN`；不会用本机文件推断远程配置。
 
 `--turn` 按已有日志的 `turnId` 整理事件时间线，只显示标识与耗时，不包含对话正文、
 工具参数或结果。最多读取最近 5 个 Gateway 日志各 2 MiB、返回 500 条事件；日志被轮转、

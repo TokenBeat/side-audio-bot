@@ -4,27 +4,27 @@ Skills 是包含 `SKILL.md` 的标准技能目录，由后台 Agent 读取和执
 
 ## 安装与管理
 
-`qwenaudio skill` 调用社区 [skills.sh](https://skills.sh) 安装器，自动选择已探测到及当前配置的受支持后台作为安装目标。
+`sideaudio skill` 调用社区 [skills.sh](https://skills.sh) 安装器，自动选择已探测到及当前配置的受支持后台作为安装目标。
 
 先查看来源包含哪些技能，再安装需要的项：
 
 ```bash
-qwenaudio skill install vercel-labs/agent-skills --list
-qwenaudio skill install vercel-labs/agent-skills --skill web-design-guidelines
+sideaudio skill install vercel-labs/agent-skills --list
+sideaudio skill install vercel-labs/agent-skills --skill web-design-guidelines
 ```
 
 也可以使用 Git 仓库 URL 或本地目录：
 
 ```bash
-qwenaudio skill install ./my-skill --skill my-skill
+sideaudio skill install ./my-skill --skill my-skill
 ```
 
 `--skill` 可重复指定。只安装你需要且信任的技能，不会默认安装整个技能仓库。
 
 ```bash
-qwenaudio skill list
-qwenaudio skill remove <名称>
-qwenaudio skill update
+sideaudio skill list
+sideaudio skill remove <名称>
+sideaudio skill update
 ```
 
 ## 安装到哪里
@@ -43,6 +43,6 @@ qwenaudio skill update
 
 ## 高级配置
 
-可用 `QWEN_AUDIO_AGENT_SKILLS_CLI_PACKAGE` 覆盖安装器包版本。通常保留默认值即可。
+可用 `SIDE_AUDIO_BOT_SKILLS_CLI_PACKAGE` 覆盖安装器包版本。通常保留默认值即可。
 
 技能安装目录与工作目录不同。后台默认在共享的 `<data-dir>/workspace` 处理文件；覆盖方式见[后台通用设置](../configuration/backend.zh.md)。

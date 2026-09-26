@@ -16,10 +16,10 @@ If not yet installed, see [Install & Update](install.md).
 ### 1. Create configuration
 
 ```bash
-qwenaudio config
+sideaudio config
 ```
 
-Open the reported `config.env` file. Its default location is `~/.config/qwaudio/config.env`.
+Open the reported `config.env` file. Its default location is `~/.config/sideaudio/config.env`.
 
 ### 2. Add credentials
 
@@ -37,19 +37,19 @@ AGENT_PROTOCOL=none
 ### 3. Start the Gateway
 
 ```bash
-qwenaudio
+sideaudio
 ```
 
 Keep this terminal running. In another terminal, open the browser client:
 
 ```bash
-qwenaudio webui
+sideaudio webui
 ```
 
 Or use the terminal client:
 
 ```bash
-qwenaudio tui
+sideaudio tui
 ```
 
 See the [TUI guide](tui.md) for audio dependencies and platform differences.
@@ -68,12 +68,12 @@ A backend operates the computer, writes code, and performs other work. Install a
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_MODEL=
+SIDE_AUDIO_BOT_BACKEND_MODEL=
 ```
 
 Leave the backend model empty to use the Agent's configuration. Stop and restart the Gateway, then ask “Check this computer's memory capacity” and inspect the work card and result.
 
-Without an existing backend, you can use [managed OpenCode / OpenClaw initialization](../configuration/backend.md#model-selection). An unset `AGENT_PROTOCOL` or `AGENT_PROTOCOL=none` does not start a backend; chat and enabled frontend tools still work. Use `qwenaudio --backend none` for a temporary override.
+Without an existing backend, you can use [managed OpenCode / OpenClaw initialization](../configuration/backend.md#model-selection). An unset `AGENT_PROTOCOL` or `AGENT_PROTOCOL=none` does not start a backend; chat and enabled frontend tools still work. Use `sideaudio --backend none` for a temporary override.
 
 ## Next steps
 

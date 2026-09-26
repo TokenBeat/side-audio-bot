@@ -9,9 +9,9 @@ Gateway 连通不代表模型已经连上；后台显示已安装也不代表凭
 CLI 可执行：
 
 ```bash
-qwenaudio --version
-qwenaudio doctor
-qwenaudio setup
+sideaudio --version
+sideaudio doctor
+sideaudio setup
 ```
 
 `doctor` 是开发版的只读诊断：不启动模型、后台或麦克风，也不自动修改配置。
@@ -24,7 +24,7 @@ qwenaudio setup
 | --- | --- |
 | Gateway 未连接 | 确认服务已启动，客户端地址与实际端口一致。桌面运行时和 CLI 默认独立，不要查错实例。 |
 | Gateway 已连接，但语音前台异常 | 检查前台服务地址、凭据、额度和 Provider 错误。不要仅凭悬浮球动画判断连通。 |
-| 修改配置后没变化 | 用 `qwenaudio config` 找准确路径，检查环境变量 / 源码 `.env.local` 覆盖，并重启实际 Gateway。 |
+| 修改配置后没变化 | 用 `sideaudio config` 找准确路径，检查环境变量 / 源码 `.env.local` 覆盖，并重启实际 Gateway。 |
 | `gateway restart` 提示未安装服务 | 该命令只管理用户后台服务。终端运行时退出重启；桌面版点击应用或退出重开。 |
 | 客户端被占用或接管 | 同一用户在一个 Gateway 上只有一个活动连接；确认接管或关闭另一客户端。 |
 
@@ -45,7 +45,7 @@ qwenaudio setup
 
 ## 后台与工具
 
-- 后台执行失败：用 `qwenaudio setup --backend <名称>` 检查安装；再用后台自己的入口检查登录和模型配置。
+- 后台执行失败：用 `sideaudio setup --backend <名称>` 检查安装；再用后台自己的入口检查登录和模型配置。
 - 没指定后台模型：Gateway 不负责猜测默认模型，使用 Agent 自身配置。
 - 显式模型覆盖失败：ACP 后台必须提供标准模型配置且接受目标值，否则按错误提示处理，不会静默回退。DeepSeek / Muse 等接入的专属设置见[后台配置](../configuration/backend.zh.md#模型选择)。
 - MCP 命令找不到：检查 `command` 与 PATH。新装命令后重新启动 Gateway；后台服务执行 `gateway restart` 刷新路径缓存。
@@ -64,7 +64,7 @@ HTTPS Endpoint 检查证书、反向代理与 WebSocket 转发。连接码只显
 ## 日志与反馈
 
 桌面版从“设置 → 应用程序 → 日志”打开日志目录。CLI 默认日志在
-`~/.config/qwaudio/state/logs`；桌面代管的 Gateway 在 `~/.config/qwaudio/state/desktop/logs`，
+`~/.config/sideaudio/state/logs`；桌面代管的 Gateway 在 `~/.config/sideaudio/state/desktop/logs`，
 桌面客户端日志在其应用数据目录的 `logs/` 下。
 
 ### 会话历史留存
@@ -81,10 +81,10 @@ HTTPS Endpoint 检查证书、反向代理与 WebSocket 转发。连接码只显
 开发版可按单轮记录整理时间线：
 
 ```bash
-qwenaudio doctor --turn <turnId>
+sideaudio doctor --turn <turnId>
 ```
 
 范围和限制见[只读诊断](../configuration/advanced.zh.md#只读诊断)。
-提交 [Issue](https://github.com/QwenAudio/qwen-audio-agent/issues/new/choose) 时，附上版本、
+提交 [Issue](https://github.com/TokenBeat/side-audio-bot/issues/new/choose) 时，附上版本、
 操作系统、客户端 / Gateway 运行方式、复现步骤、发生时间及相关日志片段。
 **不要附 API Key、配对码、设备令牌、完整配置文件或未经检查的私密对话。**

@@ -12,10 +12,10 @@ Gateway 在启动时发现显式启用的工具，为其分配稳定名称，并
 
 ## 1. 配置远程工具
 
-用 `QWEN_AUDIO_FRONTEND_MCP_CONFIG` 指定一个带版本的 JSON 文件：
+用 `SIDE_AUDIO_FRONTEND_MCP_CONFIG` 指定一个带版本的 JSON 文件：
 
 ```dotenv
-QWEN_AUDIO_FRONTEND_MCP_CONFIG=/absolute/path/to/frontend-mcp.json
+SIDE_AUDIO_FRONTEND_MCP_CONFIG=/absolute/path/to/frontend-mcp.json
 DOCUMENT_MCP_AUTHORIZATION=Bearer replace-me
 ```
 
@@ -84,7 +84,7 @@ DOCUMENT_MCP_AUTHORIZATION=Bearer replace-me
 
 ## 3. 应用并验证
 
-将其中一份 JSON 保存为配置指定的文件，填写真实服务地址、工具名称和凭据，然后[重启 Gateway](../operations/gateway.zh.md#修改配置后生效)。先测试一个简单调用，再增加其他工具。连接失败时查看 `qwenaudio doctor` 和 Gateway 日志。
+将其中一份 JSON 保存为配置指定的文件，填写真实服务地址、工具名称和凭据，然后[重启 Gateway](../operations/gateway.zh.md#修改配置后生效)。先测试一个简单调用，再增加其他工具。连接失败时查看 `sideaudio doctor` 和 Gateway 日志。
 
 仅配置文件存在还不够：服务必须可达，且 `tools` 中的名称必须与服务实际提供的名称一致。远程示例域名仅作占位。
 
@@ -98,7 +98,7 @@ DOCUMENT_MCP_AUTHORIZATION=Bearer replace-me
 - Header 值可以用 `${VARIABLE}` 精确引用一个环境变量；变量缺失即配置错误。
 - stdio Server 由 Gateway 直接启动，不经过 Shell；Gateway 关闭时会一并关闭子进程。
 - stdio Server 与后台 Agent 使用 Gateway 的统一用户命令搜索路径。安装新命令后执行
-  `qwenaudio gateway restart`，CLI 会刷新后台服务使用的登录环境 `PATH` 缓存。
+  `sideaudio gateway restart`，CLI 会刷新后台服务使用的登录环境 `PATH` 缓存。
 - stdio 的 `command`、参数、环境变量值和 `cwd` 可以精确引用环境变量；`cwd`
   如果填写，必须是绝对路径。子进程只继承 SDK 的安全基础环境和显式配置的 `env`。
 - `tools` 是显式白名单；启用的工具由 Gateway 在当前对话轮次内直接调用，不再根据

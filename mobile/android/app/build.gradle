@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.qwenaudio.agent"
+    namespace = "com.sideaudio.agent"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.qwenaudio.agent"
+        applicationId "com.sideaudio.agent"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 2000000

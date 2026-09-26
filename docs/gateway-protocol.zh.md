@@ -2,10 +2,10 @@
 
 > 状态：**Stable 7.0**<br>
 > 线协议版本：**7.0.0**<br>
-> Roadmap：[GitHub issue #251](https://github.com/QwenAudio/qwen-audio-agent/issues/251)<br>
+> Roadmap：[GitHub issue #251](https://github.com/TokenBeat/side-audio-bot/issues/251)<br>
 > 当前实现事实源：`shared/protocol/gateway-client-protocol.mjs`、`server/src/client/client-event-router.mjs`、`server/src/client/client-command-runtime.mjs`、`shared/protocol/realtime-events.mjs`、`shared/protocol/gateway-events.mjs` 与 `server/src/core/gateway-protocol.mjs`
 
-本文档定义 qwen-audio-agent Gateway 与每个已认证用户的一个活动 Client Environment 之间已经落地的北向协议。当前第一方客户端使用 7.0 线协议；旧 `connect` 与运行时 REST 入口仍作为兼容别名保留，不用于新客户端接入。健康契约与线协议独立版本化，见[Gateway 契约](contract.zh.md)。
+本文档定义 side-audio-bot Gateway 与每个已认证用户的一个活动 Client Environment 之间已经落地的北向协议。当前第一方客户端使用 7.0 线协议；旧 `connect` 与运行时 REST 入口仍作为兼容别名保留，不用于新客户端接入。健康契约与线协议独立版本化，见[Gateway 契约](contract.zh.md)。
 
 ## 1. 产品边界
 
@@ -42,10 +42,10 @@ Gateway 访问认证与 GCP 明确分层。访问凭据在 `session.hello` 之�
   该模式只面向可信局域网，不支持直接暴露到公网。
 - 远程 HTTP 与 WebSocket 必须使用配置的访问密钥，或网关主机签发的可撤销设备令牌。
 - 原生 Client 在 WebSocket 握手使用 `Authorization: Bearer <token>`；浏览器通过 WebSocket 子协议携带同一 Token。
-- 远程浏览器来源必须显式写入 `QWEN_AUDIO_AGENT_ALLOWED_ORIGINS`。远程部署应使用可信 VPN 或 HTTPS/WSS 反向代理，不支持直接暴露到公网。
-- 一个配置密钥映射一个用户；可选的 `QWEN_AUDIO_AGENT_ACCESS_KEYS` JSON 数组可把不同密钥映射到不同用户，而无需修改 GCP。
+- 远程浏览器来源必须显式写入 `SIDE_AUDIO_BOT_ALLOWED_ORIGINS`。远程部署应使用可信 VPN 或 HTTPS/WSS 反向代理，不支持直接暴露到公网。
+- 一个配置密钥映射一个用户；可选的 `SIDE_AUDIO_BOT_ACCESS_KEYS` JSON 数组可把不同密钥映射到不同用户，而无需修改 GCP。
 
-本机操作者可对运行中的 Gateway 执行 `qwenaudio gateway pair`，直接生成一个包含准确
+本机操作者可对运行中的 Gateway 执行 `sideaudio gateway pair`，直接生成一个包含准确
 Gateway 地址与可撤销设备令牌、并可直接打开 WebUI 的短浏览器兼容连接码。
 设备令牌只以 SHA-256 摘要持久化，明文凭据只显示一次；原生远程 Client 不需要再通过
 HTTPS 换取 Token。浏览器扫码页仅把 fragment 中的 Token 换成 HttpOnly Cookie。本机管理

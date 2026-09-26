@@ -63,7 +63,7 @@ examples/digital-human/
 | 环境 | 计划使用 | 隔离要求 |
 | --- | --- | --- |
 | Mac 网关/example | 与框架 engines 相容的 Node，example 自有依赖锁 | 不加入根 workspaces |
-| WebRTC 媒体 | 已有 `qwen-audio-agent-webrtc` 扩展 | 显式安装到 example 可解析的位置；不得依赖用户全局安装碰巧存在 |
+| WebRTC 媒体 | 已有 `side-audio-bot-webrtc` 扩展 | 显式安装到 example 可解析的位置；不得依赖用户全局安装碰巧存在 |
 | Node 私有协议 | `ws`，使用框架允许的版本范围并在 example 锁定 | 不修改主框架依赖表 |
 | GPU 服务 | Python 3.11 系列、`aiohttp`、NumPy、PyTorch 及实际需要的上游推理依赖 | 以选定上游 revision 为准，独立 venv/镜像 |
 | 媒体转换 | 上游环境中的 OpenCV 等必要组件 | 只保留一种 OpenCV 安装，避免 headless 与非 headless 冲突 |

@@ -63,7 +63,7 @@ jobs:
       - if: ${{ matrix.os == 'ubuntu-latest' && matrix.node == '22.22.2' }}
         run: npm run test:x-omni-webrtc
       - if: ${{ matrix.os == 'ubuntu-latest' && matrix.node == '22.22.2' }}
-        run: QWAUDIO_TEST_WEBRTC_NATIVE=1 node --test server/test/webrtc-native.test.mjs
+        run: SIDEAUDIO_TEST_WEBRTC_NATIVE=1 node --test server/test/webrtc-native.test.mjs
       - if: ${{ failure() && matrix.os == 'ubuntu-latest' && matrix.node == '22.22.2' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -89,7 +89,7 @@ jobs:
       # 真实消费者验收：打包 → 装进只含已声明依赖的裸消费者 → CLI 与
       # Gateway 契约全链路。跑在基线 Node 上，一并证明基线可用。
       - if: ${{ matrix.os == 'ubuntu-latest' && matrix.node == '22.22.2' }}
-        run: QWEN_AUDIO_CONSUMER_PROBE=1 node --test test/consumer-install.test.mjs
+        run: SIDE_AUDIO_BOT_CONSUMER_PROBE=1 node --test test/consumer-install.test.mjs
       - run: node scripts/verify-package.mjs
 
   release-check:
@@ -108,7 +108,7 @@ jobs:
         env:
           # Pull requests remain deterministic during a transient npm audit
           # outage. The release workflow stays fail-closed.
-          QWEN_AUDIO_AGENT_AUDIT_ALLOW_UNAVAILABLE: '1'
+          SIDE_AUDIO_BOT_AUDIT_ALLOW_UNAVAILABLE: '1'
 
   # One stable branch-protection context. The matrix job names change whenever
   # the supported OS/Node set changes; this aggregate keeps main protection

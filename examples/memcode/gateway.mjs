@@ -8,7 +8,7 @@ function required(name) {
   return value
 }
 
-const ownerId = process.env.QWEN_AUDIO_AGENT_PERSONAL_OWNER_ID || 'user_personal'
+const ownerId = process.env.SIDE_AUDIO_BOT_PERSONAL_OWNER_ID || 'user_personal'
 const apiUrl = process.env.MEMCODE_API_URL || 'https://memory.memcode.in'
 const apiKey = required('MEMCODE_API_KEY')
 const binding = memcodeBinding(apiUrl, apiKey)
@@ -17,13 +17,13 @@ const memoryProvider = new MemcodeMemoryProvider({
   client,
   binding,
   ownerId,
-  stateFile: resolve(process.env.QWAUDIO_CONFIG_DIR || '.qwen-audio/runtime', 'memory', 'memcode', 'snapshot.json'),
+  stateFile: resolve(process.env.SIDEAUDIO_CONFIG_DIR || '.side-audio/runtime', 'memory', 'memcode', 'snapshot.json'),
 })
 
 // This example only supports explicit edits. Set before importing Gateway config.
-process.env.QWEN_AUDIO_MEMORY_AUTO = 'off'
-process.env.QWEN_AUDIO_PREFERENCE_LEARNING = 'off'
-const { createGatewayApplication } = await import('qwen-audio-agent/gateway-application')
+process.env.SIDE_AUDIO_MEMORY_AUTO = 'off'
+process.env.SIDE_AUDIO_PREFERENCE_LEARNING = 'off'
+const { createGatewayApplication } = await import('side-audio-bot/gateway-application')
 const gateway = createGatewayApplication({ memoryProvider })
 
 for (const signal of ['SIGINT', 'SIGTERM']) {

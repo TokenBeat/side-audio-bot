@@ -350,7 +350,7 @@ const MOCK_BROWSER_APIS = String.raw`
       document.documentElement.dataset.desktopLifecycle = value
       listener?.({ state: value, reason })
     }
-    window.qwenAudioAgentDesktop = {
+    window.sideAudioBotDesktop = {
       loadSurface: async () => ({ mode: surface }),
       setSurface: async mode => { surface = mode; return { mode } },
       setTaskCardCount() {},
@@ -500,7 +500,7 @@ async function testHappyPath(context, diagnostics) {
 async function testBrowserLanguage(context, diagnostics) {
   const page = await preparePage(context, '?browser-smoke=language', diagnostics)
   await page.evaluate(() => {
-    localStorage.setItem('qwen-audio-lang', 'zh-CN')
+    localStorage.setItem('side-audio-lang', 'zh-CN')
     Object.defineProperty(navigator, 'languages', { configurable: true, value: ['en-US'] })
     window.dispatchEvent(new Event('languagechange'))
   })
@@ -512,7 +512,7 @@ async function testBrowserLanguage(context, diagnostics) {
   })
   await page.getByRole('button', { name: '开启麦克风', exact: true }).waitFor()
   assert.equal(await page.locator('html').getAttribute('lang'), 'zh-CN')
-  await page.evaluate(() => localStorage.removeItem('qwen-audio-lang'))
+  await page.evaluate(() => localStorage.removeItem('side-audio-lang'))
   await finishPage(page, diagnostics)
 }
 
@@ -530,7 +530,7 @@ async function testDesktopSleepWake(context, diagnostics) {
     await page.locator('.messages').waitFor({ state: 'detached' })
     await waitForAttribute(page, 'data-track-stops', value => Number(value) >= cycle + 1)
     // Wake without another voice.ready/connected: the Realtime session is retained.
-    await page.evaluate(() => qwenAudioAgentDesktop.wake())
+    await page.evaluate(() => sideAudioBotDesktop.wake())
     await waitForAttribute(page, 'data-desktop-lifecycle', value => value === 'active')
     await waitForAttribute(page, 'data-client-presence', value => value === 'active')
     await waitForAttribute(page, 'data-presence-context', value => value?.includes('不在休眠状态'))
@@ -561,7 +561,7 @@ async function testDesktopAutoSleep(context, diagnostics) {
   await page.clock.fastForward(61_000)
   await waitForAttribute(page, 'data-client-presence', value => value === 'sleeping')
   await waitForAttribute(page, 'data-presence-context', value => value?.includes('因空闲超时'))
-  await page.evaluate(() => qwenAudioAgentDesktop.wake())
+  await page.evaluate(() => sideAudioBotDesktop.wake())
   await waitForAttribute(page, 'data-desktop-lifecycle', value => value === 'active')
   await waitForAttribute(page, 'data-presence-context', value => value?.includes('不在休眠状态'))
   const states = await page.evaluate(() => browserSmoke.presenceContexts())

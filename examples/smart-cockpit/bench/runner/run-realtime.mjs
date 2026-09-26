@@ -68,7 +68,7 @@ async function synthesizeSpeechPcm(text, {
   sampleRate = DEFAULT_SAMPLE_RATE,
   sayVoice = 'Ting-Ting',
 } = {}) {
-  const root = await mkdtemp(join(tmpdir(), 'qwen-cockpit-realtime-turn-'))
+  const root = await mkdtemp(join(tmpdir(), 'sideaudio-cockpit-realtime-turn-'))
   const aiffPath = join(root, 'speech.aiff')
   try {
     const sayArgs = sayVoice
@@ -571,7 +571,7 @@ async function main() {
       harness,
       domains,
       outputMode,
-      outputVoice: args.get('voice') || process.env.QWEN_AUDIO_OUTPUT_VOICE,
+      outputVoice: args.get('voice') || process.env.SIDE_AUDIO_OUTPUT_VOICE,
       sayVoice: args.get('say-voice') === true ? undefined : args.get('say-voice') || 'Ting-Ting',
       silenceMs: harness.numberArg(args, 'silence-ms', DEFAULT_SILENCE_MS),
       chunkMs: harness.numberArg(args, 'chunk-ms', DEFAULT_CHUNK_MS),

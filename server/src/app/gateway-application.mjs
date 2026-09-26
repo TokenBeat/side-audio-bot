@@ -176,7 +176,7 @@ const unsubscribeSessionTaskJournal = taskManager.subscribe(event => {
     ownerId: event.ownerId || task.ownerId,
     sessionId: task.sessionId || 'main',
     event: {
-      type: 'qwaudio/task/event',
+      type: 'sideaudio/task/event',
       eventId: event.eventId || randomUUID(),
       turnId: task.turnId || null,
       taskId: task.id,
@@ -452,9 +452,9 @@ const start = ({ host = config.host, port = config.port } = {}) => {
     const boundPort = address && typeof address === 'object' ? address.port : port
     const origin = `http://${host}:${boundPort}`
     const readyReport = {
-      type: 'qwen-audio-agent:gateway-ready',
+      type: 'side-audio-bot:gateway-ready',
       origin,
-      instanceId: process.env.QWEN_AUDIO_GATEWAY_INSTANCE_ID || null,
+      instanceId: process.env.SIDE_AUDIO_GATEWAY_INSTANCE_ID || null,
     }
     if (parentPort) {
       // Electron utilityProcess.
@@ -467,7 +467,7 @@ const start = ({ host = config.host, port = config.port } = {}) => {
       origin,
       backend: agent.describe?.()?.protocol || config.agentProtocol || 'none',
       realtimeProvider,
-    }, `qwen-audio-agent running at ${origin}`)
+    }, `side-audio-bot running at ${origin}`)
     void publicEndpointRuntime?.start?.(localGatewayOrigin(address))
   })
   return server

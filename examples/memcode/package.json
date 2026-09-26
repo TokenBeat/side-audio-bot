@@ -1,5 +1,5 @@
 {
-  "name": "qwen-audio-agent-memcode-example",
+  "name": "side-audio-bot-memcode-example",
   "private": true,
   "type": "module",
   "scripts": {
@@ -7,6 +7,6 @@
   },
   "dependencies": {
     "memcode-sdk": "2.4.1",
-    "qwen-audio-agent": "file:../.."
+    "side-audio-bot": "file:../.."
   }
 }

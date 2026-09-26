@@ -10,11 +10,11 @@ import { requireWebRtcDependencies } from '../shared/gateway/webrtc.mjs'
 import { parsePackOutput } from '../scripts/verify-package.mjs'
 
 const source = new URL('../packages/webrtc/', import.meta.url)
-const extensionName = 'qwen-audio-agent-webrtc'
+const extensionName = 'side-audio-bot-webrtc'
 const missing = () => { throw Object.assign(new Error('not installed'), { code: 'MODULE_NOT_FOUND' }) }
 
 async function temporary(t) {
-  const path = await realpath(await mkdtemp(join(tmpdir(), 'qwaudio-webrtc-extension-')))
+  const path = await realpath(await mkdtemp(join(tmpdir(), 'sideaudio-webrtc-extension-')))
   t.after(() => rm(path, { recursive: true, force: true }))
   return path
 }
@@ -70,7 +70,7 @@ test('source checkout uses its separate package when no installed extension exis
 test('absent extensions produce actionable release and source install instructions', () => {
   assert.throws(() => requireWebRtcDependencies({ resolvePackage: missing, sourceManifest: null }), error => {
     assert.equal(error.code, 'webrtc_dependencies_missing')
-    assert.match(error.message, /npm install -g qwen-audio-agent-webrtc/)
+    assert.match(error.message, /npm install -g side-audio-bot-webrtc/)
     assert.match(error.message, /npm run example:webrtc:install/)
     return true
   })
@@ -78,7 +78,7 @@ test('absent extensions produce actionable release and source install instructio
 
 test('incompatible installed extensions do not silently fall back to a source copy', async t => {
   const root = await temporary(t)
-  const installed = await extensionFixture(join(root, 'installed'), { qwaudioWebrtcApiVersion: 2 })
+  const installed = await extensionFixture(join(root, 'installed'), { sideaudioWebrtcApiVersion: 2 })
   const sourceManifest = await extensionFixture(join(root, 'source'))
   assert.throws(() => requireWebRtcDependencies({ resolvePackage: () => installed, sourceManifest }), { code: 'webrtc_extension_incompatible' })
 })
@@ -98,7 +98,7 @@ test('an incomplete extension install fails before any native module is loaded',
   const path = await temporary(t)
   const manifestPath = await extensionFixture(path)
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
-  manifest.dependencies['qwaudio-webrtc-deliberately-missing-fixture'] = '0.0.0'
+  manifest.dependencies['sideaudio-webrtc-deliberately-missing-fixture'] = '0.0.0'
   await writeFile(manifestPath, JSON.stringify(manifest))
   assert.throws(() => requireWebRtcDependencies({ resolvePackage: () => manifestPath, sourceManifest: null }), { code: 'webrtc_dependencies_missing' })
 })
@@ -109,7 +109,7 @@ test('extension tarball is independently publishable without native binaries or 
   await writeFile(join(path, '.env'), 'PRIVATE=must-not-ship')
   await writeFile(join(path, 'install.log'), 'must-not-ship')
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
-  assert.equal(manifest.dependencies['qwen-audio-agent'], undefined)
+  assert.equal(manifest.dependencies['side-audio-bot'], undefined)
   assert.equal(manifest.peerDependencies, undefined)
   const lock = JSON.parse(await readFile(new URL('package-lock.json', source), 'utf8'))
   assert.equal(lock.name, extensionName)
@@ -128,7 +128,7 @@ test('npm global installs discover the sibling extension outside the current dir
   await mkdir(join(core, 'shared/gateway'), { recursive: true })
   await copyFile(new URL('../shared/gateway/webrtc.mjs', import.meta.url), join(core, 'shared/gateway/webrtc.mjs'))
   await writeFile(join(core, 'package.json'), JSON.stringify({
-    name: 'qwen-audio-agent', version: '1.11.0', type: 'module', files: ['shared/'],
+    name: 'side-audio-bot', version: '1.11.0', type: 'module', files: ['shared/'],
   }))
   const extension = join(path, 'extension')
   // Only this installation fixture bundles inert native stubs, allowing a real
@@ -142,7 +142,7 @@ test('npm global installs discover the sibling extension outside the current dir
   const prefix = join(path, 'global')
   npm(['install', '--global', '--prefix', prefix, '--ignore-scripts', '--offline', '--no-audit', '--no-fund', coreTarball, extensionTarball], path, join(path, 'cache'))
   const modules = process.platform === 'win32' ? join(prefix, 'node_modules') : join(prefix, 'lib/node_modules')
-  const loader = pathToFileURL(join(modules, 'qwen-audio-agent/shared/gateway/webrtc.mjs')).href
+  const loader = pathToFileURL(join(modules, 'side-audio-bot/shared/gateway/webrtc.mjs')).href
   const expected = join(modules, extensionName, 'index.cjs')
   const unrelated = join(path, 'unrelated')
   await mkdir(unrelated)

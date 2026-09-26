@@ -1,4 +1,4 @@
-const MICROPHONE_AUDIO_WORKLET_PROCESSOR_NAME = 'qwen-audio-microphone'
+const MICROPHONE_AUDIO_WORKLET_PROCESSOR_NAME = 'side-audio-microphone'
 
 const modulePromises = new WeakMap()
 

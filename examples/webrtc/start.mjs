@@ -5,7 +5,7 @@ export function demoEnvironment(environment, args = []) {
   if (args.some(arg => arg !== '--omni')) throw new Error('Usage: node start.mjs [--omni]')
   return {
     ...environment,
-    QWAUDIO_WEBRTC_ENABLED: '1',
+    SIDEAUDIO_WEBRTC_ENABLED: '1',
     QWEN_AUDIO_REALTIME_PROVIDER: 'dashscope',
     QWEN_AUDIO_REALTIME_MODEL: args.includes('--omni')
       ? 'qwen3.5-omni-plus-realtime'

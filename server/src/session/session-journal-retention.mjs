@@ -19,7 +19,7 @@ export const recordBytes = event => Buffer.byteLength(JSON.stringify(event)) + 1
 export function latestJournalTasks(events) {
   const tasks = new Map()
   for (const event of events) {
-    const task = event.type === 'qwaudio/task/event' && event.payload?.task
+    const task = event.type === 'sideaudio/task/event' && event.payload?.task
     if (task?.id) tasks.set(task.id, event)
   }
   return [...tasks.values()]
@@ -69,7 +69,7 @@ export function compactJournalEvents(events, policy, headerBytes = 0) {
   for (let i = events.length - 1; i >= 0 && selected.size < targetEvents && bytes < targetBytes; i--) {
     const event = events[i]
     // Older snapshots of a task/message are not needed to reconstruct state.
-    if (event.type === 'qwaudio/task/event' && event.payload?.task?.id) continue
+    if (event.type === 'sideaudio/task/event' && event.payload?.task?.id) continue
     if (['user/message', 'assistant/message'].includes(event.type)) continue
     add(event)
   }

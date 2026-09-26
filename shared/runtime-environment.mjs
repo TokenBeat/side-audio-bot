@@ -13,9 +13,9 @@ import { backendDefinitions } from './backend/catalog.mjs'
 import { assertRealtimeFrontendModel, resolveRealtimeFrontendConfiguration } from './realtime-provider-catalog.mjs'
 import { migrateRealtimeFileEnvironment, mergeRealtimeEnvironment } from './realtime-provider-definitions.mjs'
 
-const SECRET_KEY = 'QWEN_AUDIO_AGENT_AUTH_SECRET'
+const SECRET_KEY = 'SIDE_AUDIO_BOT_AUTH_SECRET'
 const USER_CONFIG_TEMPLATE = [
-  '# qwen-audio-agent 用户配置',
+  '# side-audio-bot 用户配置',
   '# 前台 API Key：取消注释并填写；显式留空表示清除凭证',
   '# 各 Provider 使用独立参数；切换时只需修改 Provider 选择项',
   '# DASHSCOPE_API_KEY=',
@@ -35,43 +35,43 @@ const USER_CONFIG_TEMPLATE = [
   '# MiniCPM-o 4.5：将 Provider 改为 minicpm-o，并先启动本地 Realtime 服务',
   '# MINICPM_O_REALTIME_URL=ws://127.0.0.1:8006/v1/realtime?mode=audio',
   '',
-  '# 可选目录：QWAUDIO_DATA_DIR / QWAUDIO_STATE_DIR / QWAUDIO_CACHE_DIR',
-  '# 所有后台默认工作区：QWAUDIO_WORKSPACE=/absolute/path/to/projects',
+  '# 可选目录：SIDEAUDIO_DATA_DIR / SIDEAUDIO_STATE_DIR / SIDEAUDIO_CACHE_DIR',
+  '# 所有后台默认工作区：SIDEAUDIO_WORKSPACE=/absolute/path/to/projects',
   '',
   '# 可选：选择后台 Agent；留空时仅使用前台实时语音聊天',
   '# 可选 openclaw、opencode、qoder、qwen、minimax、kimi、hermes、codebuddy、codex、claude、deepseek、pi、acp 或 none',
   'AGENT_PROTOCOL=',
   '# 权限模式：native（后台自行询问）或 full（最高权限；仅支持安全映射的后端）',
   '# Pi 没有权限审批机制，无论配置什么都始终生效 full',
-  '# QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native',
+  '# SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native',
   '# 可选：通过 ACP 标准覆盖 Session 模型；OpenCode/OpenClaw 托管初始化也会使用',
   '# 留空时完全沿用 Agent 原有模型；后台未声明 ACP 模型选项时显式覆盖会失败',
-  '# QWEN_AUDIO_AGENT_BACKEND_MODEL=',
-  '# 可选：QWEN_AUDIO_AGENT_BACKEND_AGENT=协调 Agent ID',
+  '# SIDE_AUDIO_BOT_BACKEND_MODEL=',
+  '# 可选：SIDE_AUDIO_BOT_BACKEND_AGENT=协调 Agent ID',
   '# Kimi Code 可复用原生登录，或设置官方 KIMI_MODEL_* 临时模型变量',
   '# DeepSeek（Harness Developer Preview）：DEEPSEEK_API_KEY=your-key',
   '# 通用 ACP：ACP_COMMAND=your-agent，ACP_ARGS=["--acp"]',
-  '# 通用 ACP 如需额外环境变量：QWEN_AUDIO_AGENT_ACP_FORWARD_ENV=NAME_A,NAME_B',
+  '# 通用 ACP 如需额外环境变量：SIDE_AUDIO_BOT_ACP_FORWARD_ENV=NAME_A,NAME_B',
   '',
   '# 可选：前台 MCP 配置文件的绝对路径；MCP 引用的持久变量也写在本文件中',
-  '# QWEN_AUDIO_FRONTEND_MCP_CONFIG=/absolute/path/to/frontend-mcp.json',
+  '# SIDE_AUDIO_FRONTEND_MCP_CONFIG=/absolute/path/to/frontend-mcp.json',
   '',
   '# 可选记忆 Provider：markdown（默认）或 voicemem；VoiceMem 需先安装 Python 依赖',
-  '# QWEN_AUDIO_MEMORY_PROVIDER=voicemem',
+  '# SIDE_AUDIO_MEMORY_PROVIDER=voicemem',
   '# VOICEMEM_INPUT_MODE=text',
   '# VOICEMEM_PYTHON=/absolute/path/to/voicemem-python',
   '# VOICEMEM_SIDECAR=/absolute/path/to/voicemem-sidecar.py',
   '',
   '# 可选远程 Client 接入；Gateway 默认仍只监听 127.0.0.1',
-  '# 开放同一局域网访问：QWEN_AUDIO_GATEWAY_LAN=1',
-  '# 使用已安装并登录的系统 Tailscale Serve：QWEN_AUDIO_GATEWAY_TAILNET=1',
-  '# QWEN_AUDIO_GATEWAY_ACCESS_TOKEN=至少24字符的随机密钥',
-  '# QWEN_AUDIO_AGENT_ALLOWED_ORIGINS=https://voice.example.com',
+  '# 开放同一局域网访问：SIDE_AUDIO_GATEWAY_LAN=1',
+  '# 使用已安装并登录的系统 Tailscale Serve：SIDE_AUDIO_GATEWAY_TAILNET=1',
+  '# SIDE_AUDIO_GATEWAY_ACCESS_TOKEN=至少24字符的随机密钥',
+  '# SIDE_AUDIO_BOT_ALLOWED_ORIGINS=https://voice.example.com',
   '',
   '# 可选日志设置：默认 info、单文件 10 MiB、保留 5 份',
-  '# QWEN_AUDIO_LOG_LEVEL=info',
-  '# QWEN_AUDIO_LOG_MAX_BYTES=10485760',
-  '# QWEN_AUDIO_LOG_MAX_FILES=5',
+  '# SIDE_AUDIO_BOT_LOG_LEVEL=info',
+  '# SIDE_AUDIO_BOT_LOG_MAX_BYTES=10485760',
+  '# SIDE_AUDIO_BOT_LOG_MAX_FILES=5',
   '',
 ].join('\n')
 const USER_MODEL_TEMPLATE = [
@@ -286,7 +286,7 @@ export function loadRuntimeEnvironment({
   // Config location is bootstrap input; directory settings inside that file
   // are resolved only after loading it, then forwarded as absolute paths.
   const paths = resolveRuntimePaths({
-    env: { ...env, QWAUDIO_CONFIG_DIR: configDirectory },
+    env: { ...env, SIDEAUDIO_CONFIG_DIR: configDirectory },
     homeDirectory,
     baseDirectory: root,
     defaultStateDirectory,
@@ -337,8 +337,8 @@ export function loadRuntimeEnvironment({
   const claudeWorkspace = workspace('claude')
   const piWorkspace = workspace('pi')
   const acpWorkspace = workspace('acp')
-  const openClawStateDirectory = env.QWEN_AUDIO_AGENT_OPENCLAW_STATE_DIR
-    ? resolve(root, env.QWEN_AUDIO_AGENT_OPENCLAW_STATE_DIR)
+  const openClawStateDirectory = env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR
+    ? resolve(root, env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR)
     : resolve(stateDirectory, 'backends/openclaw')
   if (prepareBackendRuntime && !readOnly) {
     for (const entry of Object.values(backendWorkspaces)) {
@@ -348,7 +348,7 @@ export function loadRuntimeEnvironment({
       env[entry.environment] = entry.directory
     }
     mkdirSync(openClawStateDirectory, { recursive: true, mode: 0o700 })
-    env.QWEN_AUDIO_AGENT_OPENCLAW_STATE_DIR = openClawStateDirectory
+    env.SIDE_AUDIO_BOT_OPENCLAW_STATE_DIR = openClawStateDirectory
   }
   const secret = generateSecret && !readOnly
     ? ensureGeneratedSecret(env, configDirectory)
@@ -389,7 +389,7 @@ export function hasDashScopeCredential(env = process.env) {
 export function requireDashScopeCredential(env = process.env) {
   if (hasDashScopeCredential(env)) return
   throw new Error(
-    '缺少 DASHSCOPE_API_KEY。请运行 qwenaudio config 查看配置文件位置。',
+    '缺少 DASHSCOPE_API_KEY。请运行 sideaudio config 查看配置文件位置。',
   )
 }
 

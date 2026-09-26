@@ -10,21 +10,21 @@ import { resolveRealtimeFrontendConfiguration } from '../../shared/realtime-prov
 test('WebRTC is opt-in, accepts CLI or environment and stays scoped to Gateway startup', () => {
   assert.equal(parseArguments(['gateway'], {}).webrtc, false)
   assert.equal(parseArguments(['gateway', '--webrtc'], {}).webrtc, true)
-  assert.equal(parseArguments(['gateway', '--webrtc'], { QWAUDIO_WEBRTC_ENABLED: '0' }).webrtc, true)
+  assert.equal(parseArguments(['gateway', '--webrtc'], { SIDEAUDIO_WEBRTC_ENABLED: '0' }).webrtc, true)
   assert.equal(parseArguments(['gateway', 'install', '--webrtc'], {}).webrtc, true)
-  for (const value of ['1', 'true']) assert.equal(parseArguments(['gateway'], { QWAUDIO_WEBRTC_ENABLED: value }).webrtc, true)
+  for (const value of ['1', 'true']) assert.equal(parseArguments(['gateway'], { SIDEAUDIO_WEBRTC_ENABLED: value }).webrtc, true)
   for (const argv of [['tui', '--webrtc'], ['webui', '--webrtc'], ['gateway', 'pair', '--webrtc'], ['gateway', 'restart', '--webrtc']]) {
     assert.throws(() => parseArguments(argv, {}), /--webrtc 只适用于/)
   }
   assert.match(helpText(), /--webrtc/)
-  assert.match(helpText(), /QWAUDIO_WEBRTC_ENABLED/)
+  assert.match(helpText(), /SIDEAUDIO_WEBRTC_ENABLED/)
 })
 
 test('dependency preflight explains how to install the optional npm extension', () => {
   assert.throws(() => requireWebRtcDependencies({
     resolvePackage: () => { throw Object.assign(new Error('missing'), { code: 'MODULE_NOT_FOUND' }) },
     sourceManifest: null,
-  }), /npm install -g qwen-audio-agent-webrtc/)
+  }), /npm install -g side-audio-bot-webrtc/)
 })
 
 function launcher(overrides = {}) {
@@ -43,7 +43,7 @@ function launcher(overrides = {}) {
 test('CLI enable flag sets the existing switch and prints the demo URL after checking the endpoint', async () => {
   const { calls, dependencies } = launcher()
   await main(['gateway', '--webrtc'], dependencies)
-  assert.equal(dependencies.env.QWAUDIO_WEBRTC_ENABLED, '1')
+  assert.equal(dependencies.env.SIDEAUDIO_WEBRTC_ENABLED, '1')
   assert.equal(calls.find(call => call[0] === 'runtime')[1].webrtc, true)
   assert.ok(calls.some(call => call[0] === 'webrtc'))
   assert.match(calls.find(call => call[0] === 'output')[1], /\/api\/realtime\/webrtc\/example/)
@@ -52,7 +52,7 @@ test('CLI enable flag sets the existing switch and prints the demo URL after che
 test('ordinary CLI startup does not enable or probe WebRTC', async () => {
   const { calls, dependencies } = launcher()
   await main(['gateway'], dependencies)
-  assert.equal(dependencies.env.QWAUDIO_WEBRTC_ENABLED, undefined)
+  assert.equal(dependencies.env.SIDEAUDIO_WEBRTC_ENABLED, undefined)
   assert.ok(!calls.some(call => call[0] === 'webrtc'))
 })
 
@@ -88,7 +88,7 @@ test('service installation records the explicit WebRTC switch without installing
   await main(['gateway', 'install', '--webrtc'], dependencies)
   assert.equal(operations[0][0], 'dependencies')
   const install = operations.find(([action]) => action === 'install')[1]
-  assert.equal(install.serviceEnvironment.QWAUDIO_WEBRTC_ENABLED, '1')
+  assert.equal(install.serviceEnvironment.SIDEAUDIO_WEBRTC_ENABLED, '1')
   assert.equal(install.serviceMetadata.webrtc, true)
 })
 
@@ -124,6 +124,6 @@ test('runtime forwards WebRTC into its Gateway child without changing the model 
     },
   })
   assert.equal(checked, true)
-  assert.equal(childEnvironment.QWAUDIO_WEBRTC_ENABLED, '1')
+  assert.equal(childEnvironment.SIDEAUDIO_WEBRTC_ENABLED, '1')
   assert.equal(runtime.ownsProcesses, true)
 })

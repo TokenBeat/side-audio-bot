@@ -76,7 +76,7 @@ export function parseArguments(argv, env = process.env) {
   try {
     return parseCommandArguments(argv, env)
   } catch (error) {
-    // `qwenaudio install --help` 等子命令在缺少位置参数或选项组合无效时仍应显示
+    // `sideaudio install --help` 等子命令在缺少位置参数或选项组合无效时仍应显示
     // 帮助；未请求帮助或命令本身未知时照常报错。
     const command = argv[0] && !argv[0].startsWith('-') ? argv[0] : 'gateway'
     if (!helpRequested(argv) || !COMMANDS.has(command)) throw error
@@ -144,28 +144,28 @@ function parseCommandArguments(argv, env) {
     deviceId,
     deviceLabel: '',
     legacyPairing: false,
-    webrtc: ['1', 'true'].includes(env.QWAUDIO_WEBRTC_ENABLED),
-    lan: enabled(env.QWEN_AUDIO_GATEWAY_LAN),
+    webrtc: ['1', 'true'].includes(env.SIDEAUDIO_WEBRTC_ENABLED),
+    lan: enabled(env.SIDE_AUDIO_GATEWAY_LAN),
     lanSpecified: false,
-    tailnet: enabled(env.QWEN_AUDIO_GATEWAY_TAILNET),
+    tailnet: enabled(env.SIDE_AUDIO_GATEWAY_TAILNET),
     tailnetSpecified: false,
     endpoint: '',
-    url: env.QWEN_AUDIO_AGENT_URL || '',
+    url: env.SIDE_AUDIO_BOT_URL || '',
     accessToken: String(
-      env.QWEN_AUDIO_GATEWAY_CLIENT_TOKEN
-      || env.QWEN_AUDIO_AGENT_ACCESS_TOKEN
+      env.SIDE_AUDIO_GATEWAY_CLIENT_TOKEN
+      || env.SIDE_AUDIO_BOT_ACCESS_TOKEN
       || '',
     ).trim(),
-    sessionId: env.QWEN_AUDIO_AGENT_SESSION_ID || createVoiceSessionId(),
+    sessionId: env.SIDE_AUDIO_BOT_SESSION_ID || createVoiceSessionId(),
     audioMode: String(
-      env.QWEN_AUDIO_AGENT_TUI_AUDIO_MODE || 'half',
+      env.SIDE_AUDIO_BOT_TUI_AUDIO_MODE || 'half',
     ).toLowerCase(),
     backend: normalizeBackendProtocol(env.AGENT_PROTOCOL),
     backendPermissionMode: String(
-      env.QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE || 'native',
+      env.SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE || 'native',
     ).toLowerCase(),
     backendAgent: String(
-      env.QWEN_AUDIO_AGENT_BACKEND_AGENT || '',
+      env.SIDE_AUDIO_BOT_BACKEND_AGENT || '',
     ).trim(),
     backendUrl: '',
     backendUrlSpecified: false,
@@ -184,7 +184,7 @@ function parseCommandArguments(argv, env) {
     pairingCode: command === 'connect' && args[0] && !args[0].startsWith('-')
       ? args.shift()
       : '',
-    urlSpecified: Boolean(env.QWEN_AUDIO_AGENT_URL),
+    urlSpecified: Boolean(env.SIDE_AUDIO_BOT_URL),
   }
   let audioModeSpecified = false
   const backendOptions = []
@@ -419,46 +419,46 @@ function parseCommandArguments(argv, env) {
 
 export function helpText() {
   return [
-    'qwenaudio',
+    'sideaudio',
     '',
     '用法：',
-    '  qwenaudio [gateway] [run] [选项]  前台运行 Gateway（默认）',
-    '  qwenaudio gateway install         安装并启动后台常驻服务',
-    '  qwenaudio gateway start           启动后台服务',
-    '  qwenaudio gateway status          查看网关可达性与本机常驻服务状态',
-    '  qwenaudio gateway pair [--name 名称] [--endpoint URL]  创建直连码与二维码',
-    '  qwenaudio gateway devices         列出已配对客户端',
-    '  qwenaudio gateway revoke ID       撤销客户端',
-    '  qwenaudio gateway stop            停止后台服务',
-    '  qwenaudio gateway restart         重启后台服务',
-    '  qwenaudio gateway uninstall       移除后台常驻服务',
-    '  qwenaudio tui [选项]         连接现有 Gateway 的终端界面',
-    '  qwenaudio webui [选项]       打开现有 Gateway 的 WebUI',
-    '  qwenaudio connect <连接码>    配对并保存远程 Gateway',
-    '  qwenaudio disconnect          忘记已保存的远程 Gateway',
-    '  qwenaudio status [选项]      gateway status 的兼容别名',
-    '  qwenaudio doctor [--json] [--turn ID]  只读诊断配置、连接、历史与交互时间线',
-    '  qwenaudio config             显示用户配置文件位置',
-    '  qwenaudio config show        显示有效 Realtime 模型（不含凭据）',
-    '  qwenaudio config set --realtime-model ID  更新 Realtime 模型',
-    '  qwenaudio setup [选项]       只读检查后台 Agent 接入准备情况',
-    '  qwenaudio install NAME        一键安装后台 Agent（含所需 ACP 适配器）',
-    '  qwenaudio skill install SRC --skill NAME  安装技能到所有后台（经 skills.sh）',
-    '  qwenaudio skill install SRC --list         列出来源中可安装的技能',
-    '  qwenaudio skill list          查看已安装技能',
-    '  qwenaudio skill remove NAME   移除技能',
-    '  qwenaudio skill update        更新已安装技能',
+    '  sideaudio [gateway] [run] [选项]  前台运行 Gateway（默认）',
+    '  sideaudio gateway install         安装并启动后台常驻服务',
+    '  sideaudio gateway start           启动后台服务',
+    '  sideaudio gateway status          查看网关可达性与本机常驻服务状态',
+    '  sideaudio gateway pair [--name 名称] [--endpoint URL]  创建直连码与二维码',
+    '  sideaudio gateway devices         列出已配对客户端',
+    '  sideaudio gateway revoke ID       撤销客户端',
+    '  sideaudio gateway stop            停止后台服务',
+    '  sideaudio gateway restart         重启后台服务',
+    '  sideaudio gateway uninstall       移除后台常驻服务',
+    '  sideaudio tui [选项]         连接现有 Gateway 的终端界面',
+    '  sideaudio webui [选项]       打开现有 Gateway 的 WebUI',
+    '  sideaudio connect <连接码>    配对并保存远程 Gateway',
+    '  sideaudio disconnect          忘记已保存的远程 Gateway',
+    '  sideaudio status [选项]      gateway status 的兼容别名',
+    '  sideaudio doctor [--json] [--turn ID]  只读诊断配置、连接、历史与交互时间线',
+    '  sideaudio config             显示用户配置文件位置',
+    '  sideaudio config show        显示有效 Realtime 模型（不含凭据）',
+    '  sideaudio config set --realtime-model ID  更新 Realtime 模型',
+    '  sideaudio setup [选项]       只读检查后台 Agent 接入准备情况',
+    '  sideaudio install NAME        一键安装后台 Agent（含所需 ACP 适配器）',
+    '  sideaudio skill install SRC --skill NAME  安装技能到所有后台（经 skills.sh）',
+    '  sideaudio skill install SRC --list         列出来源中可安装的技能',
+    '  sideaudio skill list          查看已安装技能',
+    '  sideaudio skill remove NAME   移除技能',
+    '  sideaudio skill update        更新已安装技能',
     '',
     'Gateway 选项：',
-    '  --url URL              Gateway 地址（覆盖 QWEN_AUDIO_AGENT_URL、HOST/PORT）',
+    '  --url URL              Gateway 地址（覆盖 SIDE_AUDIO_BOT_URL、HOST/PORT）',
     '                         默认 http://127.0.0.1:3101；后台参数仅用于 gateway run',
     `  --backend NAME         可选：${backendNames().join('、')} 或 none；不设置或使用 none 时仅前台聊天`,
     '  --backend-permission-mode MODE  native（默认）或 full（最高权限）',
     '  --backend-url URL      后台 Server 地址',
     '  --backend-agent ID     指定协调 Agent',
     '  --lan                  监听局域网并自动发布 ws://局域网IP:端口',
-    '  --webrtc               额外开启 WebRTC，保留 WSS；先 npm install -g qwen-audio-agent-webrtc',
-    '                         用于 gateway run/install；也可设置 QWAUDIO_WEBRTC_ENABLED=1',
+    '  --webrtc               额外开启 WebRTC，保留 WSS；先 npm install -g side-audio-bot-webrtc',
+    '                         用于 gateway run/install；也可设置 SIDEAUDIO_WEBRTC_ENABLED=1',
     '  --tailnet              通过系统 Tailscale Serve 发布到私有 Tailnet',
     '  gateway pair --endpoint URL  覆盖连接码中的地址（例如反向代理 HTTPS Origin）',
     '',

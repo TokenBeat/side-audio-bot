@@ -8,7 +8,7 @@ let configuration = null
 let muted = false
 let messages = []
 const lines = []
-const historyKey = 'qwen-audio-agent.webrtc.session'
+const historyKey = 'side-audio-bot.webrtc.session'
 try { $('session').value = localStorage.getItem(historyKey) || 'webrtc-demo' } catch {}
 
 function log(event) {
@@ -38,7 +38,7 @@ function controls() {
 function send(event) {
   return active?.send(event) || false
 }
-function receipt(type, responseId) { send({ type: `qwaudio.playback.${type}`, response_id: responseId }) }
+function receipt(type, responseId) { send({ type: `sideaudio.playback.${type}`, response_id: responseId }) }
 function listening() { if (active?.ready) state('listening', muted ? '麦克风已静音' : '可以说话了') }
 function messageText(content) {
   if (typeof content === 'string') return content
@@ -53,7 +53,7 @@ function renderMessages() {
     const article = document.createElement('article')
     article.className = `message ${message.role}${message.live ? ' live' : ''}`
     const title = document.createElement('header')
-    title.textContent = message.role === 'user' ? '你' : 'qwen-audio'
+    title.textContent = message.role === 'user' ? '你' : 'side-audio'
     const content = document.createElement('div')
     content.className = 'content'
     content.textContent = message.content
@@ -88,7 +88,7 @@ async function loadConfiguration() {
   if (!response.ok) throw new Error(result.error?.message || '无法读取网关配置，请检查访问凭证')
   configuration = result
   $('model').textContent = result.model
-  $('model-label').textContent = result.video_input ? 'Qwen Omni' : 'Qwen Audio'
+  $('model-label').textContent = result.video_input ? 'Qwen Omni' : 'Side Audio'
   $('model-capabilities').textContent = result.video_input ? 'Text · Audio · Video' : 'Text · Audio'
   $('model-note').textContent = result.video_input
     ? 'Omni 模式 · 可开启摄像头提问。模型由启动命令指定，页面不修改网关配置。'
@@ -129,12 +129,12 @@ function received(current, event) {
     controls()
     if (!current.historyRequested) {
       current.historyRequested = true
-      send({ type: 'qwaudio.command', event: { type: 'conversation.history', event_id: crypto.randomUUID(), session_id: current.sessionId } })
+      send({ type: 'sideaudio.command', event: { type: 'conversation.history', event_id: crypto.randomUUID(), session_id: current.sessionId } })
     }
   }
   if (event.type.includes('audio_transcription.') || event.type.startsWith('response.audio_transcript.')) transcript(event)
   if (event.type === 'response.created') state('processing', '正在思考')
-  if (event.type === 'qwaudio.output.started') {
+  if (event.type === 'sideaudio.output.started') {
     $('ack').disabled = false
   }
   if (event.type === 'output_audio_buffer.cleared') {
@@ -144,7 +144,7 @@ function received(current, event) {
   }
   if (event.type === 'response.done' && event.response?.status === 'failed') notice('本次模型回复失败，请查看连接详情或重试。')
   if (event.type === 'error') notice(event.error?.message || '网关返回错误，请查看连接详情')
-  if (event.type === 'qwaudio.event') {
+  if (event.type === 'sideaudio.event') {
     const item = event.event
     if (item.type === 'conversation.history.result') {
       const history = (item.messages || []).filter(message => ['user', 'assistant'].includes(message.role)).slice(-40)
@@ -161,7 +161,7 @@ function received(current, event) {
       renderMessages()
     }
   }
-  if (event.type === 'qwaudio.connection.closed') void disconnect()
+  if (event.type === 'sideaudio.connection.closed') void disconnect()
 }
 
 function analyser(context, stream) {

@@ -90,23 +90,23 @@ test('commandAvailable returns false for nonexistent commands', () => {
 
 test('loadDotEnv loads a runtime env file once', () => {
   const directory = mkdtempSync(join(tmpdir(), 'launcher-test-env-'))
-  const guard = process.env.QWEN_AUDIO_AGENT_ENV_LOADED
-  const value = process.env.QWEN_AUDIO_AGENT_LAUNCHER_TEST_VALUE
-  delete process.env.QWEN_AUDIO_AGENT_ENV_LOADED
-  delete process.env.QWEN_AUDIO_AGENT_LAUNCHER_TEST_VALUE
+  const guard = process.env.SIDE_AUDIO_BOT_ENV_LOADED
+  const value = process.env.SIDE_AUDIO_BOT_LAUNCHER_TEST_VALUE
+  delete process.env.SIDE_AUDIO_BOT_ENV_LOADED
+  delete process.env.SIDE_AUDIO_BOT_LAUNCHER_TEST_VALUE
   writeFileSync(
     join(directory, '.env'),
-    'QWEN_AUDIO_AGENT_LAUNCHER_TEST_VALUE=loaded\n',
+    'SIDE_AUDIO_BOT_LAUNCHER_TEST_VALUE=loaded\n',
   )
   try {
     loadDotEnv(directory)
-    assert.equal(process.env.QWEN_AUDIO_AGENT_ENV_LOADED, '1')
-    assert.equal(process.env.QWEN_AUDIO_AGENT_LAUNCHER_TEST_VALUE, 'loaded')
+    assert.equal(process.env.SIDE_AUDIO_BOT_ENV_LOADED, '1')
+    assert.equal(process.env.SIDE_AUDIO_BOT_LAUNCHER_TEST_VALUE, 'loaded')
   } finally {
-    if (guard === undefined) delete process.env.QWEN_AUDIO_AGENT_ENV_LOADED
-    else process.env.QWEN_AUDIO_AGENT_ENV_LOADED = guard
-    if (value === undefined) delete process.env.QWEN_AUDIO_AGENT_LAUNCHER_TEST_VALUE
-    else process.env.QWEN_AUDIO_AGENT_LAUNCHER_TEST_VALUE = value
+    if (guard === undefined) delete process.env.SIDE_AUDIO_BOT_ENV_LOADED
+    else process.env.SIDE_AUDIO_BOT_ENV_LOADED = guard
+    if (value === undefined) delete process.env.SIDE_AUDIO_BOT_LAUNCHER_TEST_VALUE
+    else process.env.SIDE_AUDIO_BOT_LAUNCHER_TEST_VALUE = value
     rmSync(directory, { recursive: true, force: true })
   }
 })

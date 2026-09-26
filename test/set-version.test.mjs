@@ -16,27 +16,27 @@ function writeJson(path, value) {
 }
 
 function fixture() {
-  const root = mkdtempSync(join(tmpdir(), 'qwen-audio-version-'))
+  const root = mkdtempSync(join(tmpdir(), 'side-audio-version-'))
   writeJson(join(root, 'package.json'), {
-    name: 'qwen-audio-agent',
+    name: 'side-audio-bot',
     version: '0.5.0',
   })
   const packages = {
-    '': { name: 'qwen-audio-agent', version: '0.5.0' },
+    '': { name: 'side-audio-bot', version: '0.5.0' },
   }
   for (const workspace of WORKSPACES) {
     mkdirSync(join(root, workspace))
     writeJson(join(root, workspace, 'package.json'), {
-      name: `@qwen-audio-agent/${workspace}`,
+      name: `@side-audio-bot/${workspace}`,
       version: '0.5.0',
     })
     packages[workspace] = {
-      name: `@qwen-audio-agent/${workspace}`,
+      name: `@side-audio-bot/${workspace}`,
       version: '0.5.0',
     }
   }
   writeJson(join(root, 'package-lock.json'), {
-    name: 'qwen-audio-agent',
+    name: 'side-audio-bot',
     version: '0.5.0',
     lockfileVersion: 3,
     packages,

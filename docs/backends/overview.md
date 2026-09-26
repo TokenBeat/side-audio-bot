@@ -21,7 +21,7 @@ The Backend Agent handles tasks that require tools, file operations, or sustaine
 | Pi | External ACP adapter | Supports one-click install of both the core and adapter, requires user configuration | `~/.pi/agent/skills/` | ★★★★☆ |
 | Muse Code | Native MSP adapter | Muse and SDK installed on demand, requires user configuration | Managed by Muse Code | Experimental |
 
-Skills install once through `qwenaudio skill install` (a branded entry point
+Skills install once through `sideaudio skill install` (a branded entry point
 for the standard skills.sh installer) and land automatically in the user-level
 directories of backends that declare a skills.sh installer above. MiniMax Code
 and Muse Code manage their own extension systems. See
@@ -34,10 +34,10 @@ The recommendation rating reflects the current integration completeness, compati
 Uninstalled backend agents can be installed locally with a unified command:
 
 ```bash
-qwenaudio install codex
-qwenaudio install deepseek
-qwenaudio install minimax
-qwenaudio install muse
+sideaudio install codex
+sideaudio install deepseek
+sideaudio install minimax
+sideaudio install muse
 ```
 
 Before installation, a detection step runs to **only fill in missing components**: it installs the backend core and, where required, its adapter. Existing components are not reinstalled. Installation does not mean the backend is configured: complete any login and configuration required by the selected backend. In the desktop settings page's "Backend Agent" list, an "Install" button appears at the end of rows for uninstalled backends that support one-click install, using the same installation logic as the CLI.
@@ -54,25 +54,25 @@ set `DEEPSEEK_HARNESS_MODEL` to
 View currently available backend agents:
 
 ```bash
-qwenaudio setup
+sideaudio setup
 ```
 
 This command only checks — it does not install, download, or verify credentials. To check only a specific backend or get machine-readable results:
 
 ```bash
-qwenaudio setup --backend codex
-qwenaudio setup --json
+sideaudio setup --backend codex
+sideaudio setup --json
 ```
 
 ## Choosing a Backend
 
-`AGENT_PROTOCOL` is an optional configuration. When left empty, the Gateway runs in frontend-only mode, and real-time voice chat remains available; requests requiring backend execution will return a clear explanation without creating a task or guessing results. You can also use `qwenaudio --backend none` on the command line to explicitly start in frontend-only mode.
+`AGENT_PROTOCOL` is an optional configuration. When left empty, the Gateway runs in frontend-only mode, and real-time voice chat remains available; requests requiring backend execution will return a clear explanation without creating a task or guessing results. You can also use `sideaudio --backend none` on the command line to explicitly start in frontend-only mode.
 
 ```dotenv
 AGENT_PROTOCOL=openclaw
 ```
 
-OpenCode and OpenClaw support automatic download and installation; after configuring `DASHSCOPE_API_KEY` and `QWEN_AUDIO_AGENT_BACKEND_MODEL`, they can automatically connect to Bailian models. Other backends require prior installation and native configuration; qwen-audio-agent will reuse their user-level models, tools, MCPs, Skills, and authentication where the selected protocol exposes them. MiniMax Code and Muse Code keep their own model, provider, authentication, and extension configuration under their control.
+OpenCode and OpenClaw support automatic download and installation; after configuring `DASHSCOPE_API_KEY` and `SIDE_AUDIO_BOT_BACKEND_MODEL`, they can automatically connect to Bailian models. Other backends require prior installation and native configuration; side-audio-bot will reuse their user-level models, tools, MCPs, Skills, and authentication where the selected protocol exposes them. MiniMax Code and Muse Code keep their own model, provider, authentication, and extension configuration under their control.
 
 To use other agents that support ACP stdio:
 
@@ -86,7 +86,7 @@ The command, arguments, display name, and working directory can be configured vi
 
 ## Permission Modes
 
-`QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE` can be set to:
+`SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE` can be set to:
 
 - `native` (default): Permissions are determined and prompted by the backend agent itself; the Gateway only forwards requests as-is.
 - `full`: Grants the highest permissions at startup, allowing the backend to directly execute commands, read and write files without per-action confirmation.

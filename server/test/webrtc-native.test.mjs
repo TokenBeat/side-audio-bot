@@ -6,10 +6,10 @@ import WebSocket from 'ws'
 import { encodePcm, decodePcm } from '../src/transport/webrtc/pcm.mjs'
 import { rtcHarness, waitUntil } from './fixtures/webrtc-gateway.mjs'
 
-const enabled = process.env.QWAUDIO_TEST_WEBRTC_NATIVE === '1'
+const enabled = process.env.SIDEAUDIO_TEST_WEBRTC_NATIVE === '1'
 async function browserFor(t, base) {
-  const { chromium } = await import(process.env.QWAUDIO_TEST_PLAYWRIGHT_MODULE
-    ? pathToFileURL(process.env.QWAUDIO_TEST_PLAYWRIGHT_MODULE).href : 'playwright')
+  const { chromium } = await import(process.env.SIDEAUDIO_TEST_PLAYWRIGHT_MODULE
+    ? pathToFileURL(process.env.SIDEAUDIO_TEST_PLAYWRIGHT_MODULE).href : 'playwright')
   const browser = await chromium.launch({ headless: true, args: [
     '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--autoplay-policy=no-user-gesture-required',
   ] })

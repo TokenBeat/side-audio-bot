@@ -16,7 +16,7 @@ async function directory(t) {
   return path
 }
 const taskEvent = (id, status, extra = {}) => ({
-  type: 'qwaudio/task/event', taskId: id,
+  type: 'sideaudio/task/event', taskId: id,
   payload: { task: { id, status, ...extra } },
 })
 

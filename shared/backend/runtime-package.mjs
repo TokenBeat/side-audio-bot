@@ -29,7 +29,7 @@ export function inspectBackendRuntimePackage(id, {
     return {
       ready: false,
       source: 'missing',
-      issue: `缺少或版本不匹配的 ${spec.name}@${spec.version}；请运行 qwenaudio install ${id}`,
+      issue: `缺少或版本不匹配的 ${spec.name}@${spec.version}；请运行 sideaudio install ${id}`,
     }
   }
 }

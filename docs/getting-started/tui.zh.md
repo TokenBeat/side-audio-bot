@@ -3,7 +3,7 @@
 先[启动 Gateway](../operations/gateway.zh.md)，再在另一个终端运行：
 
 ```bash
-qwenaudio tui
+sideaudio tui
 ```
 
 远程连接先[导入连接码](../operations/remote-access.zh.md#_3-连接客户端)。TUI 不会替你选择或启动后台 Agent。
@@ -53,7 +53,7 @@ TUI 在语音之外也支持文本、图片和普通文件：
 
 macOS 始终使用 CoreAudio AEC 全双工：播报期间持续收音，支持直接说话打断，
 无需额外配置。CoreAudio 辅助程序默认编译到
-`~/Library/Caches/qwaudio/tui/macos-voice-io`，首次启动时自动构建。若缺少 Swift 编译器，先安装 Xcode Command Line Tools（`xcode-select --install`）。
+`~/Library/Caches/sideaudio/tui/macos-voice-io`，首次启动时自动构建。若缺少 Swift 编译器，先安装 Xcode Command Line Tools（`xcode-select --install`）。
 
 ## Linux / Windows
 
@@ -70,7 +70,7 @@ Linux 默认调用 `python3`，Windows 默认调用 `python`；可通过 `PYTHON
 也可以开启无回声消除的全双工模式：
 
 ```bash
-qwenaudio tui --audio-mode full
+sideaudio tui --audio-mode full
 ```
 
 此模式没有回声消除，请佩戴耳机，避免扬声器声音造成误识别或误打断。
@@ -82,7 +82,7 @@ qwenaudio tui --audio-mode full
 默认音频模式也可通过环境变量持久设置：
 
 ```dotenv
-QWEN_AUDIO_AGENT_TUI_AUDIO_MODE=half
+SIDE_AUDIO_BOT_TUI_AUDIO_MODE=half
 ```
 
 设为 `full` 等效于 `--audio-mode full`。完整参数见

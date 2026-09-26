@@ -1,8 +1,8 @@
-# Qwen Audio Agent X-Omni 示例
+# Side Audio Bot X-Omni 示例
 
 [English](README.md) | 中文
 
-基于 qwen-audio-agent 的实时多模态交互参考实现，通过框架的 Gateway 与 Realtime
+基于 side-audio-bot 的实时多模态交互参考实现，通过框架的 Gateway 与 Realtime
 Provider 接口，提供视觉对话、按需识图，以及用户主动开启的视觉观察能力。
 
 Qwen3.5 Omni 是默认配置，而非客户端架构的限定。面壁 MiniCPM-o 可通过已有适配器
@@ -57,7 +57,7 @@ npm run example:x-omni
 
 打开 **http://127.0.0.1:5178**。示例启动独立的本机 Gateway，端口 **18890**。
 默认配置、状态和记忆保存在被 Git 忽略的 `examples/x-omni/.runtime/`，
-不连接桌面版 Gateway。显式设置的 `QWAUDIO_*` 目录仍会生效。
+不连接桌面版 Gateway。显式设置的 `SIDEAUDIO_*` 目录仍会生效。
 
 凭据只留在 Node.js 进程，不进入浏览器构建产物。使用 DashScope 时，可选的
 `QWEN_AUDIO_REALTIME_BASE_URL` 同时设置对话和视觉读取的 WebSocket 地址。

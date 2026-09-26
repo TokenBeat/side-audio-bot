@@ -2,7 +2,7 @@
 
 English | [中文](README_ZH.md)
 
-Examples demonstrate integrations and scenarios built on qwen-audio-agent. This
+Examples demonstrate integrations and scenarios built on side-audio-bot. This
 document defines their README requirements and review criteria. It applies to new
 examples; existing examples should align when their documentation or integration
 is substantially updated. It does not claim that all existing examples already comply.

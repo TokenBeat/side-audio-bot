@@ -22,14 +22,14 @@
 默认使用 DashScope `qwen-flash` 并复用 `DASHSCOPE_API_KEY`。没有可用 Key 时自动整理关闭，明确要求的记忆工具不受影响。可关闭自动整理，或配置另一个 OpenAI 兼容文本服务：
 
 ```dotenv
-QWEN_AUDIO_MEMORY_AUTO=off
+SIDE_AUDIO_MEMORY_AUTO=off
 ```
 
 | 配置项 | 用途 |
 | --- | --- |
-| `QWEN_AUDIO_MEMORY_MODEL` | 自动整理使用的文本模型 |
-| `QWEN_AUDIO_MEMORY_BASE_URL` | OpenAI 兼容服务地址 |
-| `QWEN_AUDIO_MEMORY_API_KEY` | 该服务的凭据 |
+| `SIDE_AUDIO_MEMORY_MODEL` | 自动整理使用的文本模型 |
+| `SIDE_AUDIO_MEMORY_BASE_URL` | OpenAI 兼容服务地址 |
+| `SIDE_AUDIO_MEMORY_API_KEY` | 该服务的凭据 |
 
 自动整理会额外产生模型用量。它只学习新对话，不重复学习重连恢复的历史；通过工具或客户端成功编辑记忆后，过期学习结果不会把旧内容写回来。自动整理仍可能记错，请定期查看并纠正。
 
@@ -38,7 +38,7 @@ QWEN_AUDIO_MEMORY_AUTO=off
 默认关闭。开启后，会话结束时生成话题摘要，默认保留 90 天：
 
 ```dotenv
-QWEN_AUDIO_SESSION_DIGEST=on
+SIDE_AUDIO_SESSION_DIGEST=on
 ```
 
 可以问“前几天我们聊过的那个项目是什么？”摘要按需检索，不是完整录音或逐字聊天记录。
@@ -50,7 +50,7 @@ QWEN_AUDIO_SESSION_DIGEST=on
 可选 [VoiceMem](../scenarios/voicemem.zh.md) 能接管记忆、召回与会话学习。它需要单独安装，不包含在核心 npm 包中：
 
 ```dotenv
-QWEN_AUDIO_MEMORY_PROVIDER=voicemem
+SIDE_AUDIO_MEMORY_PROVIDER=voicemem
 VOICEMEM_PYTHON=/absolute/path/to/python
 VOICEMEM_SIDECAR=/absolute/path/to/voicemem-sidecar.py
 VOICEMEM_INPUT_MODE=text

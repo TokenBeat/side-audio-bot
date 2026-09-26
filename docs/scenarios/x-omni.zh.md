@@ -80,4 +80,4 @@ AGENT_PROTOCOL=none
 Qwen 配置下可选接入已安装的后台，利用截图引用进一步办事。
 
 完整配置、架构、隐私、限制和测试见
-[X-Omni 示例](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/x-omni)。
+[X-Omni 示例](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/x-omni)。

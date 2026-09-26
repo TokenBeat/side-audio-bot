@@ -17,7 +17,7 @@
 也可以指定另一份文件：
 
 ```dotenv
-QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH=/absolute/path/to/ASSISTANT.md
+SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH=/absolute/path/to/ASSISTANT.md
 ```
 
 画像不控制声音；音色在[语音前台设置](../configuration/frontend.zh.md)中配置。画像也不能改变工具权限、任务路由或核心运行规则。
@@ -36,7 +36,7 @@ QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH=/absolute/path/to/ASSISTANT.md
 
 ## 可选偏好学习
 
-默认只保存明确要求。设置 `QWEN_AUDIO_PREFERENCE_LEARNING=on` 后，默认记忆 Provider 还会在会话结束时观察少量特征，跨会话确认后写入 `USER.md` 的“观察推断”段。
+默认只保存明确要求。设置 `SIDE_AUDIO_PREFERENCE_LEARNING=on` 后，默认记忆 Provider 还会在会话结束时观察少量特征，跨会话确认后写入 `USER.md` 的“观察推断”段。
 
 此功能默认关闭，会额外调用文本模型。明确要求优先于推断；不需要的推断可在文件中删除。算法与阈值见[偏好学习机制](preference-learning.zh.md)。
 

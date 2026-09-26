@@ -13,7 +13,7 @@ import { loadMuseSdk, MuseBackendAdapter } from '../src/backend/adapters/muse/ba
 function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), 'muse-runtime-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
-  const env = { QWAUDIO_DATA_DIR: join(root, 'data with spaces') }
+  const env = { SIDEAUDIO_DATA_DIR: join(root, 'data with spaces') }
   const directory = backendRuntimeDirectory('muse', env)
   const pkg = join(directory, 'node_modules', '@muse-code', 'sdk')
   const install = (version = '0.1.1', source = 'export const marker = "loaded"') => {
@@ -42,7 +42,7 @@ test('SDK missing or wrong version is actionable; detection never evaluates pack
   assert.equal(inspectBackendRuntimePackage('muse', { env }).ready, false)
   await assert.rejects(loadMuseSdk(directory), { code: 'MUSE_SDK_NOT_INSTALLED' })
   install('9.9.9')
-  await assert.rejects(loadMuseSdk(directory), /qwenaudio install muse/)
+  await assert.rejects(loadMuseSdk(directory), /sideaudio install muse/)
   install('0.1.1', 'throw new Error("SDK was evaluated")')
   assert.equal(inspectBackendRuntimePackage('muse', { env }).ready, true)
   const report = inspectBackendSetups({ backend: 'muse', env, find: () => '/installed/muse' })
@@ -67,7 +67,7 @@ test('setup reports a missing SDK even when Muse executable is installed', t => 
   assert.equal(item.backend.ready, true)
   assert.equal(item.adapter.ready, false)
   assert.equal(item.ready, false)
-  assert.match(item.issues.join(' '), /qwenaudio install muse/)
+  assert.match(item.issues.join(' '), /sideaudio install muse/)
 })
 
 test('explicit install adds only a missing private SDK and skips an existing Muse host', async t => {
@@ -108,16 +108,16 @@ test('Windows/WSL install offers the host-side SDK without a Unix install script
   assert.equal(support.steps.length, 1)
   assert.ok(support.steps[0].display.includes(JSON.stringify(directory)))
   assert.match(support.steps[0].display, /--ignore-scripts/)
-  assert.equal(resolve(directory).startsWith(resolve(env.QWAUDIO_DATA_DIR)), true)
+  assert.equal(resolve(directory).startsWith(resolve(env.SIDEAUDIO_DATA_DIR)), true)
 })
 
 test('Muse receives its own API credential but not other providers credentials', () => {
   const env = backendEnvironment('muse', { env: {
     META_API_KEY: 'muse-test-key', DASHSCOPE_API_KEY: 'other-test-key',
-    OPENAI_API_KEY: 'other-test-key', QWAUDIO_DATA_DIR: '/private/gateway',
+    OPENAI_API_KEY: 'other-test-key', SIDEAUDIO_DATA_DIR: '/private/gateway',
   } })
   assert.equal(env.META_API_KEY, 'muse-test-key')
   assert.equal(env.DASHSCOPE_API_KEY, undefined)
   assert.equal(env.OPENAI_API_KEY, undefined)
-  assert.equal(env.QWAUDIO_DATA_DIR, undefined)
+  assert.equal(env.SIDEAUDIO_DATA_DIR, undefined)
 })

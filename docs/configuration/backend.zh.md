@@ -8,19 +8,19 @@
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_MODEL=
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_MODEL=
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 后台名称及安装要求见[后台列表](../backends/overview.zh.md)。留空或设为 `none` 不启动后台；聊天与已启用的前台工具仍可使用。
 
-临时切换可运行 `qwenaudio gateway --backend qwen`。修改持久配置后，按[运行方式](../operations/gateway.zh.md#修改配置后生效)重启实际 Gateway。
+临时切换可运行 `sideaudio gateway --backend qwen`。修改持久配置后，按[运行方式](../operations/gateway.zh.md#修改配置后生效)重启实际 Gateway。
 
 ## 检查与安装
 
 ```bash
-qwenaudio setup --backend qwen
-qwenaudio install qwen
+sideaudio setup --backend qwen
+sideaudio install qwen
 ```
 
 `setup` 只检查可执行文件和接入组件，不安装、不登录、不验证额度。`install` 只补齐缺失组件；需要外部 ACP 适配器时会一起安装。脚本类步骤执行前要求确认，`--yes` 可跳过。
@@ -31,7 +31,7 @@ qwenaudio install qwen
 
 ## 模型选择
 
-对支持标准模型配置的 ACP 后台，`QWEN_AUDIO_AGENT_BACKEND_MODEL` 留空时：
+对支持标准模型配置的 ACP 后台，`SIDE_AUDIO_BOT_BACKEND_MODEL` 留空时：
 
 - 不传模型、不猜默认值、不调用设置接口。
 - 新 Session 由后台选择模型；恢复 Session 保留原来的模型。
@@ -49,14 +49,14 @@ DeepSeek Harness 当前使用独立启动模型设置，见 [DeepSeek](../backen
 ```dotenv
 AGENT_PROTOCOL=opencode
 DASHSCOPE_API_KEY=your-key
-QWEN_AUDIO_AGENT_BACKEND_MODEL=qwen3.7-max
+SIDE_AUDIO_BOT_BACKEND_MODEL=qwen3.7-max
 ```
 
 使用 OpenClaw 时改为 `AGENT_PROTOCOL=openclaw`。这是启动前部署配置，不代表所有后台都支持相同方式。若希望完全沿用现有 Agent 模型，后台模型应留空。细节见 [OpenCode](../backends/configuration.zh.md#opencode) / [OpenClaw](../backends/configuration.zh.md#openclaw)。
 
 ## 工作区与进程
 
-默认工作区为 `<data-dir>/workspace`；可用 `QWAUDIO_WORKSPACE` 统一修改，或用后台专属变量单独指定。工作区是项目目录，不是沙箱。
+默认工作区为 `<data-dir>/workspace`；可用 `SIDEAUDIO_WORKSPACE` 统一修改，或用后台专属变量单独指定。工作区是项目目录，不是沙箱。
 
 Gateway 通常新建自己的后台进程，复用用户配置；退出时关闭自己启动的进程。显式连接外部 OpenClaw Gateway 时，不管理远端服务生命周期。
 

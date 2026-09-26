@@ -2,9 +2,9 @@
 // loading Gateway configuration files or preparing its runtime directories.
 export function resolveWebSearchConfiguration(env = process.env) {
   const bailianMcpUrl = 'https://dashscope.aliyuncs.com/api/v1/mcps/WebSearch/mcp'
-  const explicitMcpUrl = String(env.QWEN_AUDIO_WEB_SEARCH_MCP_URL || '').trim()
+  const explicitMcpUrl = String(env.SIDE_AUDIO_WEB_SEARCH_MCP_URL || '').trim()
   const dashscopeApiKey = String(env.DASHSCOPE_API_KEY || '').trim()
-  const requestedProvider = String(env.QWEN_AUDIO_WEB_SEARCH_PROVIDER || '').trim().toLowerCase()
+  const requestedProvider = String(env.SIDE_AUDIO_WEB_SEARCH_PROVIDER || '').trim().toLowerCase()
   const provider = requestedProvider || (explicitMcpUrl ? 'mcp' : 'so360')
   if (!['bailian', 'bing', 'mcp', 'none', 'so360'].includes(provider)) {
     throw new Error(
@@ -16,9 +16,9 @@ export function resolveWebSearchConfiguration(env = process.env) {
   return {
     provider,
     mcpUrl: usesBailianMcp ? bailianMcpUrl : explicitMcpUrl,
-    mcpToken: String(env.QWEN_AUDIO_WEB_SEARCH_MCP_TOKEN
+    mcpToken: String(env.SIDE_AUDIO_WEB_SEARCH_MCP_TOKEN
       || (usesBailianMcp ? dashscopeApiKey : '')).trim(),
-    mcpTool: String(env.QWEN_AUDIO_WEB_SEARCH_MCP_TOOL || '').trim()
+    mcpTool: String(env.SIDE_AUDIO_WEB_SEARCH_MCP_TOOL || '').trim()
       || (usesBailianMcp ? 'bailian_web_search' : 'web_search'),
   }
 }

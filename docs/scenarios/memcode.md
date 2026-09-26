@@ -1,6 +1,6 @@
 # Memcode
 
-The [Memcode example](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/memcode/README.md) connects hosted
+The [Memcode example](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/memcode/README.md) connects hosted
 long-term memory through the public `MemoryProvider` v2 interface. It keeps the
 default Gateway unchanged, checks the configured Gateway owner, supports local
 document edits, and uses semantic search for recall. The launcher disables

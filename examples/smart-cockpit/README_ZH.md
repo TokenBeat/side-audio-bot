@@ -1,8 +1,8 @@
-# Qwen Audio Agent 智能座舱示例
+# Side Audio Bot 智能座舱示例
 
 [English](README.md) | 中文
 
-这是一个基于 qwen-audio-agent 的可运行智能座舱 Agent 示例。用户可以通过自然语音
+这是一个基于 side-audio-bot 的可运行智能座舱 Agent 示例。用户可以通过自然语音
 控制车辆、规划导航、播放音乐、查询天气、使用闪购和自定义技能，座舱界面会同步展示
 车辆与任务状态。它展示了如何使用框架组合前台实时对话、工具调用和可替换的后台 Agent。
 
@@ -173,7 +173,7 @@ Realtime 路径，Service 只有 `flashbuy` 暴露给后台。前台加载工作
 [`surface-routing.json`](service/tools/surface-routing.json) 即可调整场景分流；扩展方式见
 [工具目录说明](service/tools/README.md)。
 
-后台 Agent 另外通过 `qwen-audio-agent/web-retrieval` 组合框架的 `web_search` 与
+后台 Agent 另外通过 `side-audio-bot/web-retrieval` 组合框架的 `web_search` 与
 `fetch_url`：默认是 1 个 Service 工具 + 2 个网页检索工具。后两者不计入 38 个场景工具。
 搜索沿用前台相同的 Provider 配置；默认免 Key 搜索是实验性兜底，正式录制前应验证供应商
 可访问性，详见[联网搜索配置](../../docs/guides/web-search.zh.md)。
@@ -194,7 +194,7 @@ Realtime 路径，Service 只有 `flashbuy` 暴露给后台。前台加载工作
 
 - [Zhang Binbin](https://github.com/robin1001)：负责座舱领域能力的设计与扩展，包括导航、
   车控、音乐工具体系、前后台工具分流与评测用例。
-- [Li Xu](https://github.com/x-lixu)：负责基于 qwen-audio-agent 的场景架构与整体实现，
+- [Li Xu](https://github.com/x-lixu)：负责基于 side-audio-bot 的场景架构与整体实现，
   包括客户端、Gateway、后台 Agent 的边界，实时语音链路以及 A2A/MCP 接入。
 - [Peng Zhendong](https://github.com/pengzhendong)：提供原始座舱 UI 与视觉资源，包括整体界面设计、
   交互形态和相关视觉素材。

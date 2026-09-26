@@ -9,11 +9,11 @@ For richer semantic and graph retrieval, see the [LightRAG example](../scenarios
 Set this in the `config.env` used by the Gateway:
 
 ```dotenv
-QWEN_AUDIO_DOMAIN_LIBRARY=on
+SIDE_AUDIO_DOMAIN_LIBRARY=on
 ```
 
 [Restart for your run mode](../operations/gateway.md#applying-configuration-changes).
-If you explicitly disabled `QWEN_AUDIO_KNOWLEDGE_TOOL_ENABLED`, restore it to `true`;
+If you explicitly disabled `SIDE_AUDIO_KNOWLEDGE_TOOL_ENABLED`, restore it to `true`;
 otherwise document management can work while the frontend has no retrieval tool.
 The voice Provider must support tool calls.
 

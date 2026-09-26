@@ -15,7 +15,7 @@ test('production build emits the microphone worklet as a same-origin script asse
   ))
   assert.ok(processor,
     'The worklet must be emitted as a file; data: URLs are blocked by desktop CSP')
-  assert.match(String(processor.source), /registerProcessor\(\s*['"]qwen-audio-microphone['"]/)
+  assert.match(String(processor.source), /registerProcessor\(\s*['"]side-audio-microphone['"]/)
   assert.ok(output.some(item => (
     item.type === 'chunk' && item.code.includes(basename(processor.fileName))
   )), 'The application bundle must reference the emitted processor asset')

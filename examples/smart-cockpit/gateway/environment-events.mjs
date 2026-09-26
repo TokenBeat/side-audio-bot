@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createAgentDelivery } from 'qwen-audio-agent/agent-delivery'
+import { createAgentDelivery } from 'side-audio-bot/agent-delivery'
 
 const STRATEGIES = new Map([
   [0, '智能推荐'], [13, '高速优先'], [5, '不走高速'], [4, '躲避拥堵'],

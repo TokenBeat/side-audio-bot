@@ -155,7 +155,7 @@ test('finds the CLI bundled in the official macOS Tailscale app', () => {
     fileExists: path => path === '/Applications/Tailscale.app/Contents/MacOS/Tailscale',
   }), '/Applications/Tailscale.app/Contents/MacOS/Tailscale')
   assert.equal(tailscaleCommand({
-    env: { QWEN_AUDIO_TAILSCALE_BINARY: '/custom/tailscale' },
+    env: { SIDE_AUDIO_TAILSCALE_BINARY: '/custom/tailscale' },
     platform: 'linux',
   }), '/custom/tailscale')
 })

@@ -51,7 +51,7 @@ function writeSkin(dir, {
 }
 
 function temporaryRoot(t) {
-  const root = mkdtempSync(join(tmpdir(), 'qwen-audio-skins-'))
+  const root = mkdtempSync(join(tmpdir(), 'side-audio-skins-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   return root
 }

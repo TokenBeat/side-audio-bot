@@ -90,5 +90,5 @@ mode, or disconnecting stops them; microphone mute alone does not.
 In the Qwen configuration, an installed backend is optional for further work
 with captured image references.
 
-See the [complete example](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/x-omni)
+See the [complete example](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/x-omni)
 for configuration, architecture, privacy, limits, and tests.

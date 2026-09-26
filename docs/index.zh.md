@@ -1,7 +1,7 @@
 ---
 layout: home
 hero:
-  name: Qwen Audio Agent
+  name: Side Audio Bot
   text: Agent，始终在场
   tagline: 让语音 Agent 持续对话，后台任务并行处理，结果自然回到对话中。
   actions:
@@ -10,7 +10,7 @@ hero:
       link: /zh/getting-started/quickstart
     - theme: alt
       text: 下载桌面版
-      link: https://github.com/QwenAudio/qwen-audio-agent/releases/latest
+      link: https://github.com/TokenBeat/side-audio-bot/releases/latest
 features:
   - title: 桌面版使用
     details: 打开应用、填写配置，即可开始对话。用悬浮球随时交流，也可以打开面板输入文字与附件。

@@ -4,27 +4,27 @@ Skills are standard directories containing `SKILL.md`, read and executed by the 
 
 ## Install and manage
 
-`qwenaudio skill` invokes the community [skills.sh](https://skills.sh) installer, selecting supported backends detected on the machine and the currently configured backend.
+`sideaudio skill` invokes the community [skills.sh](https://skills.sh) installer, selecting supported backends detected on the machine and the currently configured backend.
 
 List the skills in a source, then install the ones you need:
 
 ```bash
-qwenaudio skill install vercel-labs/agent-skills --list
-qwenaudio skill install vercel-labs/agent-skills --skill web-design-guidelines
+sideaudio skill install vercel-labs/agent-skills --list
+sideaudio skill install vercel-labs/agent-skills --skill web-design-guidelines
 ```
 
 You can also use a Git repository URL or local directory:
 
 ```bash
-qwenaudio skill install ./my-skill --skill my-skill
+sideaudio skill install ./my-skill --skill my-skill
 ```
 
 Repeat `--skill` to select multiple skills. Install only what you need and trust; the command does not install an entire skill repository by default.
 
 ```bash
-qwenaudio skill list
-qwenaudio skill remove <name>
-qwenaudio skill update
+sideaudio skill list
+sideaudio skill remove <name>
+sideaudio skill update
 ```
 
 ## Installation location
@@ -43,6 +43,6 @@ The frontend calls the backend to execute requests; it does not load all backend
 
 ## Advanced configuration
 
-`QWEN_AUDIO_AGENT_SKILLS_CLI_PACKAGE` overrides the installer package version. The default is usually sufficient.
+`SIDE_AUDIO_BOT_SKILLS_CLI_PACKAGE` overrides the installer package version. The default is usually sufficient.
 
 The skill installation directory is separate from the working directory. Backends process files in the shared `<data-dir>/workspace` by default; see [Common Backend Settings](../configuration/backend.md) for overrides.

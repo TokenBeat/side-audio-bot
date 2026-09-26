@@ -1,12 +1,12 @@
 # GPT-Live / OpenAI Realtime
 
-qwen-audio-agent 可以把 OpenAI GPT-Live / Realtime WebSocket API 作为云端语音前台。
+side-audio-bot 可以把 OpenAI GPT-Live / Realtime WebSocket API 作为云端语音前台。
 Gateway 仍负责前台工具、记忆、提醒、任务委派和后台 Agent 编排；Provider Adapter
 只把 OpenAI GA Realtime 协议转换成项目内统一的运行时事件。
 
 ## 配置
 
-编辑 `qwenaudio config` 显示的用户配置文件：
+编辑 `sideaudio config` 显示的用户配置文件：
 
 ```dotenv
 QWEN_AUDIO_REALTIME_PROVIDER=gpt-live
@@ -21,7 +21,7 @@ OPENAI_API_KEY=your-openai-key
 | `GPT_LIVE_API_KEY` | 空 | 当实时语音前台需要独立凭据时，作为 `OPENAI_API_KEY` 的别名 |
 
 桌面端在 **语音前台 -> GPT-Live** 下暴露同样字段。终端 Gateway 修改文件后需重启；
-若是已安装的后台服务，执行 `qwenaudio gateway restart`。
+若是已安装的后台服务，执行 `sideaudio gateway restart`。
 
 ## 集成边界
 

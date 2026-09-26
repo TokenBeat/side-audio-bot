@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { CockpitAgentExecutor } from '../executor.mjs'
 import { startCockpitAgentServer } from '../server.mjs'
-import { A2ABackendAdapter } from 'qwen-audio-agent/a2a-backend-adapter'
+import { A2ABackendAdapter } from 'side-audio-bot/a2a-backend-adapter'
 
 function request(taskId, text, contextId = 'driver-one') {
   return {

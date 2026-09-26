@@ -8,8 +8,8 @@ import { CUSTOMER_SERVICE_SPAWN_THINKING_DESCRIPTION } from './spawn-thinking-to
 import { PolicyKnowledgeProvider } from './policy-knowledge.mjs'
 
 loadServiceEnvironment()
-process.env.QWAUDIO_CONFIG_DIR ||= fileURLToPath(new URL('../.runtime', import.meta.url))
-process.env.QWAUDIO_DATA_DIR ||= process.env.QWAUDIO_CONFIG_DIR
+process.env.SIDEAUDIO_CONFIG_DIR ||= fileURLToPath(new URL('../.runtime', import.meta.url))
+process.env.SIDEAUDIO_DATA_DIR ||= process.env.SIDEAUDIO_CONFIG_DIR
 
 // frontend-mcp.json 里的 url 写成占位符，在这里补成真实地址 ——
 // 导出的配置不该把本机端口写死，否则换环境就得改配置文件。
@@ -34,7 +34,7 @@ if (!process.env.CS_FRONTEND_MCP_URL) {
   url.searchParams.set('sessionId', process.env.CS_SESSION_ID || 'default')
   process.env.CS_FRONTEND_MCP_URL = url.toString()
 }
-process.env.QWEN_AUDIO_FRONTEND_PROFILE ||= fileURLToPath(
+process.env.SIDE_AUDIO_FRONTEND_PROFILE ||= fileURLToPath(
   new URL('./frontend-profile.json', import.meta.url),
 )
 
@@ -42,7 +42,7 @@ process.env.QWEN_AUDIO_FRONTEND_PROFILE ||= fileURLToPath(
 // 与其为两个域各写一份 profile（两份里只有一行不同、改一处必忘另一份），
 // 不如在这里按域覆盖 assistant 路径。
 // 变量名核实自 server/src/core/frontend-profile.mjs:164。
-process.env.QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH ||= fileURLToPath(
+process.env.SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH ||= fileURLToPath(
   new URL(`./assistant/${process.env.CS_DOMAIN || 'retail'}.md`, import.meta.url),
 )
 
@@ -59,11 +59,11 @@ process.env.QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH ||= fileURLToPath(
 // 上一轮我宣称「两组域配置真的隔离」时，只验了 policy 检索源和 service
 // 的工具面，没验网关这一层的白名单 —— 结论下得太早。
 //
-// QWEN_AUDIO_FRONTEND_MCP_CONFIG 的优先级比 profile.toolSources.mcp 高
+// SIDE_AUDIO_FRONTEND_MCP_CONFIG 的优先级比 profile.toolSources.mcp 高
 // （frontend-profile.mjs:176），所以用它覆盖。零售仍用 frontend-mcp.json，
 // 跟 profile 里写的一致；只有航空需要换一份。
-if (!process.env.QWEN_AUDIO_FRONTEND_MCP_CONFIG && process.env.CS_DOMAIN === 'airline') {
-  process.env.QWEN_AUDIO_FRONTEND_MCP_CONFIG = fileURLToPath(
+if (!process.env.SIDE_AUDIO_FRONTEND_MCP_CONFIG && process.env.CS_DOMAIN === 'airline') {
+  process.env.SIDE_AUDIO_FRONTEND_MCP_CONFIG = fileURLToPath(
     new URL('./frontend-mcp.airline.json', import.meta.url),
   )
 }
@@ -73,9 +73,9 @@ const [
   { createBackendAgentHost },
   { createA2ABackendAdapter },
 ] = await Promise.all([
-  import('qwen-audio-agent/gateway-application'),
-  import('qwen-audio-agent/backend-adapter-sdk'),
-  import('qwen-audio-agent/a2a-backend-adapter'),
+  import('side-audio-bot/gateway-application'),
+  import('side-audio-bot/backend-adapter-sdk'),
+  import('side-audio-bot/a2a-backend-adapter'),
 ])
 
 function port(value, fallback) {

@@ -21,17 +21,17 @@ export function loadWebRtcNative() {
     const { entryPath, apiVersion } = requireWebRtcDependencies()
     const extension = requireExtension(entryPath)
     if (extension.apiVersion !== apiVersion || typeof extension.loadNative !== 'function') {
-      throw Object.assign(new Error('Incompatible qwen-audio-agent-webrtc entry point. Update the Gateway and extension together.'), { code: 'webrtc_extension_incompatible' })
+      throw Object.assign(new Error('Incompatible side-audio-bot-webrtc entry point. Update the Gateway and extension together.'), { code: 'webrtc_extension_incompatible' })
     }
     const loaded = extension.loadNative()
     if (typeof loaded?.rtc?.RTCPeerConnection !== 'function' || !loaded.rtc.nonstandard || typeof loaded.sharp !== 'function') {
-      throw Object.assign(new Error('Invalid qwen-audio-agent-webrtc media implementation.'), { code: 'webrtc_extension_incompatible' })
+      throw Object.assign(new Error('Invalid side-audio-bot-webrtc media implementation.'), { code: 'webrtc_extension_incompatible' })
     }
     native = loaded
     return native
   } catch (error) {
     if (error.code?.startsWith('webrtc_')) throw rtcError(503, error.code, error.message)
-    throw rtcError(503, 'webrtc_extension_load_failed', 'Cannot load qwen-audio-agent-webrtc. Reinstall the extension for this Node.js version and operating system.')
+    throw rtcError(503, 'webrtc_extension_load_failed', 'Cannot load side-audio-bot-webrtc. Reinstall the extension for this Node.js version and operating system.')
   }
 }
 
@@ -219,7 +219,7 @@ export class NativeWebRtcMedia {
       const response = this.responses.get(entry.responseId)
       if (response && !response.started) {
         response.started = true
-        this.send({ type: 'qwaudio.output.started', response_id: entry.responseId })
+        this.send({ type: 'sideaudio.output.started', response_id: entry.responseId })
       }
       const length = Math.min(samples.length - filled, entry.samples.length - entry.offset)
       samples.set(entry.samples.subarray(entry.offset, entry.offset + length), filled)
@@ -230,7 +230,7 @@ export class NativeWebRtcMedia {
     }
     try {
       this.source.onData({ samples, sampleRate: 48000, bitsPerSample: 16, channelCount: 1, numberOfFrames: 480 })
-      if (drained) this.send({ type: 'qwaudio.output.drained', response_id: drained })
+      if (drained) this.send({ type: 'sideaudio.output.drained', response_id: drained })
     } catch { this.fail('audio sender failed') }
   }
 

@@ -9,7 +9,7 @@ and implementations and evaluations for desktop, smart cockpit, and customer ser
 
 ## Presentation
 
-[Voice Agent Architecture for Continuous Conversation and Long-Running Tasks](https://github.com/QwenAudio/qwen-audio-agent/blob/main/docs/voice-agent-architecture-presentation.zh.md)
+[Voice Agent Architecture for Continuous Conversation and Long-Running Tasks](https://github.com/TokenBeat/side-audio-bot/blob/main/docs/voice-agent-architecture-presentation.zh.md)
 (Marp, in Chinese) walks through the two-tier architecture, task lifecycle,
 delegation, result delivery, and the memory system.
 

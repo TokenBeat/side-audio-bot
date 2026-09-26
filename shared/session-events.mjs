@@ -1,6 +1,6 @@
 // DSH-inspired durable session events.  These events are facts, not diagnostic
 // log lines: projections (UI, tasks, memory) must be able to rebuild from them.
-export const SESSION_LOG_SCHEMA = 'qwaudio.session/v1'
+export const SESSION_LOG_SCHEMA = 'sideaudio.session/v1'
 export const SESSION_LOG_FORMAT_VERSION = 1
 
 export const SessionEventType = Object.freeze({
@@ -16,15 +16,15 @@ export const SessionEventType = Object.freeze({
   TOOL_CALL: 'tool/call',
   TOOL_RESULT: 'tool/result',
   ERROR: 'error',
-  INPUT_REGISTERED: 'qwaudio/input/registered',
-  INPUT_CONSUMED: 'qwaudio/input/consumed',
-  REALTIME_REQUEST: 'qwaudio/realtime/request',
-  ACP_REQUEST: 'qwaudio/acp/request',
-  ACP_UPDATE: 'qwaudio/acp/update',
-  ACP_RESULT: 'qwaudio/acp/result',
-  TASK_EVENT: 'qwaudio/task/event',
-  DELIVERY_EVENT: 'qwaudio/delivery/event',
-  MEMORY_EVENT: 'qwaudio/memory/event',
+  INPUT_REGISTERED: 'sideaudio/input/registered',
+  INPUT_CONSUMED: 'sideaudio/input/consumed',
+  REALTIME_REQUEST: 'sideaudio/realtime/request',
+  ACP_REQUEST: 'sideaudio/acp/request',
+  ACP_UPDATE: 'sideaudio/acp/update',
+  ACP_RESULT: 'sideaudio/acp/result',
+  TASK_EVENT: 'sideaudio/task/event',
+  DELIVERY_EVENT: 'sideaudio/delivery/event',
+  MEMORY_EVENT: 'sideaudio/memory/event',
 })
 
 export function createSessionHeader({ sessionId, createdAt = new Date().toISOString(), ...meta } = {}) {

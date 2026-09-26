@@ -11,7 +11,7 @@ import { dirname, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import {
   MEMORY_PROVIDER_PROTOCOL_VERSION,
-} from 'qwen-audio-agent/memory-provider'
+} from 'side-audio-bot/memory-provider'
 
 const SCOPES = new Set(['user', 'memory'])
 const DEFAULT_DOCUMENTS = Object.freeze({ user: '# USER', memory: '# MEMORY' })
@@ -88,7 +88,7 @@ function mutationText(prepared) {
 }
 
 /**
- * Optional personal Memcode adapter for qwen-audio-agent's MemoryProvider v2.
+ * Optional personal Memcode adapter for side-audio-bot's MemoryProvider v2.
  *
  * list() is backed by a small mode-0600 snapshot because the Realtime prompt
  * path is synchronous. Memcode remains the semantic store and receives every
@@ -101,7 +101,7 @@ export class MemcodeMemoryProvider {
     ownerId = 'user_personal',
     stateFile = resolve(
       process.cwd(),
-      '.qwen-audio',
+      '.side-audio',
       'runtime',
       'memory',
       'memcode',
@@ -323,7 +323,7 @@ export class MemcodeMemoryProvider {
 
     // Each new operation gets a new key, even if a user later repeats the same
     // edit. Only recovery of this persisted operation reuses its key.
-    const idempotencyKey = `qwen-audio:${randomUUID()}`
+    const idempotencyKey = `side-audio:${randomUUID()}`
     this.pending = {
       identity,
       key: idempotencyKey,

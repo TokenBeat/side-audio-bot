@@ -17,7 +17,7 @@ On first start, a template creates `<config-dir>/ASSISTANT.md`. Edit it to chang
 To use another file:
 
 ```dotenv
-QWEN_AUDIO_AGENT_ASSISTANT_PROFILE_PATH=/absolute/path/to/ASSISTANT.md
+SIDE_AUDIO_BOT_ASSISTANT_PROFILE_PATH=/absolute/path/to/ASSISTANT.md
 ```
 
 The profile does not select the speaking voice; configure that under [voice frontend settings](../configuration/frontend.md). It cannot override tool permissions, task routing, or core runtime rules.
@@ -36,7 +36,7 @@ Changes made through conversation apply immediately. Direct file edits apply in 
 
 ## Optional Preference Learning
 
-By default, preferences come from explicit requests. Set `QWEN_AUDIO_PREFERENCE_LEARNING=on` to let the default memory provider observe a few characteristics after sessions and write cross-session confirmations into the inferred section of `USER.md`.
+By default, preferences come from explicit requests. Set `SIDE_AUDIO_PREFERENCE_LEARNING=on` to let the default memory provider observe a few characteristics after sessions and write cross-session confirmations into the inferred section of `USER.md`.
 
 This is off by default and makes additional text-model calls. Explicit preferences take precedence over inferences. You can delete unwanted inferences from the file. See [Preference Learning](preference-learning.md) for thresholds and implementation details.
 

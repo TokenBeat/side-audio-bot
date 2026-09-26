@@ -1,12 +1,12 @@
-# qwen-audio-agent-webrtc
+# side-audio-bot-webrtc
 
-Optional WebRTC media extension for qwen-audio-agent. WSS users do not need it.
+Optional WebRTC media extension for side-audio-bot. WSS users do not need it.
 
 This extension is not yet published. The following commands describe the release workflow:
 
 ```sh
-npm install -g qwen-audio-agent qwen-audio-agent-webrtc
-qwenaudio gateway --webrtc
+npm install -g side-audio-bot side-audio-bot-webrtc
+sideaudio gateway --webrtc
 ```
 
 Install both packages using the same npm prefix. Configure a DashScope Audio or

@@ -77,7 +77,7 @@ Provider SPI 不限定网络协议。将来即使厂商只提供 WebRTC/LiveKit�
 
 建议新增可选 `digitalHuman` 组合参数，包含 Provider factory、媒体适配器注册表和服务端配置。具体名称在 M0 固定；未注入时不创建 Provider、不分配媒体资源、不增加定时器。
 
-首版由 example 的启动程序组合网关，不新增未经实现的 `qwenaudio --avatar` 命令。若现有程序化启动入口不适合扩展，先补最小受支持入口，不能让 example monkey-patch 网关内部方法。
+首版由 example 的启动程序组合网关，不新增未经实现的 `sideaudio --avatar` 命令。若现有程序化启动入口不适合扩展，先补最小受支持入口，不能让 example monkey-patch 网关内部方法。
 
 注册表接受的模块和执行入口只能来自可信启动配置。HTTP、DataChannel 请求不能提交模块路径、可执行文件、服务 URL 或任意模型配置。
 
@@ -104,7 +104,7 @@ Media Worker 保持可丢弃进程边界。仅接收作用域有限的媒体连�
 - 配置响应新增 `video_output`、`digital_human.available` 及获授权的 persona 标识；`video_input` 保持原义。
 - SDP 创建拟新增可选 `avatarPersonaId`，值必须由服务端白名单解析。不携带即保持普通模式。
 - 模型仍在网关启动时选择；客户端不能通过数字人参数更改上游模型或地址。
-- 不把 `digital_human` 硬塞进百炼风格 `session.update`。公共数字人状态通过现有 `qwaudio.event` 承载，例如内部事件 `digital_human.state`。
+- 不把 `digital_human` 硬塞进百炼风格 `session.update`。公共数字人状态通过现有 `sideaudio.event` 承载，例如内部事件 `digital_human.state`。
 - `session.created` 的网关扩展可声明本连接最终能力；新增字段必须与协议/能力版本协商同步。
 - 不支持的请求明确报错。数字人服务暂时不可用时，依策略显式进入 `audio_only`，不能伪称头像已就绪。
 - M1 不支持运行中换人设。后续切换采用取消、关闭、按目标 session 重连，不改变 `ownerId`。
@@ -157,7 +157,7 @@ Provider 只获得渲染所需标识和数据，不接收历史、用户麦克�
 | example 的本地缓存 | 上游源码、模型、头像资产、虚拟环境，全部忽略提交和 npm 打包 |
 | 将来的 LiveAvatar example 扩展 | 仅选择此实现时安装其媒体 SDK，不成为本 demo 前置依赖 |
 
-不加入根 workspaces，不修改根或 server 的 dependencies/optionalDependencies，不增加根安装时下载模型的脚本。现有 `qwen-audio-agent-webrtc` 是复用的可选能力，其安装由 example 显式管理，不复制 native addon。
+不加入根 workspaces，不修改根或 server 的 dependencies/optionalDependencies，不增加根安装时下载模型的脚本。现有 `side-audio-bot-webrtc` 是复用的可选能力，其安装由 example 显式管理，不复制 native addon。
 
 Python 包的“安装依赖”与“启动完整对话链路”是两回事。即使为复用上游而暂时安装了较宽依赖，也不能启动其 ASR/LLM/TTS；依赖裁剪及许可证审计是开发任务，不能假设只 import 一个类就不需要上游环境。
 

@@ -4,8 +4,8 @@ Gateway 连接语音前台和后台 Agent，并向客户端提供对话接口。
 
 | 方式 | 启动 | 退出或停止 |
 | --- | --- | --- |
-| 终端前台运行 | `qwenaudio` 或 `qwenaudio gateway` | 原终端按 `Ctrl-C`。 |
-| 用户后台服务 | `qwenaudio gateway install` 安装并立即启动 | `qwenaudio gateway stop`；卸载用 `gateway uninstall`。 |
+| 终端前台运行 | `sideaudio` 或 `sideaudio gateway` | 原终端按 `Ctrl-C`。 |
+| 用户后台服务 | `sideaudio gateway install` 安装并立即启动 | `sideaudio gateway stop`；卸载用 `gateway uninstall`。 |
 | 桌面内置 Gateway | 打开桌面应用，由应用启动和管理 | 退出应用会停止它自己启动的 Gateway，不关闭借用或远程服务。 |
 
 ## 从源码启动
@@ -21,29 +21,29 @@ npm run gateway -- --backend qwen
 改变其后台。`setup --backend NAME` 只做检查。旧的 `npm run backend` 别名已移除，
 请改用 `npm run gateway`。
 
-地址优先级为 `--url`、`QWEN_AUDIO_AGENT_URL`、`HOST` / `PORT`
+地址优先级为 `--url`、`SIDE_AUDIO_BOT_URL`、`HOST` / `PORT`
 （默认 `127.0.0.1:3101`）。`HOST` 为通配地址时保留监听设置，本机健康检查使用回环地址。
 
 ## 修改配置后生效
 
 - **终端运行**：在运行 Gateway 的终端按 `Ctrl-C`，再执行原启动命令。
-- **后台服务**：执行 `qwenaudio gateway restart`。未安装服务时，这条命令会报“后台服务尚未安装”。
+- **后台服务**：执行 `sideaudio gateway restart`。未安装服务时，这条命令会报“后台服务尚未安装”。
 - **桌面版**：在设置页修改后点击“应用”；直接编辑文件后退出并重新打开应用。
   皮肤、唤醒等客户端设置不应要求重启 Gateway。
 - **远程连接**：修改和重启实际运行的 Gateway；本机配置不会改变远程服务器。
 
 后台服务不会保留只在某个终端临时 `export` 的凭据。持久设置写入
-`qwenaudio config` 显示的 `config.env`。
+`sideaudio config` 显示的 `config.env`。
 
 ## 后台服务命令
 
 ```bash
-qwenaudio gateway install
-qwenaudio gateway status
-qwenaudio gateway restart
-qwenaudio gateway stop
-qwenaudio gateway start
-qwenaudio gateway uninstall
+sideaudio gateway install
+sideaudio gateway status
+sideaudio gateway restart
+sideaudio gateway stop
+sideaudio gateway start
+sideaudio gateway uninstall
 ```
 
 服务启动时重新读取配置。`install`、`start` 和 `restart` 会刷新用户命令搜索路径缓存，
@@ -66,10 +66,10 @@ Gateway 负责关闭自己启动的后台进程。复用 Agent 的用户配置�
 
 ## 检查运行情况
 
-- `qwenaudio gateway status` 分别显示网关可达性与本机常驻服务状态。退出码 `0`
+- `sideaudio gateway status` 分别显示网关可达性与本机常驻服务状态。退出码 `0`
   表示网关可达，`1` 表示不可达，不取决于启动方式；可达不代表模型或后台已就绪。
-- `qwenaudio gateway status --url URL` 可检查远程网关，设备凭据使用
-  `QWEN_AUDIO_GATEWAY_CLIENT_TOKEN`。此时不查询本机服务；显式地址优先于已安装服务记录的地址。
-- 用 `qwenaudio doctor` 检查当前配置和连接；诊断不会启动模型或麦克风。
+- `sideaudio gateway status --url URL` 可检查远程网关，设备凭据使用
+  `SIDE_AUDIO_GATEWAY_CLIENT_TOKEN`。此时不查询本机服务；显式地址优先于已安装服务记录的地址。
+- 用 `sideaudio doctor` 检查当前配置和连接；诊断不会启动模型或麦克风。
 - 日志路径与轮转见[本地日志](../configuration/advanced.zh.md#本地日志)。
 - 手机或其他电脑连接见[远程连接与配对](remote-access.zh.md)。

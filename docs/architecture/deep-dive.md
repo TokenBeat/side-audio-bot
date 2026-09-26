@@ -1,16 +1,16 @@
-# qwen-audio-agent architecture
+# side-audio-bot architecture
 
 This document defines the product boundary. Changes that contradict these
 invariants are architecture changes, not local feature work.
 
 For the historical refactoring plan, see the
-[Realtime Voice Chatbot Runtime Roadmap](https://github.com/QwenAudio/qwen-audio-agent/blob/main/docs/roadmap/frontend-chatbot-runtime.md)
+[Realtime Voice Chatbot Runtime Roadmap](https://github.com/TokenBeat/side-audio-bot/blob/main/docs/roadmap/frontend-chatbot-runtime.md)
 document. This page describes current, tested runtime behavior; see the
 [Architecture Overview](overview.md) for concepts and deployment relationships.
 
 ## 1. User-visible model
 
-The user talks to one qwen-audio assistant. The logical architecture has three core components:
+The user talks to one side-audio assistant. The logical architecture has three core components:
 
 1. **Frontend Agent** — combines a realtime model, instructions, context, and tools for natural conversation and lightweight tool requests.
 2. **Orchestration Runtime** — manages tasks, permissions, sessions, and events, schedules backend execution, and delivers results without adding a separate reasoning Agent.
@@ -26,7 +26,7 @@ The backend may be an ACP Agent such as OpenCode, OpenClaw, Qoder, Qwen Code,
 MiniMax Code, Kimi Code, or Pi; a remote A2A Agent; or a custom BackendPort adapter.
 It may internally use tools, skills, agents, or other Sessions. Those are
 backend-private implementation details and do not create additional
-qwen-audio-agent layers. Protocol details remain inside ACP, A2A, or custom
+side-audio-bot layers. Protocol details remain inside ACP, A2A, or custom
 BackendPort adapters; backend-specific launch and capability behavior lives in
 registered drivers.
 
@@ -202,7 +202,7 @@ The ACP adapter owns one persistent coordinator Session identity per owner and
 backend:
 
 ```text
-qwen-audio-agent:<owner>:backend
+side-audio-bot:<owner>:backend
 ```
 
 The Gateway stores the native ACP Session ID behind that stable key and calls
@@ -216,14 +216,14 @@ conversation therefore continues using the same backend Agent context.
 Both the Gateway queue and the ACP adapter serialize writes. This double guard
 prevents concurrent messages from racing inside one backend Session.
 
-The backend Agent owns its execution strategy. qwen-audio-agent supplies one
+The backend Agent owns its execution strategy. side-audio-bot supplies one
 self-contained natural task instruction and current-turn native attachments;
 it does not forward frontend history or preferences, prescribe task-state
 JSON, or instruct the backend Agent how to use backend-specific capabilities.
 
 ## 5. Task state
 
-A qwen-audio-agent Task record is a delivery receipt, not a mirror of the backend's
+A side-audio-bot Task record is a delivery receipt, not a mirror of the backend's
 internal task graph.
 
 ```text
@@ -403,7 +403,7 @@ Provider implementations stay with their domain.
 Dependency tests distinguish domain cores from concrete adapters: colocating files
 does not allow a runtime to import its provider implementation, or frontend tools
 to import Realtime/backend adapters. Public package export names remain stable
-when internal files move. See [the source map](https://github.com/QwenAudio/qwen-audio-agent/blob/main/server/src/README.md).
+when internal files move. See [the source map](https://github.com/TokenBeat/side-audio-bot/blob/main/server/src/README.md).
 
 Memory and knowledge can be removed by deleting their directory and cancelling
 their import/entry in `app/optional-modules.mjs` and `frontend/optional-features.mjs`.
@@ -459,7 +459,7 @@ and delivery claims; late provider callbacks cannot create new work. Explicit ta
 cancellation remains in TaskOperations. `app/` stays the composition root, with no
 new service, wire protocol or shared model session.
 
-The three increments of [#477](https://github.com/QwenAudio/qwen-audio-agent/issues/477)
+The three increments of [#477](https://github.com/TokenBeat/side-audio-bot/issues/477)
 are tested through the production task operations, coordinator and frontend runtime,
 with fake model/backend boundaries and no network required. Existing WebSocket and
 WebRTC integration tests cover the transport connections to those same runtimes.
@@ -517,7 +517,7 @@ Backend child processes receive only portable operating-system variables and
 the selected plugin's declared credential namespace. Gateway identity,
 Realtime, memory, and other backend secrets never cross that boundary. A
 generic ACP command may opt in additional names explicitly through
-`QWEN_AUDIO_AGENT_ACP_FORWARD_ENV`.
+`SIDE_AUDIO_BOT_ACP_FORWARD_ENV`.
 
 The HTTP/WebSocket application is constructed by an injectable composition
 root. Importing the application factory does not bind a port; CLI and Desktop
@@ -541,7 +541,7 @@ port probe so the bridge can report the real network, TLS, and authentication
 result. A local bridge exit interrupts ACP only and never changes the remote
 Gateway lifecycle.
 
-Codex follows the same boundary: qwen-audio-agent starts `codex-acp` over ACP
+Codex follows the same boundary: side-audio-bot starts `codex-acp` over ACP
 stdio, and that adapter starts Codex App Server over its own local stdio
 protocol. Codex App Server may expose other transports, but they are not a
 remote ACP endpoint and must not leak into the shared ACP adapter.

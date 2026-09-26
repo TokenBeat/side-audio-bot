@@ -11,13 +11,13 @@ const root = new URL('../', import.meta.url)
 const nativePath = 'packages/webrtc'
 
 test('demo enables WebRTC only in its own environment and selects matched Audio/Omni models', () => {
-  const original = { DASHSCOPE_API_KEY: 'synthetic-key', QWEN_AUDIO_REALTIME_PROVIDER: 'stepfun', QWAUDIO_WEBRTC_ENABLED: '0' }
+  const original = { DASHSCOPE_API_KEY: 'synthetic-key', QWEN_AUDIO_REALTIME_PROVIDER: 'stepfun', SIDEAUDIO_WEBRTC_ENABLED: '0' }
   const audio = demoEnvironment(original)
-  assert.equal(audio.QWAUDIO_WEBRTC_ENABLED, '1')
+  assert.equal(audio.SIDEAUDIO_WEBRTC_ENABLED, '1')
   assert.equal(audio.QWEN_AUDIO_REALTIME_PROVIDER, 'dashscope')
   assert.equal(audio.QWEN_AUDIO_REALTIME_MODEL, 'qwen-audio-3.0-realtime-plus')
   assert.equal(audio.DASHSCOPE_API_KEY, 'synthetic-key')
-  assert.equal(original.QWAUDIO_WEBRTC_ENABLED, '0')
+  assert.equal(original.SIDEAUDIO_WEBRTC_ENABLED, '0')
   assert.equal(original.QWEN_AUDIO_REALTIME_PROVIDER, 'stepfun')
   assert.equal(demoEnvironment(original, ['--omni']).QWEN_AUDIO_REALTIME_MODEL, 'qwen3.5-omni-plus-realtime')
   assert.throws(() => demoEnvironment(original, ['--unknown']), /Usage/)
@@ -29,20 +29,20 @@ test('native dependencies are explicit installs, not default Gateway or example 
     for (const group of ['dependencies', 'optionalDependencies', 'devDependencies']) {
       assert.equal(manifest[group]?.['@roamhq/wrtc'], undefined, `${path}: ${group}`)
       assert.equal(manifest[group]?.sharp, undefined, `${path}: ${group}`)
-      assert.equal(manifest[group]?.['qwen-audio-agent-webrtc'], undefined, `${path}: ${group}`)
+      assert.equal(manifest[group]?.['side-audio-bot-webrtc'], undefined, `${path}: ${group}`)
     }
     assert.ok(!manifest.workspaces?.includes(nativePath))
   }
   const manifest = JSON.parse(await readFile(new URL(`${nativePath}/package.json`, root), 'utf8'))
-  assert.equal(manifest.name, 'qwen-audio-agent-webrtc')
+  assert.equal(manifest.name, 'side-audio-bot-webrtc')
   assert.notEqual(manifest.private, true)
-  assert.equal(manifest.qwaudioWebrtcApiVersion, 1)
+  assert.equal(manifest.sideaudioWebrtcApiVersion, 1)
   assert.ok(manifest.dependencies['@roamhq/wrtc'])
   assert.ok(manifest.dependencies.sharp)
 })
 
 test('npm pack keeps the usable example but excludes installed media, SDKs and private configuration', { timeout: 30000 }, async t => {
-  const fixture = await mkdtemp(join(tmpdir(), 'qwaudio-webrtc-pack-'))
+  const fixture = await mkdtemp(join(tmpdir(), 'sideaudio-webrtc-pack-'))
   t.after(() => rm(fixture, { recursive: true, force: true }))
   const manifest = JSON.parse(await readFile(new URL('package.json', root), 'utf8'))
   // npm walks files differently inside a workspace. A non-workspace fixture

@@ -7,7 +7,7 @@ and permissions, or [supported backends](overview.md) for an overview.
 ## OpenClaw
 
 The default OpenClaw address is `http://127.0.0.1:18789`. When
-`OPENCLAW_BASE_URL` is set explicitly, qwen-audio-agent connects to that
+`OPENCLAW_BASE_URL` is set explicitly, side-audio-bot connects to that
 Gateway as an external black box. It does not start another OpenClaw Gateway
 or read, copy, or modify the Gateway's model credentials:
 
@@ -27,14 +27,14 @@ OPENCLAW_GATEWAY_TOKEN=replace-with-your-token
 ```
 
 External mode still starts the lightweight official `openclaw acp` bridge on
-the qwen-audio-agent host and speaks ACP over stdio to it. The bridge then
-connects to the user-managed remote Gateway. qwen-audio-agent never starts,
+the side-audio-bot host and speaks ACP over stdio to it. The bridge then
+connects to the user-managed remote Gateway. side-audio-bot never starts,
 stops, reconfigures, or moves that remote Gateway. The official bridge reports
 the real network, TLS, and authentication error instead of using the 300 ms
 local startup probe. If local security software terminates the bridge, the turn
 fails explicitly while the remote Gateway remains untouched.
 
-If local security policy blocks only qwen-audio-agent's OpenClaw launcher,
+If local security policy blocks only side-audio-bot's OpenClaw launcher,
 point to a trusted OpenClaw executable and the Gateway will run the lightweight
 bridge directly:
 
@@ -43,12 +43,12 @@ OPENCLAW_ACP_BIN=/absolute/path/to/openclaw
 ```
 
 This does not change ownership of the remote Gateway. The local process remains
-an ACP bridge and is stopped with the qwen-audio-agent Gateway.
+an ACP bridge and is stopped with the side-audio-bot Gateway.
 
 When `OPENCLAW_BASE_URL` is not set, it preferentially launches the `openclaw`
 in the user environment. When both
-`DASHSCOPE_API_KEY` and `QWEN_AUDIO_AGENT_BACKEND_MODEL` are provided, an independent Bailian
-configuration and state directory is generated for the qwen-audio-agent process, without
+`DASHSCOPE_API_KEY` and `SIDE_AUDIO_BOT_BACKEND_MODEL` are provided, an independent Bailian
+configuration and state directory is generated for the side-audio-bot process, without
 modifying the user's native configuration. When no backend model is specified, it inherits the
 user's native configuration, models, and authentication, but does not enable external messaging
 channels such as DingTalk in the independent instance. In managed mode, if the original configuration
@@ -67,11 +67,11 @@ The Gateway interacts with it via `opencode acp` and manages the local service u
 to open the native Session interface. When there is no compatible installation, it automatically
 uses a fixed npm package; users do not need to separately install or start the service.
 `OPENCODE_BASE_URL` names that local Session UI service; it is not a remote ACP execution
-endpoint that qwen-audio-agent can attach to:
+endpoint that side-audio-bot can attach to:
 
 ```dotenv
 AGENT_PROTOCOL=opencode
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 ## Qoder
@@ -80,7 +80,7 @@ Qoder uses the local `qodercli --acp` and has no HTTP backend address:
 
 ```dotenv
 AGENT_PROTOCOL=qoder
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 The unified ACP Adapter maintains a fixed native coordination Session for each user, and
@@ -107,7 +107,7 @@ authentication, provider, model, MCP, Skill, and Session configuration.
 
 ```dotenv
 AGENT_PROTOCOL=qwen
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Run `qwen` interactively and use `/auth` for first-time authentication. The
@@ -132,7 +132,7 @@ requires MiniMax Code `0.3.7` or later.
 Install the official CLI with the unified command:
 
 ```bash
-qwenaudio install minimax
+sideaudio install minimax
 ```
 
 Authenticate for the first time:
@@ -147,7 +147,7 @@ select it as the backend:
 
 ```dotenv
 AGENT_PROTOCOL=minimax
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Advanced options:
@@ -157,18 +157,18 @@ MINIMAX_CODE_BIN=
 MINIMAX_CODE_WORKSPACE=
 ```
 
-Avoid setting `QWEN_AUDIO_AGENT_BACKEND_MODEL` for MiniMax Code. If it is set
+Avoid setting `SIDE_AUDIO_BOT_BACKEND_MODEL` for MiniMax Code. If it is set
 explicitly, the Gateway attempts an override only when MiniMax advertises a
 compatible standard ACP `configOptions` entry; otherwise it fails explicitly.
 MiniMax Code's public documentation does not declare a skills.sh-compatible user
-directory, so `qwenaudio skill` does not copy skills into its private Skill/Plugin
+directory, so `sideaudio skill` does not copy skills into its private Skill/Plugin
 store; use MiniMax Code's own management flow.
 
 ## Kimi Code
 
 Kimi Code ([MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code))
 connects via the official native ACP entry point `kimi acp`. The current integration verifies
-and requires Kimi Code `0.31.0` or higher; `qwenaudio setup --backend kimi` checks both the
+and requires Kimi Code `0.31.0` or higher; `sideaudio setup --backend kimi` checks both the
 executable and version, and rejects older implementations below the compatible baseline.
 
 You can install the verified version using the official installation script:
@@ -184,7 +184,7 @@ backend:
 
 ```dotenv
 AGENT_PROTOCOL=kimi
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 You can also use Kimi Code's official temporary model environment variables to provide a Kimi
@@ -197,14 +197,14 @@ KIMI_MODEL_API_KEY=your-kimi-code-key
 KIMI_MODEL_BASE_URL=https://api.kimi.com/coding/v1
 ```
 
-`config.env` is created by qwen-audio-agent as a `0600` file readable and writable only by the
+`config.env` is created by side-audio-bot as a `0600` file readable and writable only by the
 current user; writing actual API keys to the repository is prohibited. Kimi Code's native
 configuration, OAuth credentials, and Session storage are still managed by Kimi by default;
-qwen-audio-agent does not modify these files. Setting `KIMI_CODE_HOME` can explicitly select a
+side-audio-bot does not modify these files. Setting `KIMI_CODE_HOME` can explicitly select a
 different Kimi data directory, and setting `KIMI_WORKSPACE` can override the coordination
 workspace.
 
-When `QWEN_AUDIO_AGENT_BACKEND_MODEL` is explicitly set, the Gateway overrides the Kimi Session
+When `SIDE_AUDIO_BOT_BACKEND_MODEL` is explicitly set, the Gateway overrides the Kimi Session
 model via ACP `session/set_config_option` and confirms it takes effect; if left blank, Kimi
 selects its own default model. Advanced configuration:
 
@@ -221,11 +221,11 @@ comes with an ACP mode; the Gateway starts it using `hermes acp`:
 
 ```dotenv
 AGENT_PROTOCOL=hermes
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Hermes uses its own configured model and provider by default. Only when
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` is explicitly set will the Gateway override its Session
+`SIDE_AUDIO_BOT_BACKEND_MODEL` is explicitly set will the Gateway override its Session
 model via ACP. Before first use, you can run `hermes acp --check` to check dependencies.
 Advanced configuration:
 
@@ -245,11 +245,11 @@ and complete a login via `/login`.
 
 ```dotenv
 AGENT_PROTOCOL=codebuddy
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 By default, it directly uses CodeBuddy's existing model configuration. When
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` is explicit, the Gateway overrides it only through
+`SIDE_AUDIO_BOT_BACKEND_MODEL` is explicit, the Gateway overrides it only through
 `session/set_config_option` after CodeBuddy ACP advertises a standard model option; it does not
 pass `--model` or generate a project-level `.codebuddy/models.json`. Advanced configuration:
 
@@ -272,11 +272,11 @@ version via `npx`.
 
 ```dotenv
 AGENT_PROTOCOL=codex
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 By default, it reuses the user's `~/.codex`, login state, and model. An explicit
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` overrides a Session only through the standard ACP model option;
+`SIDE_AUDIO_BOT_BACKEND_MODEL` overrides a Session only through the standard ACP model option;
 `CODEX_BASE_URL` configures a custom provider endpoint and no longer writes a model into
 `CODEX_CONFIG`. Neither setting modifies the user's configuration file. Advanced configuration:
 
@@ -299,12 +299,12 @@ ACP adapter is needed, but Claude Code must be installed and authenticated first
 
 ```dotenv
 AGENT_PROTOCOL=claude
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Model and credentials are managed by Claude Code itself by default, reusing the existing login
 state in `~/.claude`; you can also set `ANTHROPIC_API_KEY`. Only when
-`QWEN_AUDIO_AGENT_BACKEND_MODEL` is explicitly set will the Gateway override its Session
+`SIDE_AUDIO_BOT_BACKEND_MODEL` is explicitly set will the Gateway override its Session
 model via ACP. Advanced configuration:
 
 ```dotenv
@@ -325,7 +325,7 @@ Code executable used by the adapter by default.
 The integration uses local DeepSeek Harness ACP components. Install them, then configure credentials through DeepSeek:
 
 ```bash
-qwenaudio install deepseek
+sideaudio install deepseek
 dsh web
 ```
 
@@ -351,7 +351,7 @@ higher.
 One-click install installs both the core and the adapter:
 
 ```bash
-qwenaudio install pi
+sideaudio install pi
 ```
 
 Or install both packages manually:
@@ -382,7 +382,7 @@ PI_ACP_RUNTIME=auto
 
 - `PI_BIN` / `PI_ACP_BIN` override the pi core and pi-acp adapter executables.
 - `PI_WORKSPACE` overrides the working directory (default
-  `~/.config/qwaudio/data/workspace`, shared with the other managed backends).
+  `~/.config/sideaudio/data/workspace`, shared with the other managed backends).
 - `PI_ACP_RUNTIME` (`auto` / `binary` / `package`) controls whether the adapter uses
   a local binary or starts on demand via `npx`.
 
@@ -390,7 +390,7 @@ PI_ACP_RUNTIME=auto
 > Built-in Sandbox" — read, write, and bash execute directly with the current user's
 > privileges — and pi-acp does not implement ACP `session/request_permission`.
 > Therefore Pi is **always equivalent to `full` permission**, regardless of
-> `QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE`, and no permission confirmation ever
+> `SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE`, and no permission confirmation ever
 > appears in the voice session. Use it only in trusted projects and trusted prompt
 > environments.
 
@@ -410,14 +410,14 @@ requests, cancellation, and final messages through `BackendPort`.
 Install on macOS or Linux and complete Muse Code's native login/configuration:
 
 ```bash
-qwenaudio install muse
+sideaudio install muse
 muse
 ```
 
 The Adapter ships with the framework, but `@muse-code/sdk@0.1.1` is **not a
 default dependency**. The explicit install command (or desktop Install button)
-installs it under `<QWAUDIO_DATA_DIR>/backends/muse/runtime`; by default this is
-`~/.config/qwaudio/data/backends/muse/runtime`. An existing Muse executable is
+installs it under `<SIDEAUDIO_DATA_DIR>/backends/muse/runtime`; by default this is
+`~/.config/sideaudio/data/backends/muse/runtime`. An existing Muse executable is
 not reinstalled. Detection does not execute the SDK; only starting the Muse
 backend imports it. Missing or mismatched versions produce an install hint,
 never a silent download. The SDK uses Node.js on the Gateway host, including
@@ -427,7 +427,7 @@ Then select it:
 
 ```dotenv
 AGENT_PROTOCOL=muse
-QWEN_AUDIO_AGENT_BACKEND_PERMISSION_MODE=native
+SIDE_AUDIO_BOT_BACKEND_PERMISSION_MODE=native
 ```
 
 Optional settings:
@@ -435,7 +435,7 @@ Optional settings:
 ```dotenv
 MUSE_CODE_BIN=muse
 MUSE_CODE_WORKSPACE=
-QWEN_AUDIO_AGENT_BACKEND_MODEL=
+SIDE_AUDIO_BOT_BACKEND_MODEL=
 ```
 
 On Windows with Muse Code installed in WSL2, point the adapter at `wsl.exe` and
@@ -444,14 +444,14 @@ keep the Windows process directory separate from the Linux workspace:
 ```dotenv
 MUSE_CODE_BIN=C:\\Windows\\System32\\wsl.exe
 MUSE_CODE_ARGS=["--distribution","Ubuntu-24.04","--user","muse","--","env","HOME=/home/muse","PATH=/home/muse/.local/bin:/usr/local/bin:/usr/bin:/bin","/home/muse/.local/bin/muse","serve"]
-MUSE_CODE_HOST_WORKSPACE=E:\\qwen-audio-agent
+MUSE_CODE_HOST_WORKSPACE=E:\\side-audio-bot
 MUSE_CODE_WORKSPACE=/home/muse/workspace
 ```
 
 `MUSE_CODE_HOST_WORKSPACE` is the Windows working directory used to spawn WSL;
 `MUSE_CODE_WORKSPACE` is the path Muse sees inside Linux. The WSL workspace
 should preferably use the distribution's Linux filesystem. After configuring
-the host executable, run `qwenaudio install muse` on Windows to install only
+the host executable, run `sideaudio install muse` on Windows to install only
 the host-side SDK; Muse itself must already be installed and authenticated in WSL.
 
 An explicit backend model is passed as the MSP `modelId`; leave it empty to use
@@ -503,21 +503,21 @@ user's installation; when `installed` is explicitly set, it directly errors.
 The minimum version can be overridden by `OPENCODE_MIN_VERSION` for validating other
 compatible versions.
 
-The OpenCode started by qwen-audio-agent inherits the user's original global configuration by
+The OpenCode started by side-audio-bot inherits the user's original global configuration by
 default (usually `~/.config/opencode/opencode.json`), so already installed MCPs, Skills,
 permissions, models, and plugins can continue to be used. The coordination rules and
 available Session tools are provided through the Gateway's backend integration,
 without additionally installing or overwriting the OpenCode Agent.
 
-If the user's configuration or third-party plugins conflict with qwen-audio-agent, you can
+If the user's configuration or third-party plugins conflict with side-audio-bot, you can
 temporarily enable isolation mode for troubleshooting:
 
 ```dotenv
-QWEN_AUDIO_AGENT_OPENCODE_ISOLATE_USER_CONFIG=true
+SIDE_AUDIO_BOT_OPENCODE_ISOLATE_USER_CONFIG=true
 ```
 
 You can also specify a different OpenCode user configuration directory via
-`QWEN_AUDIO_AGENT_OPENCODE_XDG_CONFIG_HOME`. After isolation, MCPs and plugins from the
+`SIDE_AUDIO_BOT_OPENCODE_XDG_CONFIG_HOME`. After isolation, MCPs and plugins from the
 original global configuration are not automatically loaded.
 
 

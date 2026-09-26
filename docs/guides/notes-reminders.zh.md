@@ -15,7 +15,7 @@
 默认数据保存在 `<data-dir>/frontend-notes.json`，重启后仍保留。没有后台 Agent 也能使用。关闭此工具可设置：
 
 ```dotenv
-QWEN_AUDIO_NOTES_TOOL_ENABLED=false
+SIDE_AUDIO_NOTES_TOOL_ENABLED=false
 ```
 
 ## 设置提醒
@@ -31,7 +31,7 @@ QWEN_AUDIO_NOTES_TOOL_ENABLED=false
 关闭提醒工具：
 
 ```dotenv
-QWEN_AUDIO_SCHEDULE_TOOL_ENABLED=false
+SIDE_AUDIO_SCHEDULE_TOOL_ENABLED=false
 ```
 
 ## 运行条件

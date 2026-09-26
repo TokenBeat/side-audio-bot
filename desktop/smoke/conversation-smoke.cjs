@@ -37,7 +37,7 @@ module.exports = async function conversationSmoke({ BrowserWindow }) {
           window.fetch = async () => ({ ok: true, json: async () => ({
             ok: true, backend: { enabled: false },
           }) })
-          window.qwenAudioAgentDesktop = {
+          window.sideAudioBotDesktop = {
             loadSurface: async () => ({ mode: new URLSearchParams(location.search).get('surface') || 'orb' }),
             setSurface: async mode => ({ mode }),
             setTaskCardCount() {},

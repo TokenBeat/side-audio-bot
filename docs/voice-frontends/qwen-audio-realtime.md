@@ -2,7 +2,7 @@
 
 The default voice frontend: DashScope's Qwen Audio 3.0 Realtime family,
 purpose-built for speech-to-speech conversation. This is what you get when
-you install qwen-audio-agent and only set an API key.
+you install side-audio-bot and only set an API key.
 
 ## Models
 
@@ -28,9 +28,9 @@ One Gateway owns one active model. Switch it from the Desktop settings
 page or from the CLI, then restart the Gateway:
 
 ```bash
-qwenaudio config set --realtime-model qwen-audio-3.0-realtime-flash
+sideaudio config set --realtime-model qwen-audio-3.0-realtime-flash
 # For an installed user background service only:
-qwenaudio gateway restart
+sideaudio gateway restart
 ```
 
 WebUI and TUI only display the active model; they never override it.

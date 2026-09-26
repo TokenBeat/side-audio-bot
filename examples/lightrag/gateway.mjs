@@ -3,7 +3,7 @@
 process.env.AGENT_PROTOCOL ||= 'none'
 
 const [{ createGatewayApplication }, { createLightRagKnowledgeProviderFromEnv }] = await Promise.all([
-  import('qwen-audio-agent/gateway-application'),
+  import('side-audio-bot/gateway-application'),
   import('./lightrag-provider.mjs'),
 ])
 

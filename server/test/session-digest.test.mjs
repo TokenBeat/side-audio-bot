@@ -20,7 +20,7 @@ function pool(overrides = {}) {
 }
 
 function withFile(run) {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-digest-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-digest-'))
   try {
     return run(join(directory, 'digests.json'), directory)
   } finally {

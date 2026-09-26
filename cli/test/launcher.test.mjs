@@ -29,12 +29,12 @@ function harness({ ownsProcesses = false } = {}) {
       stdout: { write: value => calls.push(['stdout', value]) },
       signalSource: new EventEmitter(),
       prepareEnvironment: () => ({
-        configDirectory: '/home/user/.config/qwaudio',
-        stateDirectory: '/home/user/.config/qwaudio/state',
-        cacheDirectory: '/home/user/.config/qwaudio/cache',
-        sharedWorkspace: '/home/user/.config/qwaudio/data/workspace',
-        dataDirectory: '/home/user/.config/qwaudio/data',
-        configPath: '/home/user/.config/qwaudio/config.env',
+        configDirectory: '/home/user/.config/sideaudio',
+        stateDirectory: '/home/user/.config/sideaudio/state',
+        cacheDirectory: '/home/user/.config/sideaudio/cache',
+        sharedWorkspace: '/home/user/.config/sideaudio/data/workspace',
+        dataDirectory: '/home/user/.config/sideaudio/data',
+        configPath: '/home/user/.config/sideaudio/config.env',
       }),
       refreshPath: () => {},
       inspectSetups: options => {
@@ -112,7 +112,7 @@ function harness({ ownsProcesses = false } = {}) {
         return {
           installed: true,
           running: action !== 'stop' && action !== 'uninstall',
-          logPath: '/home/user/.config/qwaudio/state/logs/gateway.log',
+          logPath: '/home/user/.config/sideaudio/state/logs/gateway.log',
         }
       },
       waitForService: async url => {
@@ -213,7 +213,7 @@ test('marks only an explicitly addressed OpenClaw Gateway as external', async ()
   managed.dependencies.env = { AGENT_PROTOCOL: 'openclaw' }
   assert.equal(await main([], managed.dependencies), 0)
   assert.equal(
-    managed.dependencies.env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP,
+    managed.dependencies.env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP,
     'owned',
   )
 
@@ -224,7 +224,7 @@ test('marks only an explicitly addressed OpenClaw Gateway as external', async ()
   }
   assert.equal(await main([], external.dependencies), 0)
   assert.equal(
-    external.dependencies.env.QWEN_AUDIO_AGENT_BACKEND_OWNERSHIP,
+    external.dependencies.env.SIDE_AUDIO_BOT_BACKEND_OWNERSHIP,
     'external',
   )
 })
@@ -392,7 +392,7 @@ test('creates one portable Gateway connection code and QR', async () => {
   assert.match(output, /扫码或复制连接：/)
   assert.match(output, /\[compact QR\]/)
   assert.match(output, /连接码（只显示这一次）：\nhttps:\/\/voice\.example\.ts\.net\/c#d\.DIRECT-TOKEN/)
-  assert.doesNotMatch(output, /qwaudio:\/\/connect#DIRECT-CODE/)
+  assert.doesNotMatch(output, /sideaudio:\/\/connect#DIRECT-CODE/)
   assert.match(output, /设备 ID：device-one/)
 
   const proxied = harness()
@@ -415,7 +415,7 @@ test('keeps the temporary v1 pairing code behind an explicit compatibility flag'
   assert.equal(await main(['gateway', 'pair', '--legacy'], target.dependencies), 0)
   const output = target.calls.at(-1)[1]
   assert.match(output, /旧版客户端扫码配对/)
-  assert.match(output, /qwaudio:\/\/connect\?v=1&gateway=/)
+  assert.match(output, /sideaudio:\/\/connect\?v=1&gateway=/)
   assert.match(output, /有效期至/)
 })
 
@@ -434,7 +434,7 @@ test('lists and revokes paired clients directly under gateway', async () => {
 test('waits for the system Tailnet endpoint when starting a Gateway', async () => {
   const target = harness({ ownsProcesses: true })
   assert.equal(await main(['gateway', '--tailnet'], target.dependencies), 17)
-  assert.equal(target.dependencies.env.QWEN_AUDIO_GATEWAY_TAILNET, '1')
+  assert.equal(target.dependencies.env.SIDE_AUDIO_GATEWAY_TAILNET, '1')
   assert.ok(target.calls.some(call => call[0] === 'endpoint.ready'))
   assert.match(
     target.calls.find(call => call[0] === 'stdout')[1],
@@ -486,7 +486,7 @@ test('Gateway status fails when unreachable even if the OS service claims to run
 
 test('remote Gateway status uses its credential and never inspects a local OS service', async () => {
   const target = harness()
-  target.dependencies.env.QWEN_AUDIO_GATEWAY_CLIENT_TOKEN = 'test-token'
+  target.dependencies.env.SIDE_AUDIO_GATEWAY_CLIENT_TOKEN = 'test-token'
   target.dependencies.inspectGateway = async (url, token) => {
     assert.equal(url, 'https://voice.example.test')
     assert.equal(token, 'test-token')
@@ -544,7 +544,7 @@ test('reports the public endpoint through the unified Gateway status', async () 
 
 test('passes the configured local Gateway host and port to its service', async () => {
   const target = harness()
-  target.dependencies.env.QWEN_AUDIO_AGENT_URL = 'http://127.0.0.1:3200'
+  target.dependencies.env.SIDE_AUDIO_BOT_URL = 'http://127.0.0.1:3200'
   target.dependencies.manageService = async (action, options) => {
     target.calls.push(['service', action, options])
     return {
@@ -564,11 +564,11 @@ test('passes the configured local Gateway host and port to its service', async (
   assert.deepEqual(install[2].serviceEnvironment, {
     HOST: '127.0.0.1',
     PORT: '3200',
-    QWAUDIO_CONFIG_DIR: '/home/user/.config/qwaudio',
-    QWAUDIO_DATA_DIR: '/home/user/.config/qwaudio/data',
-    QWAUDIO_STATE_DIR: '/home/user/.config/qwaudio/state',
-    QWAUDIO_CACHE_DIR: '/home/user/.config/qwaudio/cache',
-    QWAUDIO_WORKSPACE: '/home/user/.config/qwaudio/data/workspace',
+    SIDEAUDIO_CONFIG_DIR: '/home/user/.config/sideaudio',
+    SIDEAUDIO_DATA_DIR: '/home/user/.config/sideaudio/data',
+    SIDEAUDIO_STATE_DIR: '/home/user/.config/sideaudio/state',
+    SIDEAUDIO_CACHE_DIR: '/home/user/.config/sideaudio/cache',
+    SIDEAUDIO_WORKSPACE: '/home/user/.config/sideaudio/data/workspace',
   })
 })
 
@@ -586,7 +586,7 @@ test('persists the selected public endpoint mode in the Gateway service', async 
   const install = target.calls.find(call => (
     call[0] === 'service' && call[1] === 'install'
   ))
-  assert.equal(install[2].serviceEnvironment.QWEN_AUDIO_GATEWAY_TAILNET, '1')
+  assert.equal(install[2].serviceEnvironment.SIDE_AUDIO_GATEWAY_TAILNET, '1')
   assert.equal(install[2].serviceMetadata.tailnet, true)
 })
 
@@ -605,7 +605,7 @@ test('persists LAN publication and binds the Gateway to all interfaces', async (
     call[0] === 'service' && call[1] === 'install'
   ))
   assert.equal(install[2].serviceEnvironment.HOST, '0.0.0.0')
-  assert.equal(install[2].serviceEnvironment.QWEN_AUDIO_GATEWAY_LAN, '1')
+  assert.equal(install[2].serviceEnvironment.SIDE_AUDIO_GATEWAY_LAN, '1')
   assert.equal(install[2].serviceMetadata.lan, true)
 })
 
@@ -632,12 +632,12 @@ test('refreshes the shared process PATH before starting a background service', a
 test('passes a custom shared profile directory to the background service', async () => {
   const target = harness()
   target.dependencies.prepareEnvironment = () => ({
-    configDirectory: '/home/user/.config/qwaudio-config',
-    stateDirectory: '/home/user/.config/qwaudio-runtime',
-    cacheDirectory: '/home/user/.config/qwaudio-cache',
+    configDirectory: '/home/user/.config/sideaudio-config',
+    stateDirectory: '/home/user/.config/sideaudio-runtime',
+    cacheDirectory: '/home/user/.config/sideaudio-cache',
     sharedWorkspace: '/home/user/workspace',
-    dataDirectory: '/home/user/.config/qwaudio-profile',
-    configPath: '/home/user/.config/qwaudio-profile/config.env',
+    dataDirectory: '/home/user/.config/sideaudio-profile',
+    configPath: '/home/user/.config/sideaudio-profile/config.env',
   })
   target.dependencies.manageService = async (action, options) => {
     target.calls.push(['service', action, options])
@@ -649,14 +649,14 @@ test('passes a custom shared profile directory to the background service', async
     call[0] === 'service' && call[1] === 'install'
   ))
   assert.equal(
-    install[2].serviceEnvironment.QWAUDIO_DATA_DIR,
-    '/home/user/.config/qwaudio-profile',
+    install[2].serviceEnvironment.SIDEAUDIO_DATA_DIR,
+    '/home/user/.config/sideaudio-profile',
   )
 })
 
 test('rejects a remote Gateway URL for the local background service', async () => {
   const target = harness()
-  target.dependencies.env.QWEN_AUDIO_AGENT_URL = 'https://voice.example.com'
+  target.dependencies.env.SIDE_AUDIO_BOT_URL = 'https://voice.example.com'
 
   await assert.rejects(
     main(['gateway', 'install'], target.dependencies),
@@ -700,7 +700,7 @@ test('does not confuse a foreground Gateway with the background service', async 
 
 test('connects TUI and WebUI without starting services', async () => {
   const tui = harness()
-  tui.dependencies.env.QWEN_AUDIO_AGENT_ACCESS_TOKEN = 'remote-token'
+  tui.dependencies.env.SIDE_AUDIO_BOT_ACCESS_TOKEN = 'remote-token'
   assert.equal(
     await main(['tui', '--audio-mode', 'full'], tui.dependencies),
     11,
@@ -734,7 +734,7 @@ test('pairs, reuses and forgets a remote TUI Gateway profile', async () => {
     expiresAt: Date.now() + 60_000,
   }))
   const connected = harness()
-  connected.dependencies.env.QWAUDIO_TUI_DIR = clientDirectory
+  connected.dependencies.env.SIDEAUDIO_TUI_DIR = clientDirectory
   connected.dependencies.createConnectionProfiles = directory => {
     assert.equal(directory, clientDirectory)
     return profileStore
@@ -755,14 +755,14 @@ test('pairs, reuses and forgets a remote TUI Gateway profile', async () => {
   assert.match(connected.calls.at(-1)[1], /voice\.example\.test/)
 
   const tui = harness()
-  tui.dependencies.env.QWAUDIO_TUI_DIR = clientDirectory
+  tui.dependencies.env.SIDEAUDIO_TUI_DIR = clientDirectory
   tui.dependencies.createConnectionProfiles = directory => {
     assert.equal(directory, clientDirectory)
     return profileStore
   }
   tui.dependencies.acquireInstance = (directory, instanceKey) => {
     assert.equal(directory, clientDirectory)
-    assert.equal(instanceKey, '/home/user/.config/qwaudio/state')
+    assert.equal(instanceKey, '/home/user/.config/sideaudio/state')
     return { release() {} }
   }
   const prepare = tui.dependencies.prepareEnvironment
@@ -783,7 +783,7 @@ test('pairs, reuses and forgets a remote TUI Gateway profile', async () => {
   assert.equal(tui.calls[0][1].accessToken, 'paired-token')
 
   const disconnected = harness()
-  disconnected.dependencies.env.QWAUDIO_TUI_DIR = clientDirectory
+  disconnected.dependencies.env.SIDEAUDIO_TUI_DIR = clientDirectory
   disconnected.dependencies.createConnectionProfiles = directory => {
     assert.equal(directory, clientDirectory)
     return profileStore
@@ -800,10 +800,10 @@ test('requires a running Gateway for client commands', async () => {
 })
 
 test('client commands persist only in product-root/tui without initializing Gateway data', async t => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-product-client-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-product-client-'))
   t.after(() => rmSync(directory, { recursive: true, force: true }))
   const target = harness()
-  target.dependencies.env.QWAUDIO_CONFIG_DIR = directory
+  target.dependencies.env.SIDEAUDIO_CONFIG_DIR = directory
   delete target.dependencies.prepareEnvironment
   delete target.dependencies.createConnectionProfiles
   delete target.dependencies.acquireInstance
@@ -849,18 +849,18 @@ test('prints status and configuration without starting a service', async () => {
   assert.equal(await main(['config'], config.dependencies), 0)
   assert.deepEqual(config.calls, [[
     'stdout',
-    '/home/user/.config/qwaudio/config.env\n',
+    '/home/user/.config/sideaudio/config.env\n',
   ]])
 })
 
 test('shows and sets the Gateway model without restarting it', async () => {
   const target = harness()
   target.dependencies.prepareEnvironment = () => ({
-    configDirectory: '/home/user/.config/qwaudio',
-    stateDirectory: '/home/user/.config/qwaudio/state',
-    cacheDirectory: '/home/user/.config/qwaudio/cache',
-    sharedWorkspace: '/home/user/.config/qwaudio/data/workspace',
-    configPath: '/home/user/.config/qwaudio/config.env',
+    configDirectory: '/home/user/.config/sideaudio',
+    stateDirectory: '/home/user/.config/sideaudio/state',
+    cacheDirectory: '/home/user/.config/sideaudio/cache',
+    sharedWorkspace: '/home/user/.config/sideaudio/data/workspace',
+    configPath: '/home/user/.config/sideaudio/config.env',
   })
   target.dependencies.env = {
     AGENT_PROTOCOL: 'opencode',
@@ -876,9 +876,9 @@ test('shows and sets the Gateway model without restarting it', async () => {
     'qwen3.5-omni-plus-realtime',
   ], target.dependencies)
   assert.equal(set, 0)
-  assert.match(target.calls.at(-1)[1], /qwenaudio gateway restart/)
+  assert.match(target.calls.at(-1)[1], /sideaudio gateway restart/)
   assert.deepEqual(target.calls.find(call => call[0] === 'config.set'), [
-    'config.set', '/home/user/.config/qwaudio/config.env',
+    'config.set', '/home/user/.config/sideaudio/config.env',
     'qwen3.5-omni-plus-realtime',
   ])
   assert.equal(target.calls.some(call => call[0] === 'runtime'), false)
@@ -887,11 +887,11 @@ test('shows and sets the Gateway model without restarting it', async () => {
 test('warns when an environment model overrides config set', async () => {
   const target = harness()
   target.dependencies.prepareEnvironment = () => ({
-    configDirectory: '/home/user/.config/qwaudio',
-    stateDirectory: '/home/user/.config/qwaudio/state',
-    cacheDirectory: '/home/user/.config/qwaudio/cache',
-    sharedWorkspace: '/home/user/.config/qwaudio/data/workspace',
-    configPath: '/home/user/.config/qwaudio/config.env',
+    configDirectory: '/home/user/.config/sideaudio',
+    stateDirectory: '/home/user/.config/sideaudio/state',
+    cacheDirectory: '/home/user/.config/sideaudio/cache',
+    sharedWorkspace: '/home/user/.config/sideaudio/data/workspace',
+    configPath: '/home/user/.config/sideaudio/config.env',
   })
   target.dependencies.env = {
     QWEN_AUDIO_REALTIME_MODEL: 'qwen-audio-3.0-realtime-plus',
@@ -912,7 +912,7 @@ test('warns when an environment model overrides config set', async () => {
 })
 
 test('atomically preserves config comments and unknown keys', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-config-command-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-config-command-'))
   const path = join(directory, 'config.env')
   writeFileSync(path, '# keep me\nDASHSCOPE_API_KEY=secret\nUNKNOWN_KEY=value\nQWEN_AUDIO_REALTIME_MODEL=old\n')
   updateRealtimeModelConfig(path, 'qwen3.5-omni-flash-realtime')
@@ -928,7 +928,7 @@ test('atomically preserves config comments and unknown keys', () => {
 })
 
 test('config commands use the selected StepFun model catalog through the provider-owned model setting', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-stepfun-config-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-stepfun-config-'))
   const path = join(directory, 'config.env')
   writeFileSync(path, [
     'QWEN_AUDIO_REALTIME_PROVIDER=stepfun',
@@ -950,7 +950,7 @@ test('config commands use the selected StepFun model catalog through the provide
 })
 
 test('changes only the model and preserves both family voice overrides', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-config-voice-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-config-voice-'))
   const path = join(directory, 'config.env')
   writeFileSync(path, [
     'QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-flash',
@@ -966,7 +966,7 @@ test('changes only the model and preserves both family voice overrides', () => {
 })
 
 test('normalizes duplicate realtime model assignments to one effective value', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-config-duplicate-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-config-duplicate-'))
   const path = join(directory, 'config.env')
   writeFileSync(path, [
     'QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-plus',
@@ -985,7 +985,7 @@ test('normalizes duplicate realtime model assignments to one effective value', (
 })
 
 test('rejects unknown models and config show redacts credentials', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-config-show-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-config-show-'))
   const path = join(directory, 'config.env')
   writeFileSync(path, 'DASHSCOPE_API_KEY=secret\n')
   assert.throws(() => updateRealtimeModelConfig(path, 'unknown-model'), /不支持的 Realtime 模型/)
@@ -1006,11 +1006,11 @@ test('installs a backend through the injected installer', async () => {
   target.dependencies.prepareEnvironment = options => {
     preparation = options
     return {
-      configDirectory: '/home/user/.config/qwaudio',
-      stateDirectory: '/home/user/.config/qwaudio/state',
-      cacheDirectory: '/home/user/.config/qwaudio/cache',
-      sharedWorkspace: '/home/user/.config/qwaudio/data/workspace',
-      configPath: '/home/user/.config/qwaudio/config.env',
+      configDirectory: '/home/user/.config/sideaudio',
+      stateDirectory: '/home/user/.config/sideaudio/state',
+      cacheDirectory: '/home/user/.config/sideaudio/cache',
+      sharedWorkspace: '/home/user/.config/sideaudio/data/workspace',
+      configPath: '/home/user/.config/sideaudio/config.env',
     }
   }
   target.dependencies.runInstaller = async (id, options) => {
@@ -1145,11 +1145,11 @@ test('prints a reusable read-only backend setup report', async () => {
   target.dependencies.prepareEnvironment = options => {
     preparation = options
     return {
-      configDirectory: '/home/user/.config/qwaudio',
-      stateDirectory: '/home/user/.config/qwaudio/state',
-      cacheDirectory: '/home/user/.config/qwaudio/cache',
-      sharedWorkspace: '/home/user/.config/qwaudio/data/workspace',
-      configPath: '/home/user/.config/qwaudio/config.env',
+      configDirectory: '/home/user/.config/sideaudio',
+      stateDirectory: '/home/user/.config/sideaudio/state',
+      cacheDirectory: '/home/user/.config/sideaudio/cache',
+      sharedWorkspace: '/home/user/.config/sideaudio/data/workspace',
+      configPath: '/home/user/.config/sideaudio/config.env',
     }
   }
   assert.equal(

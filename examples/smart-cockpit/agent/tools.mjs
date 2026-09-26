@@ -1,4 +1,4 @@
-import { createWebRetrieval } from 'qwen-audio-agent/web-retrieval'
+import { createWebRetrieval } from 'side-audio-bot/web-retrieval'
 
 const WEB_TOOLS = Object.freeze([
   {

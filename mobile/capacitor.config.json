@@ -1,9 +1,9 @@
 {
-  "appId": "com.qwenaudio.agent",
-  "appName": "Qwen Audio Agent",
+  "appId": "com.sideaudio.agent",
+  "appName": "Side Audio Bot",
   "webDir": "dist",
   "server": {
-    "hostname": "qwaudio.local",
+    "hostname": "sideaudio.local",
     "iosScheme": "https",
     "androidScheme": "https"
   },

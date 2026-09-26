@@ -1,9 +1,9 @@
-# Qwen Audio Agent Memcode Integration Example
+# Side Audio Bot Memcode Integration Example
 
 English | [中文](README_ZH.md)
 
 This optional example connects [Memcode](https://memcode.in/), a hosted memory
-service, through qwen-audio-agent's `MemoryProvider` v2 interface. It reuses the
+service, through side-audio-bot's `MemoryProvider` v2 interface. It reuses the
 frontend `memory` tool without changing the default Gateway. Memory submitted
 through this provider is sent to the remote service.
 
@@ -19,7 +19,7 @@ through this provider is sent to the remote service.
 
 | Component | Responsibility |
 |---|---|
-| qwen-audio-agent Gateway | Voice conversation, the memory tool, and provider lifecycle. |
+| side-audio-bot Gateway | Voice conversation, the memory tool, and provider lifecycle. |
 | [MemcodeMemoryProvider](provider.mjs) | Local snapshots and mapping memory operations to remote APIs. |
 | memcode-sdk | Authenticated requests to the independently hosted service. |
 | Memcode | Remote memory processing, storage, and semantic search. |
@@ -43,8 +43,8 @@ cd examples/memcode
 cp .env.example .env.local
 ```
 
-Create a key in the [Memcode dashboard](https://app.memcode.in/dashboard?section=api-keys&integration=qwen-audio-agent),
-selecting **Qwen Audio Agent** as the integration. Edit `.env.local` with the
+Create a key in the [Memcode dashboard](https://app.memcode.in/dashboard?section=api-keys&integration=side-audio-bot),
+selecting **Side Audio Bot** as the integration. Edit `.env.local` with the
 key and your voice frontend configuration. For the default frontend:
 
 ```dotenv
@@ -52,7 +52,7 @@ MEMCODE_API_URL=https://memory.memcode.in
 MEMCODE_API_KEY=your_memcode_api_key
 DASHSCOPE_API_KEY=your_dashscope_api_key
 AGENT_PROTOCOL=none
-QWAUDIO_CONFIG_DIR=.qwen-audio/runtime
+SIDEAUDIO_CONFIG_DIR=.side-audio/runtime
 PORT=3102
 
 ```
@@ -75,12 +75,12 @@ preference. Remote search may lag behind local edits. Press Ctrl+C to stop.
 ## Configuration and data
 
 The default owner is `user_personal`; override it with
-`QWEN_AUDIO_AGENT_PERSONAL_OWNER_ID` if needed. Remote identity comes from the
+`SIDE_AUDIO_BOT_PERSONAL_OWNER_ID` if needed. Remote identity comes from the
 Memcode credential; the adapter sends no `user_id` or attribution override.
 
 When started as above, snapshots live at
-`examples/memcode/.qwen-audio/runtime/memory/memcode/snapshot.json`.
-The launcher derives this path from `QWAUDIO_CONFIG_DIR` (relative paths use the
+`examples/memcode/.side-audio/runtime/memory/memcode/snapshot.json`.
+The launcher derives this path from `SIDEAUDIO_CONFIG_DIR` (relative paths use the
 working directory). The file contains private memory and pending edits; writes request mode
 `0600`. Do not commit it or `.env.local`.
 
@@ -98,8 +98,8 @@ Remote retention is managed by Memcode.
 - **Remote edits need verification:** replacements and deletions are submitted as
   natural-language instructions, not exact remote record operations.
 - **Embedding:** `sessionObservation: false` alone does not disable framework
-  learning. Hosts not using this launcher must disable `QWEN_AUDIO_MEMORY_AUTO`
-  and `QWEN_AUDIO_PREFERENCE_LEARNING` themselves for explicit-only writes.
+  learning. Hosts not using this launcher must disable `SIDE_AUDIO_MEMORY_AUTO`
+  and `SIDE_AUDIO_PREFERENCE_LEARNING` themselves for explicit-only writes.
   This adapter does not forward raw audio.
 - **Document size:** keep the default 8,000-character limit, matching the framework's
   prompt projection. Snapshot loading rejects oversized data rather than truncating it.
@@ -120,6 +120,6 @@ not establish the live service's semantic correction or deletion guarantees.
 
 - [Vivek Gupta](https://github.com/vivekgupta-memcode): contributed the Memcode
   provider integration, example launcher, tests, and initial documentation in
-  [PR #488](https://github.com/QwenAudio/qwen-audio-agent/pull/488).
+  [PR #488](https://github.com/TokenBeat/side-audio-bot/pull/488).
 - [Memcode](https://memcode.in/): provides the hosted memory service and SDK
   used by this example.

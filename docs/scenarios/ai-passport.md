@@ -1,6 +1,6 @@
 # AI Passport
 
-Run Qwen Voice Bean on an AI Passport (ESP32-C3) card to use qwen-audio-agent over
+Run Qwen Voice Bean on an AI Passport (ESP32-C3) card to use side-audio-bot over
 the LAN. The card captures speech, plays replies, and displays character animation;
 the Gateway on the computer handles realtime conversation, tools, and optional
 backend Agent tasks.
@@ -30,7 +30,7 @@ relay over the LAN, which connects to the local Gateway on the same computer.
 |---|---|
 | Qwen Voice Bean firmware | Wi-Fi setup, capture/playback, half-duplex control, buttons, and animation on the AI Passport card. |
 | Device relay (`device-relay.mjs`) | Listen on the computer's LAN port `3101`, validate device tokens, split audio into small chunks, and forward GCP messages. |
-| qwen-audio-agent Gateway | Listen on `127.0.0.1:18888` on the same computer; handle realtime conversation, tools, and optional backend tasks. |
+| side-audio-bot Gateway | Listen on `127.0.0.1:18888` on the same computer; handle realtime conversation, tools, and optional backend tasks. |
 
 The device relay and Gateway run as two separate processes on the same computer,
 handling card transport and conversation/task execution respectively.
@@ -42,7 +42,7 @@ From a repository checkout, install dependencies and start it on a loopback port
 
 ```bash
 npm ci
-node cli/bin/qwenaudio.mjs gateway run --url http://127.0.0.1:18888
+node cli/bin/sideaudio.mjs gateway run --url http://127.0.0.1:18888
 ```
 
 In another terminal, copy and edit the relay configuration:
@@ -78,6 +78,6 @@ interruption.
 
 ## Source and acknowledgements
 
-- [Example and protocol checklist](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/ai-passport): full setup instructions, audio transport, and tests.
+- [Example and protocol checklist](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/ai-passport): full setup instructions, audio transport, and tests.
 - [External firmware](https://github.com/liutaocode/esp32demo/tree/main/examples/qwen-voice-bean): hardware drivers, interaction, and UI.
 - [Tao Liu](https://github.com/liutaocode) implemented the firmware, hardware interaction, character UI, and device relay; [Li Xu](https://github.com/x-lixu) maintains the framework-side integration and documentation. The [FoloToy community](https://ai-passport.folotoy.cn/plays/233/) hosts firmware distribution.

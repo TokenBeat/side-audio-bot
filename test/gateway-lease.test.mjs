@@ -20,7 +20,7 @@ function missingProcess() {
 }
 
 test('allows only one live Gateway per configuration directory', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-gateway-lock-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-gateway-lock-'))
   const first = acquireGatewayLease(directory, {
     pid: 101,
     instanceId: 'first',
@@ -39,7 +39,7 @@ test('allows only one live Gateway per configuration directory', () => {
       },
     }),
     error => (
-      error.code === 'QWAUDIO_GATEWAY_ALREADY_RUNNING'
+      error.code === 'SIDEAUDIO_GATEWAY_ALREADY_RUNNING'
       && error.lease.instanceId === 'first'
     ),
   )
@@ -47,7 +47,7 @@ test('allows only one live Gateway per configuration directory', () => {
 })
 
 test('publishes readiness and releases only its own Gateway lease', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-gateway-ready-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-gateway-ready-'))
   const lease = acquireGatewayLease(directory, {
     pid: 303,
     instanceId: 'current',
@@ -79,7 +79,7 @@ test('publishes readiness and releases only its own Gateway lease', () => {
 })
 
 test('recovers a stale Gateway lease atomically', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-gateway-stale-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-gateway-stale-'))
   writeFileSync(gatewayLockPath(directory), JSON.stringify({
     schema: GATEWAY_LOCK_SCHEMA,
     instanceId: 'stale',
@@ -95,7 +95,7 @@ test('recovers a stale Gateway lease atomically', () => {
 })
 
 test('discovers only the Gateway whose health identity matches its lease', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'qwaudio-gateway-find-'))
+  const directory = mkdtempSync(join(tmpdir(), 'sideaudio-gateway-find-'))
   const lease = acquireGatewayLease(directory, {
     pid: 606,
     instanceId: 'discoverable',

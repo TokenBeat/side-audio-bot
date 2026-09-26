@@ -51,7 +51,7 @@ test('DashScope dedicated workspace routing stays provider-scoped', () => {
 })
 
 test('server provider descriptors never reuse the active provider model or credential', t => {
-  const root = mkdtempSync(join(tmpdir(), 'qwaudio-config-isolation-'))
+  const root = mkdtempSync(join(tmpdir(), 'sideaudio-config-isolation-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   const source = `
     import { config } from ${JSON.stringify(new URL('../server/src/core/config.mjs', import.meta.url).href)};
@@ -62,8 +62,8 @@ test('server provider descriptors never reuse the active provider model or crede
     }));
   `
   const env = { ...process.env,
-    QWAUDIO_CONFIG_DIR: join(root,'config'), QWAUDIO_DATA_DIR: join(root,'data'),
-    QWAUDIO_STATE_DIR: join(root,'state'), QWAUDIO_CACHE_DIR: join(root,'cache'), QWAUDIO_WORKSPACE: join(root,'workspace'),
+    SIDEAUDIO_CONFIG_DIR: join(root,'config'), SIDEAUDIO_DATA_DIR: join(root,'data'),
+    SIDEAUDIO_STATE_DIR: join(root,'state'), SIDEAUDIO_CACHE_DIR: join(root,'cache'), SIDEAUDIO_WORKSPACE: join(root,'workspace'),
     QWEN_AUDIO_REALTIME_PROVIDER: 'stepfun',
     DASHSCOPE_API_KEY: 'dash-key', QWEN_AUDIO_REALTIME_MODEL: 'qwen-audio-3.0-realtime-plus',
     STEPFUN_API_KEY: 'step-key', STEPFUN_REALTIME_MODEL: 'stepaudio-3-realtime-preview',

@@ -103,8 +103,8 @@ export class BrowserWebRtcConnection {
       return true
     } catch (error) { this.fail(error); return false }
   }
-  command(event) { return this.send({ type: 'qwaudio.command', event: { event_id: crypto.randomUUID(), ...event } }) }
-  receipt(type, responseId) { return this.send({ type: `qwaudio.playback.${type}`, response_id: responseId }) }
+  command(event) { return this.send({ type: 'sideaudio.command', event: { event_id: crypto.randomUUID(), ...event } }) }
+  receipt(type, responseId) { return this.send({ type: `sideaudio.playback.${type}`, response_id: responseId }) }
 
   received(event) {
     if (this.closed) return
@@ -113,13 +113,13 @@ export class BrowserWebRtcConnection {
       this.ready = true
       this.updateMicrophone()
       this.onState('connected')
-    } else if (event.type === 'qwaudio.output.started') {
+    } else if (event.type === 'sideaudio.output.started') {
       this.outputs.set(event.response_id, { started: false, drained: 0, quiet: 0 })
-    } else if (event.type === 'qwaudio.output.drained') {
+    } else if (event.type === 'sideaudio.output.drained') {
       const output = this.outputs.get(event.response_id)
       if (output) output.drained = performance.now()
     } else if (event.type === 'output_audio_buffer.cleared') this.clearPlayback()
-    else if (event.type === 'qwaudio.event') {
+    else if (event.type === 'sideaudio.event') {
       const item = event.event
       if (['input.suspend', 'input.resume'].includes(item.type)) {
         this.suspended = item.type === 'input.suspend'
@@ -132,7 +132,7 @@ export class BrowserWebRtcConnection {
       }
     }
     this.onEvent(event)
-    if (event.type === 'qwaudio.connection.closed') void this.close()
+    if (event.type === 'sideaudio.connection.closed') void this.close()
   }
 
   async activateAudio() {

@@ -11,13 +11,13 @@ WebRTC 尚未发布到 npm，当前请使用源码开发方式体验。
 安装框架和可选的 WebRTC 扩展，无需克隆仓库：
 
 ```sh
-npm install -g qwen-audio-agent
-npm install -g qwen-audio-agent-webrtc
-qwenaudio config
-qwenaudio gateway --webrtc
+npm install -g side-audio-bot
+npm install -g side-audio-bot-webrtc
+sideaudio config
+sideaudio gateway --webrtc
 ```
 
-在 `qwenaudio config` 中填写 `DASHSCOPE_API_KEY`，并设置
+在 `sideaudio config` 中填写 `DASHSCOPE_API_KEY`，并设置
 `QWEN_AUDIO_REALTIME_PROVIDER=dashscope`。Audio 使用默认模型；Omni 将
 `QWEN_AUDIO_REALTIME_MODEL` 设为 `qwen3.5-omni-plus-realtime` 后重启网关。
 
@@ -50,4 +50,4 @@ npm run example:webrtc:omni
 [协议与部署说明](../../docs/gateway-webrtc-client.zh.md)
 
 如需屏幕、图片、按需识图和观察提醒，可体验同样支持 WebRTC 的
-[X-Omni 示例](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/x-omni/README_ZH.md)。两个示例共用浏览器连接与网关媒体实现。
+[X-Omni 示例](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/x-omni/README_ZH.md)。两个示例共用浏览器连接与网关媒体实现。

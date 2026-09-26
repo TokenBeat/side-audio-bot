@@ -1,5 +1,5 @@
 {
-  "name": "@qwen-audio-agent/example-webrtc",
+  "name": "@side-audio-bot/example-webrtc",
   "version": "0.1.0",
   "private": true,
   "type": "module",

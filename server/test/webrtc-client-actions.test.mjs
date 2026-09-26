@@ -34,7 +34,7 @@ test('large action results round-trip over bounded chunks without bypassing GCP'
   const connection = new WebRtcConnection({ media, provider: testProvider(true), sessionId: 'test' })
   const inputs = []
   connection.on('message', raw => inputs.push(JSON.parse(raw)))
-  const event = { type: 'qwaudio.command', event: { type: 'client.action.result', event_id: 'result-1',
+  const event = { type: 'sideaudio.command', event: { type: 'client.action.result', event_id: 'result-1',
     request_event_id: 'request-1', status: 'completed', output: { image: 'a'.repeat(260000) } } }
   const frames = encodeWebRtcMessage(event)
   assert.ok(frames.length > 1)
@@ -53,7 +53,7 @@ test('large action results round-trip over bounded chunks without bypassing GCP'
 test('chunk parser rejects malformed, oversized, out-of-order, expired and nested messages', () => {
   let now = 0
   const reader = new WebRtcMessageReader({ now: () => now })
-  const event = { type: 'qwaudio.command', event: { type: 'client.action.result', output: '中😀'.repeat(12000) } }
+  const event = { type: 'sideaudio.command', event: { type: 'client.action.result', output: '中😀'.repeat(12000) } }
   const frames = encodeWebRtcMessage(event)
   let result
   for (const frame of frames) result = reader.read(frame)
@@ -64,15 +64,15 @@ test('chunk parser rejects malformed, oversized, out-of-order, expired and neste
   assert.equal(reader.pending, null)
   assert.throws(() => reader.read('x'.repeat(65537)), /64 KiB/)
   assert.throws(() => encodeWebRtcMessage({ x: 'x'.repeat(512 * 1024) }), /512 KiB/)
-  assert.throws(() => reader.read(JSON.stringify({ type: 'qwaudio.transport.chunk', id: 'x', index: 0, total: 9999, data: 'x' })), /Invalid/)
-  const nested = encodeWebRtcMessage({ type: 'qwaudio.transport.chunk', data: 'x'.repeat(40000) })
+  assert.throws(() => reader.read(JSON.stringify({ type: 'sideaudio.transport.chunk', id: 'x', index: 0, total: 9999, data: 'x' })), /Invalid/)
+  const nested = encodeWebRtcMessage({ type: 'sideaudio.transport.chunk', data: 'x'.repeat(40000) })
   assert.throws(() => nested.forEach(frame => reader.read(frame)), /Nested/)
   reader.clear()
 })
 
 test('closing a connection discards partial messages', () => {
   const connection = new WebRtcConnection({ media: new FakeMedia(), provider: testProvider(), sessionId: 'test' })
-  connection.receive(encodeWebRtcMessage({ type: 'qwaudio.command', event: { type: 'client.action.result', output: 'x'.repeat(40000) } })[0])
+  connection.receive(encodeWebRtcMessage({ type: 'sideaudio.command', event: { type: 'client.action.result', output: 'x'.repeat(40000) } })[0])
   assert.ok(connection.messages.pending)
   connection.close()
   assert.equal(connection.messages.pending, null)

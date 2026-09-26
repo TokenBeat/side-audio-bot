@@ -9,9 +9,9 @@ Check client and Gateway versions, run mode, and the selected voice frontend and
 CLI commands:
 
 ```bash
-qwenaudio --version
-qwenaudio doctor
-qwenaudio setup
+sideaudio --version
+sideaudio doctor
+sideaudio setup
 ```
 
 Development builds include read-only `doctor`: it does not start models, backends, or microphones,
@@ -25,7 +25,7 @@ report voice connectivity as unverified. Complete a real conversation to verify 
 | --- | --- |
 | Gateway disconnected | Confirm it is running and the client uses its actual address and port. Desktop and CLI have independent runtimes by default; inspect the right instance. |
 | Gateway connected, voice frontend unavailable | Check the voice service address, credentials, quota, and Provider error. Orb animation alone is not connectivity evidence. |
-| Configuration changes have no effect | Find the file with `qwenaudio config`, check environment / source `.env.local` overrides, and restart the actual Gateway. |
+| Configuration changes have no effect | Find the file with `sideaudio config`, check environment / source `.env.local` overrides, and restart the actual Gateway. |
 | `gateway restart` says the service is not installed | It manages the user background service only. Restart terminal runs manually; apply settings or reopen Desktop. |
 | Client occupied or taken over | Each user has one active connection per Gateway. Confirm takeover or close the other client. |
 
@@ -46,7 +46,7 @@ to the voice frontend while retaining the Realtime connection. Wake-word detecti
 
 ## Backends and Tools
 
-- Backend execution fails: check installation with `qwenaudio setup --backend <name>`, then verify authentication and models in the backend's own interface.
+- Backend execution fails: check installation with `sideaudio setup --backend <name>`, then verify authentication and models in the backend's own interface.
 - No backend model specified: the Gateway does not guess a default; it uses the Agent's configuration.
 - Explicit model override fails: ACP backends must expose standard model configuration and accept the value, otherwise the override fails explicitly. See [backend configuration](../configuration/backend.md#model-selection) for integration-specific settings such as DeepSeek / Muse.
 - MCP command missing: check `command` and PATH. Restart after installing commands; `gateway restart` refreshes the path cache for a background service.
@@ -67,7 +67,7 @@ See [Remote Connections](remote-access.md).
 ## Logs and Reporting
 
 Desktop exposes its log directory in Settings → Application → Logs. CLI logs default to
-`~/.config/qwaudio/state/logs`; desktop-hosted Gateway logs use `~/.config/qwaudio/state/desktop/logs`.
+`~/.config/sideaudio/state/logs`; desktop-hosted Gateway logs use `~/.config/sideaudio/state/desktop/logs`.
 Desktop Client logs use the `logs/` subdirectory of its application data directory.
 
 ### Session history retention
@@ -84,10 +84,10 @@ Compaction replaces files atomically and reports omitted history in the header's
 Development builds can summarize a recorded turn:
 
 ```bash
-qwenaudio doctor --turn <turnId>
+sideaudio doctor --turn <turnId>
 ```
 
 See [read-only diagnostics](../configuration/advanced.md#read-only-diagnostics) for bounds and limitations.
-When filing an [Issue](https://github.com/QwenAudio/qwen-audio-agent/issues/new/choose), include
+When filing an [Issue](https://github.com/TokenBeat/side-audio-bot/issues/new/choose), include
 versions, OS, client / Gateway run mode, reproduction steps, time of occurrence, and relevant log excerpts.
 **Do not include API keys, pairing codes, device tokens, full configuration files, or unreviewed private conversations.**

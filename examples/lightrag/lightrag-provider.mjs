@@ -1,7 +1,7 @@
 import { basename } from 'node:path'
 import {
   KNOWLEDGE_PROVIDER_PROTOCOL_VERSION,
-} from 'qwen-audio-agent/knowledge-provider'
+} from 'side-audio-bot/knowledge-provider'
 import { LightRagClient, LightRagHttpError } from './lightrag-client.mjs'
 
 const TERMINAL_DOCUMENT_STATUSES = new Set(['PROCESSED', 'FAILED'])

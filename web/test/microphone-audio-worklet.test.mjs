@@ -76,7 +76,7 @@ test('loads one processor module per AudioContext and forwards samples', async (
   })
 
   assert.deepEqual(modules, ['/assets/microphone-worklet.js'])
-  assert.equal(first.node.name, 'qwen-audio-microphone')
+  assert.equal(first.node.name, 'side-audio-microphone')
   assert.equal(first.node.options.numberOfInputs, 1)
   assert.equal(first.node.port.started, true)
   assert.equal(second.node.port.started, true)

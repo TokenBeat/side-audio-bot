@@ -10,10 +10,10 @@ test('PORT=0 binds a random port and reports the origin to the parent host', asy
   const originalRealtimeUrl = process.env.QWEN_AUDIO_REALTIME_BASE_URL
   const originalModel = process.env.QWEN_AUDIO_REALTIME_MODEL
   const originalAgentProtocol = process.env.AGENT_PROTOCOL
-  const originalConfigDirectory = process.env.QWAUDIO_CONFIG_DIR
+  const originalConfigDirectory = process.env.SIDEAUDIO_CONFIG_DIR
   const configDirectory = mkdtempSync(join(tmpdir(), 'qwa-embedded-gateway-'))
   process.env.PORT = '0'
-  process.env.QWAUDIO_CONFIG_DIR = configDirectory
+  process.env.SIDEAUDIO_CONFIG_DIR = configDirectory
   // 测试导入的是真实配置与引导流程：本地 .env 若配置了后台 Agent，
   // 引导会拉起常驻后台进程使事件循环无法退出。强制前端独跑模式，
   // 保持测试与环境无关。
@@ -45,7 +45,7 @@ test('PORT=0 binds a random port and reports the origin to the parent host', asy
     server = bootstrap.server
     closeApplication = bootstrap.close
     const message = await reported
-    assert.equal(message.type, 'qwen-audio-agent:gateway-ready')
+    assert.equal(message.type, 'side-audio-bot:gateway-ready')
     const address = server.address()
     assert.equal(typeof address, 'object')
     assert.ok(address.port > 0)
@@ -95,8 +95,8 @@ test('PORT=0 binds a random port and reports the origin to the parent host', asy
     else process.env.PORT = originalPort
     if (originalAgentProtocol === undefined) delete process.env.AGENT_PROTOCOL
     else process.env.AGENT_PROTOCOL = originalAgentProtocol
-    if (originalConfigDirectory === undefined) delete process.env.QWAUDIO_CONFIG_DIR
-    else process.env.QWAUDIO_CONFIG_DIR = originalConfigDirectory
+    if (originalConfigDirectory === undefined) delete process.env.SIDEAUDIO_CONFIG_DIR
+    else process.env.SIDEAUDIO_CONFIG_DIR = originalConfigDirectory
     if (originalApiKey === undefined) delete process.env.DASHSCOPE_API_KEY
     else process.env.DASHSCOPE_API_KEY = originalApiKey
     if (originalRealtimeUrl === undefined) {

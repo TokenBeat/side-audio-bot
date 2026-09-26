@@ -15,12 +15,12 @@ are unchanged.
 
 ## Start
 
-See the [browser example](https://github.com/QwenAudio/qwen-audio-agent/tree/main/examples/webrtc) for release and source workflows.
+See the [browser example](https://github.com/TokenBeat/side-audio-bot/tree/main/examples/webrtc) for release and source workflows.
 The release workflow uses a separate extension, which is not yet published:
 
 ```sh
-npm install -g qwen-audio-agent qwen-audio-agent-webrtc
-qwenaudio gateway --webrtc
+npm install -g side-audio-bot side-audio-bot-webrtc
+sideaudio gateway --webrtc
 ```
 
 Install both packages with the same npm prefix. Installing the extension does
@@ -35,15 +35,15 @@ npm run example:webrtc
 ```
 
 The demo enables WebRTC and selects the model for this process only. It does not
-modify saved settings. A normal Gateway can use `qwenaudio gateway --webrtc`
+modify saved settings. A normal Gateway can use `sideaudio gateway --webrtc`
 after configuring a supported DashScope Audio/Omni model and installing the
-extension. Persistent services use `qwenaudio gateway install --webrtc`, followed
+extension. Persistent services use `sideaudio gateway install --webrtc`, followed
 by the normal start/restart commands.
 
 An alternative source launch is:
 
 ```sh
-QWAUDIO_WEBRTC_ENABLED=1 \
+SIDEAUDIO_WEBRTC_ENABLED=1 \
 QWEN_AUDIO_REALTIME_PROVIDER=dashscope \
 QWEN_AUDIO_REALTIME_MODEL=qwen-audio-3.0-realtime-plus \
 npm run start --workspace server
@@ -66,7 +66,7 @@ pairing/authentication. Browser credentials are Gateway credentials, not Bailian
 keys; the page and its assets are also protected by Gateway authentication.
 
 When disabled, no WebRTC routes, native addons, or media timers are activated.
-Native dependencies belong to `qwen-audio-agent-webrtc`; source development
+Native dependencies belong to `side-audio-bot-webrtc`; source development
 installs them under `packages/webrtc`. The main npm package contains neither
 the extension implementation nor its native dependencies or private `.env` files.
 When enabled, WSS and WebRTC coexist; the upstream model connection remains WSS.
@@ -184,17 +184,17 @@ submitted to history only on `response.create`. User transcript events use
 familiar names without promising upstream item IDs. `response.audio_transcript.*`
 represents text presented by the Gateway, not necessarily an original TTS transcript.
 
-Other Gateway events are wrapped as `{"type":"qwaudio.event","event":{...}}`.
-Use the `event` field of `qwaudio.command` for supported GCP task, permission,
+Other Gateway events are wrapped as `{"type":"sideaudio.event","event":{...}}`.
+Use the `event` field of `sideaudio.command` for supported GCP task, permission,
 and history commands. Existing capability, permission, and owner checks still
 apply; commands are not forwarded directly to the provider.
 
 Client actions retain GCP semantics: `client.action.request` arrives inside
-`qwaudio.event`; return `client.action.result` through `qwaudio.command`, keeping
+`sideaudio.event`; return `client.action.result` through `sideaudio.command`, keeping
 `request_event_id`. Send `client.event.publish` through the same command channel,
 without opening a second WebSocket session.
 
-Large inbound JSON, such as capture results, can use `qwaudio.transport.chunk`:
+Large inbound JSON, such as capture results, can use `sideaudio.transport.chunk`:
 `{type, id, index, total, data}`. Indices are consecutive from zero; `data` is a
 JSON text fragment. Each fragment holds at most 8,192 UTF-16 code units, each
 wire frame at most 64 KiB, and each reassembled message at most 512 KiB. Only one
@@ -208,10 +208,10 @@ sending images larger than the SCTP single-message limit.
 
 Generation completion, server RTP drain, and client playback completion are distinct:
 
-- `qwaudio.output.started`: the server started sending a response, not proof it was heard.
-- `qwaudio.output.drained`: the server queue is empty; browser buffering may remain.
-- Send `qwaudio.playback.started` with `response_id` when client playback begins.
-- Send `qwaudio.playback.ended` or `qwaudio.playback.cancelled` after playback or cancellation.
+- `sideaudio.output.started`: the server started sending a response, not proof it was heard.
+- `sideaudio.output.drained`: the server queue is empty; browser buffering may remain.
+- Send `sideaudio.playback.started` with `response_id` when client playback begins.
+- Send `sideaudio.playback.ended` or `sideaudio.playback.cancelled` after playback or cancellation.
 - Receipts drive existing transcript, history, and notification handling; the server does not fabricate them.
 
 The example estimates playback using the audio element and received audio level,
@@ -236,9 +236,9 @@ clearing; stricter guarantees require further validation.
 Optional environment variables:
 
 ```sh
-QWAUDIO_WEBRTC_ENABLED=1
-QWAUDIO_WEBRTC_ICE_SERVERS='[{"urls":"turn:turn.example.com:3478","username":"short-lived-user","credential":"short-lived-credential"}]'
-QWAUDIO_WEBRTC_ICE_TRANSPORT_POLICY=all
+SIDEAUDIO_WEBRTC_ENABLED=1
+SIDEAUDIO_WEBRTC_ICE_SERVERS='[{"urls":"turn:turn.example.com:3478","username":"short-lived-user","credential":"short-lived-credential"}]'
+SIDEAUDIO_WEBRTC_ICE_TRANSPORT_POLICY=all
 ```
 
 Authenticated clients receive the configured ICE settings. Do not embed
@@ -251,7 +251,7 @@ this preview does not claim production certification.
 ```sh
 node --test server/test/webrtc.test.mjs server/test/webrtc-transport-regressions.test.mjs server/test/webrtc-media-process.test.mjs server/test/gateway-client-handshake.test.mjs server/test/gateway-application.test.mjs
 npx playwright install chromium
-QWAUDIO_TEST_WEBRTC_NATIVE=1 node --test server/test/webrtc-native.test.mjs
+SIDEAUDIO_TEST_WEBRTC_NATIVE=1 node --test server/test/webrtc-native.test.mjs
 ```
 
 Default tests do not require native addons. Native tests open the actual UI in

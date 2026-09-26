@@ -3,7 +3,7 @@
 ## Choosing a Version
 
 - **Everyday use**: choose a desktop installer from the
-  [latest GitHub Release](https://github.com/QwenAudio/qwen-audio-agent/releases/latest), or the latest stable npm package.
+  [latest GitHub Release](https://github.com/TokenBeat/side-audio-bot/releases/latest), or the latest stable npm package.
 - **Testing new features**: use GitHub `main`. This manual follows `main`; not every documented feature is in a stable package yet.
 - Mobile currently uses [development builds](mobile.md#get-development-builds). For testing, prefer Gateway and client builds from the same revision.
 
@@ -13,11 +13,11 @@ Desktop installers include the Gateway and its runtime. **You do not need to ins
 just to run Desktop.** Backend Agent installation, authentication, and configuration are separate;
 see [Backend Agents](../backends/overview.md).
 
-Download from the [release page](https://github.com/QwenAudio/qwen-audio-agent/releases/latest):
+Download from the [release page](https://github.com/TokenBeat/side-audio-bot/releases/latest):
 
 | Platform | Installation |
 | --- | --- |
-| macOS | Open the `.dmg`, drag Qwen Audio Agent into Applications, then open the app. |
+| macOS | Open the `.dmg`, drag Side Audio Bot into Applications, then open the app. |
 | Windows | Run the `.exe` installer and follow the setup wizard. |
 
 Continue with the [Desktop guide](../desktop/overview.md). Linux users can
@@ -32,20 +32,20 @@ with nvm, run `nvm use`.
 Install the stable release:
 
 ```bash
-npm install -g qwen-audio-agent
+npm install -g side-audio-bot
 ```
 
 Install the latest development code from GitHub:
 
 ```bash
-npm install -g git+https://github.com/QwenAudio/qwen-audio-agent.git
+npm install -g git+https://github.com/TokenBeat/side-audio-bot.git
 ```
 
 ## Install from Source
 
 ```bash
-git clone https://github.com/QwenAudio/qwen-audio-agent.git
-cd qwen-audio-agent
+git clone https://github.com/TokenBeat/side-audio-bot.git
+cd side-audio-bot
 npm ci
 npm run build
 ```
@@ -59,7 +59,7 @@ npm run gateway
 npm run cli -- webui
 ```
 
-To use `qwenaudio` from any directory, also run `npm run install:global`.
+To use `sideaudio` from any directory, also run `npm run install:global`.
 Use `npm run desktop` for the development Desktop app; this is separate from an installed release.
 
 ## Upgrade
@@ -67,7 +67,7 @@ Use `npm run desktop` for the development Desktop app; this is separate from an 
 Desktop can check for updates in Settings, or you can download a new installer. Update the stable CLI:
 
 ```bash
-npm install -g qwen-audio-agent@latest
+npm install -g side-audio-bot@latest
 ```
 
 For GitHub development installs, rerun the GitHub installation command above. Restart the Gateway
@@ -77,21 +77,21 @@ you actually use after updating:
 ## Verify Installation
 
 ```bash
-qwenaudio --version
-qwenaudio config
+sideaudio --version
+sideaudio config
 ```
 
 The first command shows the installed version; the second shows the configuration path and creates
 a template if missing. Neither verifies API credentials or model connectivity. Configure the app
 and complete a conversation using the [quickstart](quickstart.md).
 
-Development builds provide `qwenaudio doctor` for read-only diagnostics. `qwenaudio setup`
+Development builds provide `sideaudio doctor` for read-only diagnostics. `sideaudio setup`
 checks backend installations and integration components, not authentication or quota.
 See [Troubleshooting](../operations/troubleshooting.md).
 
 ## Configuration File Location
 
-CLI and Desktop share `~/.config/qwaudio/config.env` by default, but keep separate runtime state.
+CLI and Desktop share `~/.config/sideaudio/config.env` by default, but keep separate runtime state.
 See [configuration and data directories](../configuration.md#configuration-and-data-directories)
 for overrides and storage details.
 

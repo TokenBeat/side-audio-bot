@@ -6,7 +6,7 @@ import {
   DEFAULT_COCKPIT_VOICE,
 } from '../src/config/voices.js'
 
-test('offers only the two supported cockpit Qwen Audio voices', () => {
+test('offers only the two supported cockpit Side Audio voices', () => {
   assert.deepEqual(COCKPIT_VOICES, [
     { id: 'longanqian', label: '甜美女声' },
     { id: 'longanlufeng', label: '阳光男声' },

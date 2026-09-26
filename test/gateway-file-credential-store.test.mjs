@@ -7,7 +7,7 @@ import test from 'node:test'
 import { createPrivateFileGatewayCredentialStore } from '../shared/gateway/file-credential-store.mjs'
 
 test('terminal Gateway credentials use an owner-only revocable store', async t => {
-  const directory = mkdtempSync(resolve(tmpdir(), 'qwaudio-cli-credential-'))
+  const directory = mkdtempSync(resolve(tmpdir(), 'sideaudio-cli-credential-'))
   const filePath = resolve(directory, 'credentials.json')
   t.after(() => rmSync(directory, { recursive: true, force: true }))
   const store = createPrivateFileGatewayCredentialStore({ filePath })

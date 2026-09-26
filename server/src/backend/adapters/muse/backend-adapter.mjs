@@ -257,8 +257,8 @@ export async function createOfficialMuseClient({
   try {
     host = await handshake.initialize({
       clientInfo: {
-        name: 'qwen_audio_agent',
-        title: 'Qwen Audio Agent',
+        name: 'side_audio_bot',
+        title: 'Side Audio Bot',
         version: MUSE_BACKEND_ADAPTER_VERSION,
       },
     })

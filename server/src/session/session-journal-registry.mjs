@@ -227,7 +227,7 @@ export class SessionJournalRegistry {
     for (const journalFile of this.iterateSync()) {
       for (const event of journalFile.records || []) {
         const task = event?.payload?.task
-        if (event?.type !== 'qwaudio/task/event' || !task?.id) continue
+        if (event?.type !== 'sideaudio/task/event' || !task?.id) continue
         // seq is local to a journal, not a global revision. In particular, a
         // recycled short ID must not resurrect an older task from a long log.
         const revision = [Number(task.createdAt) || 0, Date.parse(event.time) || 0, event.seq]

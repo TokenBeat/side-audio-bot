@@ -205,7 +205,7 @@ test('describes backend-owned authentication actions', () => {
   assert.equal(authenticationSupport('opencode', {
     env: {
       DASHSCOPE_API_KEY: 'key',
-      QWEN_AUDIO_AGENT_BACKEND_MODEL: 'qwen3.7-max',
+      SIDE_AUDIO_BOT_BACKEND_MODEL: 'qwen3.7-max',
     },
     platform: 'darwin',
   }).required, false)
@@ -491,7 +491,7 @@ test('resolves npm.cmd on Windows', async () => {
 test('runs npm.cmd from a Windows directory containing spaces', {
   skip: process.platform !== 'win32',
 }, async () => {
-  const root = mkdtempSync(join(tmpdir(), 'qwen-audio-install-'))
+  const root = mkdtempSync(join(tmpdir(), 'side-audio-install-'))
   try {
     const directory = join(root, 'Program Files', 'nodejs')
     mkdirSync(directory, { recursive: true })

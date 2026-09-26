@@ -204,7 +204,7 @@ test('航空网关会把白名单换成航空那份', async () => {
   // 【不实际启动网关】那要十秒且依赖外部服务；这里只验分支条件，
   // 真实装载在浏览器实测里确认过（5 个工具、policy 检索源是云途航空）。
   const source = readFileSync(new URL('../server.mjs', import.meta.url), 'utf8')
-  assert.match(source, /QWEN_AUDIO_FRONTEND_MCP_CONFIG/,
+  assert.match(source, /SIDE_AUDIO_FRONTEND_MCP_CONFIG/,
     '没有按域覆盖前台 MCP 配置的代码')
   assert.match(source, /frontend-mcp\.airline\.json/)
   assert.match(source, /CS_DOMAIN === 'airline'/)

@@ -1,6 +1,6 @@
 # How It Fits Together
 
-Qwen Audio Agent separates realtime conversation from background execution. You can keep talking while progress and results return to the conversation.
+Side Audio Bot separates realtime conversation from background execution. You can keep talking while progress and results return to the conversation.
 
 ## Three Core Components
 

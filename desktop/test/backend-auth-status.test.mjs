@@ -151,7 +151,7 @@ test('detects an OpenClaw installation that has not been onboarded', async () =>
 test('runs Windows authentication commands stored in a directory with spaces', {
   skip: process.platform !== 'win32',
 }, async () => {
-  const root = mkdtempSync(join(tmpdir(), 'qwen-audio-auth-'))
+  const root = mkdtempSync(join(tmpdir(), 'side-audio-auth-'))
   try {
     const directory = join(root, 'Program Files', 'codex')
     mkdirSync(directory, { recursive: true })

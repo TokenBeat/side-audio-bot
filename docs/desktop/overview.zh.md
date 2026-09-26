@@ -6,7 +6,7 @@ Gateway，会复用该实例，否则由应用启动和管理。
 
 ## 首次使用
 
-1. 从[发布页](https://github.com/QwenAudio/qwen-audio-agent/releases/latest)下载安装包并打开应用。
+1. 从[发布页](https://github.com/TokenBeat/side-audio-bot/releases/latest)下载安装包并打开应用。
 2. 首次启动会创建 `config.env`。打开设置，填写语音前台所需凭据；
    默认 DashScope 可从设置中的入口前往百炼获取 API Key。
 3. 选择后台 Agent，也可以先选择仅前台模式。已安装的 Agent 沿用自己的登录和模型配置；
@@ -40,7 +40,7 @@ Gateway，会复用该实例，否则由应用启动和管理。
 
 可以从菜单栏或显示快捷键唤醒。macOS 默认快捷键为 `⇧⌘ Space`；
 实际按键可在设置中查看或修改。若启用唤醒词，休眠时麦克风仅供本地关键词检测，
-说“你好千问”即可唤醒。首次启用会下载并校验约 33 MB 的
+说“你好煤球”即可唤醒。首次启用会下载并校验约 33 MB 的
 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) 模型，之后使用本地缓存；
 检测在桌面客户端独立 Worker 中运行，不上传唤醒词音频。
 

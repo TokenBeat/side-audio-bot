@@ -1,6 +1,6 @@
 # Smart Cockpit
 
-Smart Cockpit is a runnable qwen-audio-agent scenario example. Users can
+Smart Cockpit is a runnable side-audio-bot scenario example. Users can
 naturally control the vehicle, plan routes, play music, check the weather,
 place flash-buy orders, and run custom workflows while the cockpit UI reflects
 vehicle and task state.
@@ -37,7 +37,7 @@ Long-running background work can continue alongside foreground conversation.
 
 ## Architecture
 
-![Smart cockpit framework architecture](https://raw.githubusercontent.com/QwenAudio/qwen-audio-agent/main/examples/smart-cockpit/docs/framework-architecture.svg)
+![Smart cockpit framework architecture](https://raw.githubusercontent.com/TokenBeat/side-audio-bot/main/examples/smart-cockpit/docs/framework-architecture.svg)
 
 The foreground supports both realtime conversation and direct tool calls;
 long-running or backend-routed work goes to the cockpit Agent without blocking
@@ -47,12 +47,12 @@ tool execution for both paths.
 | Component | Example implementation | Main interfaces |
 |---|---|---|
 | `client/` | React cockpit UI + Browser Audio | GCP 7.0 / Gateway Client SDK |
-| `gateway/` | qwen-audio-agent Gateway + foreground Realtime Agent | GCP / MCP / BackendPort |
+| `gateway/` | side-audio-bot Gateway + foreground Realtime Agent | GCP / MCP / BackendPort |
 | `agent/` | Qwen3.8-Flash backend Agent | A2A 1.0 / MCP |
 | `service/` | Cockpit state, rules, tools, and external integrations | HTTP/SSE / MCP |
 
 See
-[`examples/smart-cockpit/docs/architecture.md`](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/docs/architecture.md)
+[`examples/smart-cockpit/docs/architecture.md`](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/docs/architecture.md)
 for complete boundaries and data flows.
 
 ## Tool calling
@@ -75,7 +75,7 @@ before capability-gated tools such as frontend search are added.
 Scenario developers can change this routing in `service/tools/surface-routing.json`.
 
 The backend also uses 2 framework retrieval tools, `web_search` and `fetch_url`,
-through the public `qwen-audio-agent/web-retrieval` factory. They are not counted
+through the public `side-audio-bot/web-retrieval` factory. They are not counted
 in the 38 scenario tools and preserve the existing provider configuration and
 safe webpage-reading protections. See [web search](../guides/web-search.md);
 the default keyless search is an experimental fallback, not a live-news guarantee.
@@ -109,9 +109,9 @@ custom skills or long-running background tasks.
   finish one task or the number of valid timing samples.
 
 Numerical tables are maintained in the
-[accuracy results](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/bench/results/accuracy.md)
-and [recorded latency results](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/bench/results/voice-surface-short-20260911.json.md).
-See the [Benchmark guide](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/bench/README.md)
+[accuracy results](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/bench/results/accuracy.md)
+and [recorded latency results](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/bench/results/voice-surface-short-20260911.json.md).
+See the [Benchmark guide](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/bench/README.md)
 for definitions, provenance, limitations and reproduction commands.
 
 ## Replace and extend
@@ -124,7 +124,7 @@ for definitions, provenance, limitations and reproduction commands.
 | Change foreground personas or backend-task semantics | `gateway/` |
 
 See the
-[component replacement guide](https://github.com/QwenAudio/qwen-audio-agent/blob/main/examples/smart-cockpit/docs/replacing-components.md)
+[component replacement guide](https://github.com/TokenBeat/side-audio-bot/blob/main/examples/smart-cockpit/docs/replacing-components.md)
 for the complete migration path.
 
 ## Authors and acknowledgements
@@ -133,7 +133,7 @@ for the complete migration path.
   cockpit domain capabilities, including navigation, vehicle-control and music
   tools, foreground/backend routing, and evaluation cases.
 - [Li Xu](https://github.com/x-lixu): designed and implemented the scenario on
-  qwen-audio-agent, including the client, Gateway and backend Agent boundaries,
+  side-audio-bot, including the client, Gateway and backend Agent boundaries,
   realtime voice path, and A2A/MCP integrations.
 - [Peng Zhendong](https://github.com/pengzhendong): provided the original
   cockpit UI and visual assets, including the overall interface design,
